@@ -19,6 +19,17 @@ const UploadTracks = () => {
     localStorage.setItem("uploadedTracks", JSON.stringify(tracksArr));
   };
 
+  // Safely format seconds into mm:ss, tolerating invalid values
+  const formatDuration = (seconds) => {
+    if (typeof seconds !== "number" || !isFinite(seconds) || seconds < 0) {
+      return "--:--";
+    }
+    const totalSeconds = Math.floor(seconds);
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const secs = String(totalSeconds % 60).padStart(2, "0");
+    return `${minutes}:${secs}`;
+  };
+
   // Handle file upload
   const handleTrackUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -144,11 +155,7 @@ const UploadTracks = () => {
                 </div>
                 <div className="track-controls">
                   <audio controls src={track.url}></audio>
-                  <span className="duration">
-                    {new Date(track.duration * 1000)
-                      .toISOString()
-                      .substr(14, 5)}
-                  </span>
+                  <span className="duration">{formatDuration(track.duration)}</span>
                   <button
                     className={`edit-btn ${
                       !track.detailsCompleted ? "incomplete" : ""

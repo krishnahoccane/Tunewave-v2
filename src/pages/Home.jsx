@@ -1,62 +1,67 @@
-
 import React, { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
 import "../styles/Home.css";
 import SampleIcon from "../assets/samplIcon.png";
-import live from "../assets/Live.svg"
+import live from "../assets/Live.svg";
 function Home() {
-  const [userdata,setUserData] = useState([])
+  const [userdata, setUserData] = useState({});
+  const [userId, setUserId] = useState("");
 
   const navigate = useNavigate();
-
 
   //jwt token
   // const token = localStorage.getItem("jwtToken");
 
   const fetchUserDetails = async () => {
-  const token = localStorage.getItem("jwtToken");
-  if (!token) {
-    console.error("No JWT token found");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      "https://webhook.site/f3a7c048-3612-489f-af72-edfbc9c14744",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, // Pass JWT token here
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Error fetching user details:", data.message || data);
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      console.error("No JWT token found");
       return;
     }
 
-    console.log("User Details:", data);
-    setUserData(data)
-  } catch (error) {
-    console.error("Network error:", error);
-  }
-};
+    try {
+      const response = await fetch("/main/wp-json/wp/v2/users/me", {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-useEffect(()=>{
+      const data = await response.json();
 
-  fetchUserDetails()
-},[])
+      if (!response.ok) {
+        console.error("Error fetching user details:", data.message || data);
+        return;
+      }
 
+      setUserId(String(data.id));
+      // store id in local storage in base64 (guard against encoding errors)
+      if (data?.id !== undefined) {
+        try {
+          const encoded = btoa(String(data.id));
+          localStorage.setItem("userId", encoded);
+        } catch (e) {
+          // If encoding fails, fall back to plain string
+          console.warn("btoa failed, storing plain id", e);
+          localStorage.setItem("userId", String(data.id));
+        }
+      }
+      console.log("User Details:", data);
+      setUserData(data);
+    } catch (error) {
+      console.error("Network error:", error);
+    }
+    
+  };
 
-
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
 
   // Dynamic User
   const user = {
-    name: "prea",
+    name: userdata?.name || localStorage.getItem("displayName") || "User",
     role: "Artist",
     profilePic: SampleIcon,
   };
@@ -64,17 +69,17 @@ useEffect(()=>{
   // Dynamic Cards Data
   const cardsData = [
     {
-      heading:"Account Balance",
+      heading: "Account Balance",
       value: "$300.29",
       meta: "Account Balance <br/> Approx ₹25,093.12",
     },
     {
-      heading:"Last Statement",
+      heading: "Last Statement",
       value: "$300.29",
       meta: "May 2024 <br/> Orpin Music",
     },
     {
-      heading:"Last Payout",
+      heading: "Last Payout",
       value: "$300.29",
       meta: "May 23, 2024 <br/> ₹25,093.12",
     },
@@ -93,19 +98,17 @@ useEffect(()=>{
     <div className="home-container">
       {/* Greeting Card */}
       <div className="greeting-card">
-          <img src={user.profilePic} alt="Profile" className="profile-card-pic" />
-          <div className="greeting-info">
-            <h1 className="greeting-name">{userdata.name}</h1>
-            <p className="greeting-role">{user.role}</p>
-          </div>
+        <img src={user.profilePic} alt="Profile" className="profile-card-pic" />
+        <div className="greeting-info">
+          <h1 className="greeting-name">{user.name}</h1>
+          <p className="greeting-role">{user.role}</p>
+        </div>
         <button
-        className="new-release-button"
-        onClick={() => navigate("/create-release")}
+          className="new-release-button"
+          onClick={() => navigate("/create-release")}
         >
           Create Release
         </button>
-
-
       </div>
 
       {/* Dynamic Cards Section */}
@@ -114,39 +117,63 @@ useEffect(()=>{
           <div key={idx} className="card">
             <h3>{card.heading}</h3>
             <div className="second-card">
-               <div className="value">{card.value}</div>
-            <div
-              className="meta"
-              dangerouslySetInnerHTML={{ __html: card.meta }}
-            />
+              <div className="value">{card.value}</div>
+              <div
+                className="meta"
+                dangerouslySetInnerHTML={{ __html: card.meta }}
+              />
+            </div>
           </div>
-              </div>
         ))}
       </div>
 
       {/* Releases Section */}
       <div className="releases-header">
         <h2>Recent Releases</h2>
-          <button
-            className="view-all-btn"
-            onClick={() => navigate("/catalog?tab=releases")}
-          >
-            View All
-          </button>
+        <button
+          className="view-all-btn"
+          onClick={() => navigate("/catalog?tab=releases")}
+        >
+          View All
+        </button>
       </div>
 
-      <div className="releases-container" onClick={()=>navigate("/preview-distribute")}>
+      <div
+        className="releases-container"
+        onClick={() => navigate("/preview-distribute")}
+      >
         {releases.map((release, i) => (
           <div key={i} className="release-card">
             <div className="album-art">
-              <div className="live-tag"><img style={{height:"10px",width:"11px",marginRight:"5px",marginTop:"1px"}} src={live}/>Live</div>
+              <div className="live-tag">
+                <img
+                  style={{
+                    height: "10px",
+                    width: "11px",
+                    marginRight: "5px",
+                    marginTop: "1px",
+                  }}
+                  src={live}
+                />
+                Live
+              </div>
               <img src={release.img} alt={release.title} />
               <div className="overlay">
                 <button className="play-btn">▶</button>
               </div>
             </div>
-            <div className="title" style={{textAlign:"left",paddingLeft:"10px"}}>{release.title}</div>
-            <div className="subtitle" style={{textAlign:"left",paddingLeft:"10px"}}>{release.subtitle}</div>
+            <div
+              className="title"
+              style={{ textAlign: "left", paddingLeft: "10px" }}
+            >
+              {release.title}
+            </div>
+            <div
+              className="subtitle"
+              style={{ textAlign: "left", paddingLeft: "10px" }}
+            >
+              {release.subtitle}
+            </div>
           </div>
         ))}
       </div>

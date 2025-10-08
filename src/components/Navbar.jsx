@@ -192,17 +192,15 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
         {/* Wallet */}
         <li className="dropdown-parent nav-item menu">
-          <li>
-            <Link
-              to="/wallet"
-              onClick={() => {
-                setMenuOpen(false);
-                setWalletOpen(false);
-              }}
-            >
-              <MdAccountBalanceWallet className="menu-icon" /> Wallet
-            </Link>
-          </li>
+          <Link
+            to="/wallet"
+            onClick={() => {
+              setMenuOpen(false);
+              setWalletOpen(false);
+            }}
+          >
+            <MdAccountBalanceWallet className="menu-icon" /> Wallet
+          </Link>
           {walletOpen && (
             <ul className="dropdown-menu">
               <li>

@@ -87,6 +87,7 @@ const TrackDetails = () => {
       if (isrcOption === "yes" && !isrcCode.trim()) { alert("Please enter ISRC code."); setIsSaving(false); return; }
 
       const trackData = {
+        created_by: atob(localStorage.getItem("userId")),
         trackTitle: trackTitle.trim(),
         catalogId: catalogId.trim(),
         primaryArtist: primaryArtist.trim(),
@@ -116,9 +117,9 @@ const TrackDetails = () => {
 
       // Send to Webhook
       try {
-        const res = await fetch("https://webhook.site/f3a7c048-3612-489f-af72-edfbc9c14744", {
+        const res = await fetch("/api/53f9354c-859b-42c2-b569-c001fb8927f5", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-type": "application/json" },
           body: JSON.stringify(trackData),
         });
         if (!res.ok) throw new Error(`Webhook error: ${res.status}`);

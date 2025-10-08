@@ -189,6 +189,7 @@ function CreateRelease() {
               body: {
                 mode: "raw",
                 raw: JSON.stringify({
+                  form_id: 1,
                   releaseTitle,
                   titleVersion,
                   digitalReleaseDate,
@@ -216,20 +217,28 @@ function CreateRelease() {
     // eslint-disable-next-line no-undef
 
     try {
-      const response = await axios.post("https://webhook.site/f9ab575b-9bc5-46a8-91b4-76e839327403", {
-        headers: {
-          "X-Api-Key": "PMAK-68d4e73cff57a50001c7d679-72ce4f630073ae99ae44686f974e06a257",
-        body: JSON.stringify(collectionPayload),
-      }});
+      const response = await axios.post(
+        "/wp/wp-json/gf/v2/entries",
+        collectionPayload,
+        {
+          headers: {
+           Authorization: `Basic ${btoa("ck_23e474a3a4a15b8460b78f01bc60d565dd7f94c5:cs_84ee6ec3c485d7727560ad9103ed3311d2afb088")}`,
+            "Content-type": "application/json",
+          },
+        }
+      );
 
-      const data = await response.json();
-      console.log("Postman API Response:", data);
+      console.log("Postman API Response:", response.data);
     } catch (error) {
-      console.error("Error posting to Postman API:", error);
+      console.error(
+        "Error posting to Postman API:",
+        error.response?.data || error.message
+      );
     }
   };
 
-  const saveContributor = () => {kk
+  const saveContributor = () => {
+    kk;
     if (!artistdropDownName) return;
 
     const newContributor = {
