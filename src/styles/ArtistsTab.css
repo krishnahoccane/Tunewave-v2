@@ -1,0 +1,44 @@
+.artists-tab {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.artists-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.artist-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.artist-avatar {
+  width: 40px;
+  height: 40px;
+  background: #1e40af;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.artist-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+.artist-role,
+.artist-tracks,
+.artist-releases {
+  color: #6b7280;
+  min-width: 100px;
+}

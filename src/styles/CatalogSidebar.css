@@ -1,0 +1,132 @@
+
+.catalog-sidebar {
+  position: fixed;
+  left: 0;
+  top: 60px; /* Adjust based on navbar height */
+  width: 250px;
+  height: calc(100vh - 60px);
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 20px 0;
+  overflow-y: auto;
+  z-index: 100;
+  
+  /* important fix */
+  height: auto;        /* shrink to content */
+  max-height: fit-content;
+}
+
+
+
+
+.catalog-sidebar h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  margin: 0 20px 15px;
+  text-transform: uppercase;
+}
+
+.catalog-sidebar h3:not(:first-child) {
+  margin-top: 30px;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-list li {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sidebar-list li:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.sidebar-list li.active {
+  /* background-color: #3b82f6; */
+  color: rgb;
+  border-right: 3px solid #1d4ed8;
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  filter: brightness(0) saturate(100%) invert(45%) sepia(7%) saturate(1028%) hue-rotate(169deg) brightness(94%) contrast(86%);
+}
+
+.sidebar-list li.active .sidebar-icon {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7500%) hue-rotate(109deg) brightness(108%) contrast(108%);
+}
+.catalog-sidebar {
+  width: 250px;
+  padding: 20px;
+  background: #fff;
+  border-right: 1px solid #eee;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.sidebar-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #333;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-list li:hover {
+  background: rgba(18, 120, 187, 0.08); /* light hover */
+  color: rgba(18, 120, 187, 1);
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  filter: grayscale(100%) brightness(0%); /* default grey/black */
+  transition: filter 0.3s ease;
+}
+
+/* ✅ Active state */
+.sidebar-list li.active {
+  color: rgba(18, 120, 187, 1);
+  font-weight: 600;
+  background: rgba(18, 120, 187, 0.1); /* optional highlight bg */
+}
+
+.sidebar-list li.active .sidebar-icon {
+  filter: none; /* remove grey filter → show original color */
+}
+
+@media (max-width: 1024px) {
+  .catalog-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .catalog-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+}
+
+

@@ -1,0 +1,359 @@
+/* ============================= */
+/* Outer Container */
+.data-table-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  height: 600px;
+  padding: 20px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow-x: auto;
+  position: relative;
+}
+
+/* ============================= */
+/* Table Wrapper */
+.table-wrapper {
+  flex: 1;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fdfdfd;
+  padding-right: 16px;
+}
+
+/* ============================= */
+/* Table */
+.data-table {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: collapse;
+}
+
+
+
+/* ============================= */
+
+
+
+/* Sticky Header */
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  z-index: 5;
+}
+
+/* Sticky First Column (Checkbox) */
+.data-table th:first-child,
+.data-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 4;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+  width: 40px;
+}
+
+/* Sticky Second Column (Title) */
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+  position: sticky;
+  left: 40px;
+  background: #fff;
+  z-index: 5;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.03);
+  
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+  position: sticky;
+  left: 40px;
+  background: #fff;
+  z-index: 5;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.03);
+  
+}
+
+.data-table tbody tr.hovered td:nth-child(2),
+.data-table tbody tr.selected td:nth-child(2) {
+  z-index: 6; /* higher than row hover background */
+}
+
+
+
+/* ============================= */
+/* Row States */
+.data-table tbody tr.hovered {
+  background-color: rgba(18, 120, 187, 0.15);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover td {
+  background-color: rgba(95, 149, 186, 0.15);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr.selected {
+  background-color: #76c1e9;
+  border-left: 3px solid #1178BB;
+}
+
+.data-table tbody tr.selected.hovered {
+  background-color: rgba(18, 120, 187, 0.25);
+  border-left: 3px solid #1178BB;
+}
+
+/* ============================= */
+/* Cell Custom Content */
+.title-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.track-image {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+}
+
+.label-badge {
+  background: #edf2f7;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* ============================= */
+/* Checkboxes */
+.data-table input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.data-table input[type="checkbox"]:hover {
+  border-color: #1278bb;
+}
+
+.data-table input[type="checkbox"]:checked {
+  border-color: #1278bb;
+  background-color: #fff;
+}
+
+.data-table input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  background: #1278bb;
+  border-radius: 4px;
+}
+
+.data-table input[type="checkbox"]:indeterminate::after {
+  content: "×";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #1278bb;
+}
+
+/* ============================= */
+/* Pagination */
+.pagination-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  background: #f9f9f9;
+  border-top: 1px solid #ddd;
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+}
+
+.pagination-info {
+  margin-bottom: 8px;
+}
+
+.pagination-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pagination-btn {
+  width: 30px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+  line-height: 24px;
+  border-radius: 4px;
+}
+
+.pagination-btn.active {
+  background-color: #1278bb;
+  color: #fff;
+}
+
+.pagination-arrow {
+  font-weight: bold;
+}
+
+/* ============================= */
+/* Row Actions & Dropdown */
+.row-actions {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 2;
+  text-align: right;
+}
+
+.row-actions .dots-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+}
+
+tr:hover .row-actions .dots-btn {
+  opacity: 1;
+}
+
+.action-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 4px 0;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column; /* ensures vertical buttons */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 5;
+}
+
+.dropdown button {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown button:hover {
+  background-color: #f0f8ff;
+}
+
+
+/* 3-dots button with round border, shadow, and hover animation */
+.row-actions .dots-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #ccc;       /* border for the circle */
+  background: #fff;             
+  cursor: pointer;
+  font-size: 18px;
+  width: 30px;                  
+  height: 30px;                 
+  border-radius: 50%;           /* makes it circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;                   /* reset padding */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+
+/* Show button on row hover */
+tr:hover .row-actions .dots-btn {
+  opacity: 2;
+  border-color: #1278bb;       /* border highlight */
+  background: #f0f8ff;        
+  transform: scale(1.05);      /* slight enlarge on hover */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 3-dots button */
+.row-actions .dots-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border: none;
+  background: transparent; /* ensure transparent background */
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  border-radius: 50%; /* make it round */
+}
+
+/* Show dots on hover */
+tr:hover .row-actions .dots-btn {
+  opacity: 1;
+  background: transparent; /* keep background transparent on hover */
+}
+
+/* Optional: if you want a white background on hover instead of transparent */
+tr:hover .row-actions .dots-btn {
+  opacity: 1;
+  background: #fff; /* white background on hover */
+}
+
+
+/* .data-table tbody tr.hovered .row-actions {
+  background-color: white !important;
+}
+
+.row-actions .dots-btn {
+  background: white !important;
+} */

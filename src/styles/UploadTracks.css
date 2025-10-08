@@ -1,0 +1,172 @@
+/* Container */
+.upload-container {
+  padding-top: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+/* Title */
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Step Indicator */
+.step-indicator {
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 14px;
+  margin-bottom: 1.5rem;
+}
+
+/* Upload Box */
+.upload-box {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 650px;
+  height: 100%;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Tracks Heading */
+.tracks-heading {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+/* Upload Section */
+.upload-section {
+  margin: 1.5rem 0;
+}
+
+.upload-area {
+  border: 2px dashed #b3b3b3;
+  background: #f7f9ff;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.upload-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.upload-subtitle {
+  font-size: 14px;
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.upload-requirements {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.4;
+}
+
+/* Uploaded Tracks */
+.uploaded-tracks-list {
+  margin-top: 1rem;
+}
+
+.track-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f3f7ff;
+  border: 1px solid #dce3f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.track-info {
+  flex: 1;
+  text-align: left;
+}
+
+.track-info strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.track-info p {
+  font-size: 14px;
+  color: #444;
+  margin: 0;
+}
+
+/* Track Controls */
+.track-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.track-controls audio {
+  width: 150px;
+  height: 30px;
+}
+
+.duration {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Buttons */
+.edit-btn {
+  background: #eee;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #ddd;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #555;
+  transition: color 0.2s ease;
+}
+
+.delete-btn:hover {
+  color: #d9534f;
+}
+
+/* Next Button */
+.next-btn {
+  background: linear-gradient(to right, #0093e9, #80d0c7);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+.next-btn:hover {
+  opacity: 0.9;
+}
+
+.step{
+  text-align: center;
+ 
+}

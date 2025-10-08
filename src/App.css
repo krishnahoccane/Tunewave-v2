@@ -1,0 +1,211 @@
+
+:root {
+  --nav-height: 93px;
+}
+
+.navbar {
+  position: fixed;              /* stick on top */
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;                  /* span full width */
+  height: var(--nav-height);    /* fixed height from Figma */
+  background: #ffffff;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 60px;
+
+  z-index: 1000;                /* above body */
+}
+
+/* Logo */
+.logo {
+  height: 50px;
+  cursor: pointer;
+}
+
+/* Search box */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin: 0 20px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  margin-left: 8px;
+  width: 100%;
+}
+
+.search-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Menu */
+.menu {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 24px;
+}
+
+.menu li a,
+.menu li button {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu li a.active,
+.menu li button.active {
+  color: #1e40af;
+}
+
+.menu-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Dropdown */
+.dropdown-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-top: 8px;
+  padding: 8px 0;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+  list-style: none;
+}
+
+.dropdown-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover {
+  background: #f3f4f6;
+}
+
+/* Hamburger (mobile only) */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.hamburger span {
+  width: 20px;
+  height: 2px;
+  background: #333;
+  border-radius: 2px;
+}
+
+/* Profile */
+.profile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.page-container,
+.catalog-page,
+.home-container {
+  padding-top: var(--nav-height);
+}
+ /* {new global style for button} */
+
+.new-release-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  background: transparent;
+  color: #1178BB;
+  border: 2px solid transparent;
+  border-radius: 999px; /* ensures perfect pill shape */
+  background-image: linear-gradient(#fff, #fff), 
+                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.new-release-button:hover,
+.new-release-button:active {
+  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
+  color: #fff;
+  border-radius: 999px; /* stays pill on hover */
+}
+
+/* Submit button  */
+.btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  background: transparent;
+  color: #1178BB;
+  border: 2px solid transparent;
+  border-radius: 999px; /* ensures perfect pill shape */
+  background-image: linear-gradient(#fff, #fff), 
+                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover + Active State with animated gradient */
+/* Hover + Active with animated gradient fill */
+.btn-submit:hover,
+.btn-submit:active {
+  background: linear-gradient(92.99deg, #0D5C99 3.3%, #0FA08F 100%);
+  background-size: 300% 300%;
+  background-position: 0% 50%;
+  animation: slidebg 4s linear infinite;
+  color: #fff;
+  border-radius: 999px;
+  border: none; /* solid fill look on hover */
+}
+
+/* Keyframes for sliding gradient effect */
+@keyframes slidebg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

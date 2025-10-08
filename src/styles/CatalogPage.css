@@ -1,0 +1,528 @@
+
+
+/* Fixed Layout - Everything stays in place except table scrolling */
+.catalog-page {
+  display: flex;
+  justify-content: space-evenly;
+  height: calc(100vh - 100px); /* Adjust based on your navbar height */
+  margin-top: 100px;
+  background: #f9fafb;
+  font-family: "Poppins", sans-serif;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 40px;
+  gap: 20px;
+}
+
+/* Top Header Bar - Fixed */
+.catalog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 100px;              /* push it below navbar (adjust navbar height if needed) */
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 15px 40px;
+  background: #fff;
+  /* border-bottom: 1px solid #e5e7eb; */
+
+  /* remove shadow */
+  box-shadow: none;
+}
+
+.catalog-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(18, 120, 187, 1);
+}
+
+/* Search Bar */
+.catalog-search {
+  flex: 1;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin: 0 20px;
+}
+
+.catalog-search input {
+  border: none;
+  outline: none;
+  flex: 1;
+  background: transparent;
+  padding: 6px;
+  font-size: 14px;
+}
+
+.search-icon {
+  margin-right: 8px;
+  color: #666;
+}
+
+/* Icons Row */
+.catalog-icons {
+  display: flex;
+  align-items: right;
+  gap: 20px;
+  font-size: 18px;
+  padding: 6px 12px;
+}
+
+.catalog-icons img {
+  width: 24px;   /* change to any size you want */
+  height: 24px;  /* keep equal for square icons */
+  object-fit: contain; /* makes sure it scales without distortion */
+  cursor: pointer;
+  /* background-color: NONE; */
+}
+
+
+.catalog-icons .create-release {
+  background: #1e40af;
+  color: #fff;
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.catalog-icons .create-release:hover {
+  background: #153c9e;
+}
+
+.catalog-sidebar {
+  width: 332px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+  position: fixed;
+  left: 40px;
+  top: 180px;   /* was 160px → now pushed further below header */
+  bottom: 40px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+/* background */
+.catalog-page{
+  background: #fff;
+}
+.catalog-content {
+  position: fixed;
+  left: 412px; /* 332px sidebar + 40px gap + 40px padding */
+  right: 40px;
+  top: 180px;   /* was 160px → keep in sync with sidebar */
+  bottom: 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.btn-img{
+  height: 45px;
+  width: 45px;
+  border-style: none;
+  cursor: pointer;
+}
+
+.round{
+  border-radius:50%;
+  padding-top: 2px;
+}
+
+/* Table Container - This is where scrolling happens */
+.data-table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+/* Table Wrapper - Scrollable area */
+.table-wrapper {
+  flex: 1;
+  overflow: auto; /* Both horizontal and vertical scrolling */
+  position: relative;
+  background: #f8f9fa;
+  padding: 16px 0;
+  height: calc(100vh - 250px); /* Fixed height to ensure vertical scrolling */
+  
+  /* Enhanced scrollbar styles */
+  scrollbar-width: thin;
+  scrollbar-color: #a0aec0 #f1f5f9;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #a0aec0;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+.table-wrapper::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Ensure scrollbars are always visible */
+.table-wrapper::-webkit-scrollbar-track:horizontal {
+  background: #f1f5f9;
+}
+
+.table-wrapper::-webkit-scrollbar-track:vertical {
+  background: #f1f5f9;
+}
+
+/* Data Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 800px; /* Ensures horizontal scrolling when needed */
+}
+
+/* Sticky table header */
+.data-table thead {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  z-index: 10;
+}
+
+.data-table th {
+  background-color: #f8f9fa;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.data-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table th.sortable:hover {
+  background-color: #e3f2fd;
+  color: rgba(18, 120, 187, 1);
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sort-indicators {
+  display: flex;
+  flex-direction: column;
+  margin-left: 8px;
+}
+
+.sort-arrow {
+  font-size: 8px;
+  color: #d1d5db;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.sort-arrow.active {
+  color: #3b82f6;
+}
+
+.data-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Checkbox styling - Enhanced for better interaction */
+.data-table th input[type="checkbox"],
+.data-table td input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.data-table th input[type="checkbox"]:hover,
+.data-table td input[type="checkbox"]:hover {
+  transform: scale(1.3);
+}
+
+/* Prevent checkbox column from triggering row selection */
+.checkbox-col {
+  position: relative;
+  z-index: 5;
+}
+
+.checkbox-col input {
+  pointer-events: auto;
+}
+
+/* Select all/none functionality */
+.select-all-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-controls {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.select-btn {
+  font-size: 10px;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  text-decoration: underline;
+}
+
+.select-btn:hover {
+  color: rgba(18, 120, 187, 1);
+  background: rgba(18, 120, 187, 0.1);
+}
+
+/* Title cell with image */
+.title-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.track-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Label badge */
+.label-badge {
+  background-color: rgba(18, 120, 187, 0.1);
+  color: rgba(18, 120, 187, 1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Pagination - Enhanced styling and fixed positioning */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+  background-color: white;
+  flex-shrink: 0;
+  border-radius: 0 0 12px 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: auto;
+  
+  flex-direction: row;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.pagination {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pagination-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  border-color: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.pagination-btn.active:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.3);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-arrow {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .catalog-page {
+    padding: 20px;
+  }
+  
+  .catalog-header {
+    padding: 15px 20px;
+  }
+  
+  .catalog-sidebar {
+    left: 20px;
+    width: 300px;
+  }
+  
+  .catalog-content {
+    left: 340px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .catalog-sidebar {
+    width: 280px;
+  }
+  
+  .catalog-content {
+    left: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .catalog-page {
+    flex-direction: column;
+    position: relative;
+    height: auto;
+    padding: 10px;
+  }
+  
+  .catalog-header {
+    position: relative;
+    top: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+  
+  .catalog-sidebar {
+    position: relative;
+    left: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: 200px;
+    margin-bottom: 10px;
+  }
+  
+  .catalog-content {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    flex: 1;
+  }
+}
+
+
+
+/* Download csv / xls */
+.download-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.download-menu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+.download-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.download-menu button:hover {
+  background: #f3f3f3;
+}

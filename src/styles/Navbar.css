@@ -1,0 +1,402 @@
+/* ---------------- GLOBAL FONT ---------------- */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  /* font-family: "Poppins"; */
+}
+
+/* ---------------- NAVBAR BASE ---------------- */
+:root {
+  --nav-height: 93px;
+}
+
+.navbar {
+  /* position: fixed;        stick to top */
+  top: 0;
+  left: 0;
+  right: 0;               /* ensures it spans full screen width */
+  height: var(--nav-height);
+  background: #ffffff;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 60px;
+
+  z-index: 1000;          /* always above content */
+}
+
+.logo {
+  width: 120px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 0 15px;
+  /* border-radius: 27px; */
+  border: 1px solid #bfbfbf;
+  width: 400px;
+  height: 40px;
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+}
+
+.search-box .input-box {
+  border: none;
+  
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  flex: 1;
+}
+
+.menu {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  width: 555px;
+  justify-content: space-between;
+}
+
+.menu li a {
+  text-decoration: none !important;
+  color: #000000 !important;
+  font-weight: 500;
+  font-size: 16px;
+  transition: color 0.2s ease;
+}
+
+.menu li a:hover {
+  color: #007bff !important;
+}
+
+.profile {
+  width: 118px;
+  height: 60px;
+  padding: 10px 20px 10px 30px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.catalog-link img {
+  transition: 0.2s ease-in-out;
+}
+.catalog-link:hover {
+  color: #007bff; /* or your theme */
+}
+
+
+/* Arrow inside menu for  */
+.menu li img {
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* ---------------- HAMBURGER ---------------- */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+}
+
+/* ---------------- DESKTOP ≥1024px ---------------- */
+@media (min-width: 1024px) {
+  .menu li a {
+    font-size: 16px; 
+  }
+  .hamburger {
+    display: none;
+  }
+}
+
+/* ---------------- TABLET 768px–1023px ---------------- */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .menu li a {
+    font-size: 14px; /* slightly smaller text */
+  }
+  .search-box {
+    width: 300px;
+  }
+  .hamburger {
+    display: none; /* still no hamburger */
+  }
+}
+
+/* ---------------- MOBILE ≤768px ---------------- */
+@media (max-width: 768px) {
+  .search-box {
+    display: none; /* hide search bar */
+  }
+
+  .menu {
+    position: absolute;
+    top: 93px;
+    right: 0;
+    width: 200px;
+    background: white;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    display: none;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+
+  .menu.active {
+    display: flex; /* show when hamburger clicked */
+  }
+
+  .menu li a {
+    font-size: 14px; /* smaller */
+  }
+
+  .hamburger {
+    display: flex; /* show hamburger */
+  }
+
+  .profile {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+  }
+
+  .hamburger span {
+    width: 20px;
+    height: 2px;
+  }
+}
+
+/* ---------------- EXTRA SMALL ≤480px ---------------- */
+@media (max-width: 480px) {
+  .logo {
+    width: 90px;
+    height: auto;
+  }
+  .menu li a {
+    font-size: 12px;
+  }
+  .hamburger span {
+    width: 18px;
+    height: 2px;
+  }
+}
+
+
+/* Toggle Arrow */
+
+/* Arrow icons (Down + Up both same size) */
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  vertical-align: middle;
+  object-fit: contain;   /* keeps proportions */
+}
+
+/* Dropdown */
+.dropdown-parent {
+  position: relative;
+}
+
+.dropdown-toggle {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: #000;
+}
+
+.dropdown-toggle:focus {
+  outline: none;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  list-style: none;
+  padding: 10px;
+  margin: 5px 0 0;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.dropdown-menu li {
+  padding: 8px 12px;
+}
+
+
+.dropdown-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 8px;   /* spacing between icon & text */
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+}
+
+
+.dropdown-menu li a:hover {
+  color: #007bff;
+}
+
+/* Active link highlight */
+.menu li a.active,
+.dropdown-toggle.active,
+.dropdown-menu li a.active {
+  color: #007bff !important;  /* same as hover */
+  font-weight: 600;
+}
+
+
+/* Profile Container */
+.profile-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 5px;
+}
+
+.profile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* Profile Dropdown arrow button */
+.profile-arrow {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Profile Dropdown Menu */
+.profile-menu {
+  position: absolute;
+  top: 110%; /* below profile */
+  right: 0;
+  background: white;
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0,0,0,0.15);
+  min-width: 140px;
+  z-index: 1000;
+}
+
+.profile-menu li {
+  padding: 8px 16px;
+}
+
+.profile-menu li a {
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  display: block;
+}
+
+.profile-menu li a:hover {
+  color: #007bff;
+}
+
+
+
+/* Add spacing between each nav item */
+.menu .nav-item {
+  margin-right: 20px; /* adjust as per your design */
+  display: inline-block;
+}
+
+/* Optional: Remove margin on last item */
+.menu .nav-item:last-child {
+  margin-right: 0;
+}
+
+/* Ensure dropdowns align properly */
+.dropdown-parent .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+/* Make dropdown toggles look like normal nav links (Dashboard style) */
+.dropdown-toggle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 0;
+}
+
+.dropdown-toggle:hover,
+.dropdown-toggle.active {
+  color: #007bff;
+  font-weight: 600;
+}
+
+
+/* Top-level nav items: Dashboard, Catalog, Analytics, Wallet, Tools */
+.menu > li > a,
+.menu > li > .dropdown-toggle {
+  font-size: 15px;
+  font-weight: 400;
+  color: #000;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* keeps arrow spaced */
+  transition: color 0.2s ease;
+  padding: 0;
+}
+
+/* Hover + Active (same for all top-level items) */
+.menu > li > a:hover,
+.menu > li > .dropdown-toggle:hover,
+.menu > li > a.active,
+.menu > li > .dropdown-toggle.active {
+  color: #007bff;
+  font-weight: 500;
+}

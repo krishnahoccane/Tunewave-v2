@@ -1,0 +1,74 @@
+/* Full page container */
+.new-release-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9fafb;
+  font-family: "Poppins", sans-serif;
+  padding: 20px;
+}
+
+/* Center card */
+.new-release-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 40px;
+  width: 600px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Page title */
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+/* Platforms buttons in a grid row */
+.platforms-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.platform-btn {
+  padding: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.platform-btn:hover {
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: #fff;
+  border: none;
+}
+
+/* Save & Next button */
+.save-next-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.save-next-btn:hover {
+  opacity: 0.9;
+}
+
+
+.platforms-container {
+  display: flex;
+  flex-direction: column;
+}

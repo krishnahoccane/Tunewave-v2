@@ -1,0 +1,149 @@
+.analytics-page {
+  padding: 30px;
+  padding-top: 120px; 
+  font-family: "Poppins", sans-serif;
+  background: #f9fafb;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Close (×) Button */
+.close-btn {
+  position: absolute;
+  top: 100px;
+  right: 30px;
+  font-size: 28px;
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
+.close-btn:hover {
+  color: red;
+}
+
+.analytics-page h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Filters container */
+.filters {
+  display: flex;
+  gap: 10px;               
+  margin-bottom: 20px;
+  align-items: center;
+  width: 100%;             
+}
+
+/* All inputs and dropdowns stretch evenly */
+.filters select,
+.filters input {
+  flex: 1;                 
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+/* Optional: small-dropdown */
+.small-dropdown {
+  flex: 1;                
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 600px) {
+  .filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .filters select,
+  .filters input {
+    width: 100%;
+  }
+}
+
+/* Total Streams */
+.total-streams {
+  margin-bottom: 20px;
+}
+.total-streams h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.total-streams p {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1278bb;
+}
+
+/* Chart + Table Containers */
+.chart-container,
+.table-container {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-container th,
+.table-container td {
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+}
+.table-container th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.popup {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 360px;
+  text-align: center;
+}
+.popup-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.popup-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.popup-actions button.confirm {
+  background: #1278bb;
+  color: #fff;
+}
+.popup-actions button:hover {
+  opacity: 0.9;
+}

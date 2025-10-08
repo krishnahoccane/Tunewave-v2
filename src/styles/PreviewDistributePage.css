@@ -1,0 +1,221 @@
+/* Center everything */
+.preview-container {
+  min-height: 100vh;
+  margin-top: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f7fa;
+  font-family: "Poppins", sans-serif;
+  padding: 20px;
+}
+
+/* Card Container */
+.preview-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 50px;
+  width: 700px;
+  max-width: 95%;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.preview-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Cross button at top-right (only for the main container) */
+.close-button {
+  position: absolute;
+  text-align: center;
+  top: 20px;
+  right: 20px;
+  height: fit-content;
+  background: #f1f1f1;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  color: #555;
+  
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: #1278bb;
+  color: white;
+}
+
+/* Page title */
+.page-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 35px;
+  color: #222;
+}
+
+/* Details section */
+.preview-details div {
+  margin-bottom: 14px;
+  font-size: 16px;
+  color: #444;
+}
+
+.preview-details hr {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #ddd;
+}
+
+/* Add Link / Attach File buttons */
+.add-link-btn,
+.attach-file-btn {
+  margin: 10px 12px 25px 0;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(18, 120, 187, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.add-link-btn:hover,
+.attach-file-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
+}
+
+/* Submit button */
+.submit-btn {
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  margin-top: 30px;
+  box-shadow: 0 6px 15px rgba(18, 120, 187, 0.3);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.submit-btn:hover {
+  opacity: 0.95;
+  transform: translateY(-2px);
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup Content */
+.popup-content {
+  background: #ffffff;
+  padding: 36px 32px;
+  border-radius: 16px;
+  text-align: center;
+  width: 440px;
+  max-width: 90%;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24px;
+}
+/* Popup Buttons */
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.yes-button,
+.no-button,
+.cancel-button,
+.submit-btn {
+  flex: 1;
+  padding: 14px 0;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.yes-button {
+  background-color: #1278bb;
+  color: white;
+}
+
+.yes-button:hover {
+  background-color: #0f5e99;
+  transform: translateY(-2px);
+}
+
+/* Cancel Button should look like Add Link / Attach File Buttons */
+/* s */
+
+/* .cancel-button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
+} */
+
+
+/* Attachments List */
+.attachments-list {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.attachment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.remove-button {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.remove-button:hover {
+  background: #e04344;
+}

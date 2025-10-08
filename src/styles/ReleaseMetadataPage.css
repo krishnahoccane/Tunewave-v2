@@ -1,0 +1,318 @@
+/* Center everything in the page */
+.release-metadata-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9fafb;
+  font-family: "Poppins", sans-serif;
+  padding: 20px;
+}
+
+/* White Card Container - smaller size */
+.release-metadata-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 30px;       /* reduced from 40px */
+  width: 650px;        /* reduced from 800px */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Step indicator */
+.step-indicator {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+/* Page title */
+.page-title {
+  text-align: center;
+  font-size: 22px;     /* slightly smaller */
+  font-weight: 600;
+  margin-bottom: 25px; /* reduced margin */
+}
+
+/* Section title */
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+/* Toggle Switch Section */
+.toggle-switch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f3f4f6;
+  padding: 12px;       /* reduced padding */
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+select,
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+}
+
+input[disabled] {
+  background-color: #e5e7eb;
+  cursor: not-allowed;
+}
+
+/* Radio button group */
+.radio-group {
+  display: flex;
+  gap: 20px;           /* slightly smaller gap */
+  margin-bottom: 16px;
+}
+
+/* Next button */
+.next-button {
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  float: right;
+  font-weight: 500;
+}
+
+/* Close button (×) */
+.close-button {
+  position: absolute;
+  top: 12px;            /* slightly closer */
+  right: 12px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* Gradient Title when confirmed */
+.gradient-title {
+  background: linear-gradient(92.99deg, rgba(18, 120, 187, 0.8) 3.3%, rgba(19, 168, 158, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Popup Content */
+.popup-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  width: 400px;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.yes-button,
+.no-button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.yes-button {
+  background-color: #1278bb;
+  color: white;
+}
+
+.no-button {
+  background-color: #e5e7eb;
+  color: #333;
+}
+
+/* Hide the default checkbox */
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* The custom switch */
+.toggle-switch-label {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.toggle-switch-label .slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #cbd5e1;
+  border-radius: 34px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: 0.4s;
+}
+
+.toggle-switch-label .slider::before {
+  content: "";
+  position: absolute;
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+/* When checked */
+.toggle-switch input:checked + .slider {
+  background: linear-gradient(92.99deg, rgba(18, 120, 187, 0.8) 3.3%, rgba(19, 168, 158, 0.8) 100%);
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
+/* Date & Language Containers - smaller */
+.date-container,
+.language-container {
+  box-sizing: border-box;
+  width: 550px;        /* reduced from 600px */
+  margin: 15px auto;   /* less vertical spacing */
+  background: #ffffff;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.08); /* slightly lighter shadow */
+  border-radius: 12px; 
+  padding: 12px;       /* smaller padding */
+  display: flex;
+  gap: 12px;           
+  justify-content: space-between;
+}
+
+.date-box,
+.language-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.date-box label,
+.language-box label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.date-box input,
+.language-box select {
+  width: 100%;
+  padding: 10px;       /* slightly smaller */
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  appearance: none;
+}
+
+
+.explicit-content-box {
+  margin-top: 15px;
+  padding: 15px 20px;
+  background-color: #fff7f5; /* light peach/pink background */
+  border: 1px solid #f5c6cb; /* subtle red border */
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.explicit-content-box .section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #b91c1c; /* dark red for emphasis */
+}
+
+.explicit-content-box .explicit-text {
+  font-size: 14px;
+  color: #374151; /* dark gray text */
+  margin-bottom: 6px;
+}
+
+.explicit-content-box .explicit-note {
+  font-size: 13px;
+  color: #6b7280; /* lighter gray for note */
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.explicit-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.explicit-btn {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #f3f4f6;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.explicit-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.explicit-btn.selected {
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: white;
+  border: none;
+}
+
+
+.next-btn{
+  margin-left: 40%;
+}
+
+.form-group:hover {
+  background: none;
+  box-shadow: none;
+  border: none;
+}

@@ -1,0 +1,227 @@
+/* Container and Page */
+.ticket-page {
+  font-family: "Poppins", sans-serif;
+  margin-top: 110px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;  /* center horizontally */
+  align-items: center;      /* center vertically */
+  background: #f9fafb;
+  padding: 20px;
+  position: relative;
+}
+
+.ticket-container {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 30px 40px;
+  max-width: 900px;   /* large width for table */
+  width: 100%;
+  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+/* Heading */
+.ticket-page h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+/* Tabs */
+.ticket-tabs {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.ticket-tabs button {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  background: #f3f4f6;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.ticket-tabs button.active {
+  background: #1278bb;
+  color: #fff;
+}
+
+/* Form */
+.ticket-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ticket-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 6px;
+}
+
+.ticket-form select,
+.ticket-form input[type="text"],
+.ticket-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.ticket-form textarea {
+  min-height: 120px;
+  resize: none;
+}
+
+/* File Upload */
+.ticket-form input[type="file"] {
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  padding: 30px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  color: #888;
+}
+
+.ticket-form input[type="file"]::-webkit-file-upload-button {
+  visibility: hidden;
+}
+
+.ticket-form input[type="file"]::before {
+  content: "Drag here or click to browse a file";
+  color: #666;
+  font-size: 14px;
+}
+
+/* Required mark */
+.required {
+  color: red;
+}
+
+/* Submit button */
+.submit-btn {
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  border: none;
+  padding: 14px 0;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+  width: 150px;
+  align-self: flex-start;
+}
+
+.submit-btn:hover {
+  opacity: 0.9;
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #555;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #1278bb;
+}
+
+/* Tickets Table */
+.tickets-list {
+  width: 100%;
+  overflow-x: auto; /* horizontal scroll if needed */
+}
+
+.tickets-list table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  min-width: 700px; /* ensures table looks spacious */
+}
+
+.tickets-list th,
+.tickets-list td {
+  border: 1px solid #ccc;
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.tickets-list th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.tickets-list tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* Optional: make table headers sticky on scroll */
+.tickets-list thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f3f4f6;
+  z-index: 2;
+}
+
+/* Search bar slightly left */
+.ticket-search {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-start; /* align to left */
+  margin-left: 20px;           /* small left spacing from container edge */
+}
+
+.ticket-search input {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 300px;
+  font-size: 14px;
+}
+
+
+.ticket-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.ticket-detail h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.ticket-detail .detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.ticket-detail .detail-row span:first-child {
+  font-weight: 500;
+}
