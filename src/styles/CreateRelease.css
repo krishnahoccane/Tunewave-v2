@@ -1,3 +1,4 @@
+
 .create-release-page {
   padding: 40px 80px;
   font-family: "Poppins", sans-serif;
@@ -190,15 +191,17 @@
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #333;
-  border: none;
-  padding: 14px 30px;
-  border-radius: 50px;
-  cursor: pointer;
-  font-size: 15px;
+  background: #f3f4f6 !important;
+  color: #333 !important;
+  border: none !important;
+  padding: 14px 30px !important;
+  border-radius: 50px !important;
+  cursor: pointer !important;
+  font-size: 15px !important;
 }
-
+.btn-secondary:hover {
+  border: 1px solid #504e4e !important;
+}
 .file-types {
   font-size: 13px;
   color: #888;
@@ -788,8 +791,4 @@ label {
   background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
   color: #fff;
   border-radius: 999px; /* stays pill on hover */
-}
-.btn-secondary:hover{
-  border: 1px solid #504e4e;
-  /* background-color: #dbdddf; */
 }

@@ -1,4 +1,4 @@
-/* Center everything */
+/* 
 .preview-container {
   min-height: 100vh;
   margin-top: 120px;
@@ -10,7 +10,7 @@
   padding: 20px;
 }
 
-/* Card Container */
+
 .preview-card {
   background: #ffffff;
   border-radius: 16px;
@@ -27,7 +27,6 @@
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-/* Cross button at top-right (only for the main container) */
 .close-button {
   position: absolute;
   text-align: center;
@@ -52,7 +51,6 @@
   color: white;
 }
 
-/* Page title */
 .page-title {
   text-align: center;
   font-size: 26px;
@@ -61,7 +59,6 @@
   color: #222;
 }
 
-/* Details section */
 .preview-details div {
   margin-bottom: 14px;
   font-size: 16px;
@@ -74,7 +71,6 @@
   border-top: 1px solid #ddd;
 }
 
-/* Add Link / Attach File buttons */
 .add-link-btn,
 .attach-file-btn {
   margin: 10px 12px 25px 0;
@@ -96,7 +92,6 @@
   background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
 }
 
-/* Submit button */
 .submit-btn {
   width: 100%;
   padding: 16px 0;
@@ -117,7 +112,6 @@
   transform: translateY(-2px);
 }
 
-/* Popup Overlay */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -131,7 +125,6 @@
   z-index: 1000;
 }
 
-/* Popup Content */
 .popup-content {
   background: #ffffff;
   padding: 36px 32px;
@@ -148,7 +141,7 @@
   color: #333;
   margin-bottom: 24px;
 }
-/* Popup Buttons */
+
 .popup-buttons {
   display: flex;
   justify-content: space-between;
@@ -179,16 +172,7 @@
   transform: translateY(-2px);
 }
 
-/* Cancel Button should look like Add Link / Attach File Buttons */
-/* s */
 
-/* .cancel-button:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
-} */
-
-
-/* Attachments List */
 .attachments-list {
   margin-top: 20px;
   text-align: left;
@@ -218,4 +202,177 @@
 
 .remove-button:hover {
   background: #e04344;
+} */
+
+.preview-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #eef2f7;
+  font-family: "Poppins", sans-serif;
+  padding: 100px;
+}
+
+.preview-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 50px;
+  width: 90%;
+  max-width: 900px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.back-button:hover {
+  color: #0b78c1;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 35px;
+  color: #222;
+}
+
+.preview-details div {
+  margin-bottom: 14px;
+  font-size: 16px;
+  color: #555;
+}
+.preview-details hr {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(18, 120, 187, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  position: relative;
+}
+
+.btn-center-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.btn-final-submit {
+  min-width: 140px;
+  text-align: center;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: #ffffff;
+  padding: 36px 32px;
+  border-radius: 16px;
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  animation: popup-appear 0.3s ease;
+}
+
+.popup-content h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 24px;
+}
+
+.distribution-options label,
+.stores-options label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  color: #111;
+}
+.distribution-options input[type="radio"],
+.stores-options input[type="checkbox"] {
+  margin-right: 12px;
+  accent-color: #1278bb;
+}
+
+.popup-content .btn-secondary {
+  width: 100%;
+  padding: 14px 0;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.distribution-display {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1278bb;
+}
+
+.stores-options {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.stores-options::-webkit-scrollbar {
+  width: 6px;
+}
+.stores-options::-webkit-scrollbar-thumb {
+  background-color: #1278bb;
+  border-radius: 3px;
+}
+.stores-options::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+@keyframes popup-appear {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
