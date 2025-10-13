@@ -1,0 +1,90 @@
+
+.stores-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #eef2f7;
+  font-family: "Poppins", sans-serif;
+  padding: 20vh;
+
+}
+
+.stores-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 50px;
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.back-button:hover {
+  color: #1278bb;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+.stores-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
+.stores-options label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  color: #111;
+}
+
+.stores-options input[type="checkbox"] {
+  margin-right: 12px;
+  accent-color: #1278bb;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(18, 120, 187, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
+}
+

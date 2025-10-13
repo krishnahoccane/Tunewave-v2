@@ -160,23 +160,18 @@
   border: 2px solid #e5e7eb;
   border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  /* transition: all 0.3s ease; */
   background: white;
   color: #374151;
   position: relative;
 }
 
-.form-input:focus {
-  outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-  transform: translateY(-1px);
-}
 
-.form-input:hover:not(:disabled) {
+
+/* .form-input:hover:not(:disabled) {
   border-color: #6366f1;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
-}
+} */
 
 .form-input:disabled {
   background: #f9fafb;
@@ -185,10 +180,10 @@
 }
 
 /* Hover effect with colored underline */
-.form-group:hover .form-input:not(:disabled) {
+/* .form-group:hover .form-input:not(:disabled) {
   border-bottom-color: #1278BB;
   border-bottom-width: 3px;
-}
+} */
 
 .form-group:hover label {
   color: #1278BB;
@@ -341,10 +336,10 @@
   50% { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
-
+/* 
 .form-input:focus {
   animation: inputFocus 0.3s ease;
-}
+} */
 
 /* Custom scrollbar */
 .settings-container::-webkit-scrollbar {

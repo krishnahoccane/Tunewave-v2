@@ -43,7 +43,7 @@ const [displayName, setDisplayName] = useState("");
     setLoading(true);
     setError("");
     setSuccessMessage("");
-
+    
     try {
       const res = await fetch(
         `https://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
@@ -51,7 +51,8 @@ const [displayName, setDisplayName] = useState("");
       const data = await res.json();
       if (data.exists) {
         setEmailVerified(true);
-        setSuccessMessage(`Welcome ${data.display_name}! Please enter your password.`);
+        setSuccessMessage(`Please enter your password.`);
+        setDisplayName(data.display_name || "User");
       } else {
         setError("Email does not exist. Please check your email.");
       }
@@ -335,7 +336,7 @@ const handleResendOTP = async () => {
   <div className="login-left-side">
                 {emailVerified ? (
               <h1 className="login-title">
-                Welcome back, {displayName}! 👋
+                Welcome back, {displayName}!
               </h1>
             ) : (
               <>

@@ -20,6 +20,7 @@ import ReleaseForm from "./pages/ReleaseForm.jsx";
 import PreviewDistributePage from "./pages/PreviewDistributePage.jsx";
 import TrackDetails from "./pages/TrackDetails.jsx";
 import TicketRaisePage from "./pages/TicketRaisePage.jsx";
+import SelectStoresPage from "./pages/SelectStoresPage.jsx";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -63,7 +64,9 @@ function App() {
   return (
     <Router>
       {/* Show Navbar only if logged in */}
-      {isLoggedIn && <Navbar onLogout={handleLogout} />}
+      {isLoggedIn && location.pathname !== "/login" && (
+        <Navbar onLogout={handleLogout} />
+      )}
 
       <Routes>
         {/* Login page */}
@@ -126,6 +129,10 @@ function App() {
         <Route
           path="/upload-tracks"
           element={isLoggedIn ? <UploadTracks /> : <Navigate to="/login" />}
+        />
+         <Route
+          path="/select-stores"
+          element={isLoggedIn ? <SelectStoresPage /> : <Navigate to="/login" />}
         />
         <Route
           path="/four-page"

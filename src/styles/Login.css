@@ -35,7 +35,7 @@ body, html {
 
 .login-title {
   width: 100%;
-  text-align: left;
+  text-align: center;
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 600;
   color: #222;
@@ -184,7 +184,7 @@ body, html {
   height: 6vw;
   min-width: 55px;
   min-height: 55px;
-  top: 45%;
+  top: 65%;
   left: -3vw;
   transform: translateY(-50%);
   background: #fff;
@@ -310,3 +310,7 @@ body, html {
   cursor: pointer;
   text-align: center; 
 } 
+
+.login-p{
+  margin-top: auto;
+}
