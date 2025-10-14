@@ -3,6 +3,7 @@
   padding: 40px 80px;
   font-family: "Poppins", sans-serif;
   background: #f9fafb;
+  margin-top: auto;
 }
 
 .page-title {
@@ -792,3 +793,14 @@ label {
   color: #fff;
   border-radius: 999px; /* stays pill on hover */
 }
+
+
+
+
+
+
+
+
+
+
+

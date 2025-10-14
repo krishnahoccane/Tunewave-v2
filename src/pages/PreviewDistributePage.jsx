@@ -447,85 +447,98 @@
 
 
 
-
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/PreviewDistributePage.css";
 
 export default function PreviewDistributePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const stores = location.state?.stores || [];
 
   const [showPopup, setShowPopup] = useState(false);
 
-  const handleFinalSubmit = () => {
-    setShowPopup(true);
-  };
-
+  const handleFinalSubmit = () => setShowPopup(true);
   const handleConfirm = () => {
     setShowPopup(false);
     navigate("/dashboard");
   };
-
-  const handleCancel = () => {
-    setShowPopup(false);
-  };
+  const handleCancel = () => setShowPopup(false);
 
   return (
-    <div className="preview-container">
-      <div className="preview-card">
-        <div
-          className="back-button"
-          onClick={() => navigate(-1)}
-        >
-          &larr;
+    <div className="preview-full-page">
+      
+      <div className="preview-content">
+        <div className="back-button" onClick={() => navigate(-1)}>
+        &larr; Back
+      </div>
+
+      <h2 className="page-title">Preview & Distribute</h2>
+
+        {/* Top Release Info: Title, Artist, Label */}
+        <div className="release-info-top">
+          <div><strong>Title:</strong> Happy Days</div>
+          <div><strong>Artist:</strong> Micky J Meyer</div>
+          <div><strong>Label:</strong> Vivo</div>
         </div>
 
-        <h2 className="page-title">Preview Your Release</h2>
+        {/* Tracks */}
+        <div className="release-info-card">
+          <h3>Tracks</h3>
+          <div className="track-preview-container">
+            <div className="track-card">
+              <div><strong>Track 1:</strong></div>
+              <div>Happy Days - Micky J Meyer 8008008</div>
+              <div>05:51</div>
+            </div>
+            <div className="track-card">
+              <div><strong>Track 2:</strong></div>
+              <div>Happy Days - Micky J Meyer 8008008</div>
+              <div>03:58</div>
+            </div>
+          </div>
+        </div>
 
-        <div className="preview-details">
-          <div><strong>Release Title:</strong> Dream World</div>
-          <div><strong>Primary Artist:</strong> DJ Sonic</div>
-          <div><strong>Genre:</strong> Electronic</div>
-          <div><strong>Release Date:</strong> 2025-11-05</div>
-          <div><strong>Label:</strong> TuneWave Records</div>
-          <hr />
-          <div><strong>Track Count:</strong> 1</div>
-          <div><strong>Track Title:</strong> Dream World (Original Mix)</div>
-          <div><strong>ISRC:</strong> TW0012345678</div>
+        {/* Metadata */}
+        <div className="release-info-card">
+          <h3>Metadata</h3>
+          <div><strong>Language:</strong> English</div>
+          <div><strong>Primary Genre:</strong> Alternative/Experimental</div>
+          <div><strong>Explicit Lyrics:</strong> Yes</div>
+          <div><strong>Secondary Genre:</strong> Experimental</div>
+        </div>
+
+        {/* Release Dates & Stores */}
+        <div className="release-info-card">
+          <h3>Release Dates & Codes</h3>
+          <div><strong>Digital Release Date:</strong> 15/02/2025</div>
+          <div><strong>Original Release Date:</strong> 15/02/2025</div>
+          <div><strong>ISRC Code:</strong> AA18079998989</div>
+          <div><strong>UPC Code:</strong> AA18079998989</div>
+          <div><strong>Stores:</strong> {stores.length > 0 ? stores.join(", ") : "No stores selected"}</div>
         </div>
 
         {/* Action Buttons */}
-        <div className="action-buttons">
-          <button className="btn-secondary" onClick={() => navigate(-1)}>
-            Back
+        <div className="action-buttons-fullpage">
+          <button className="btn-secondary" onClick={() => navigate(-1)}>Back</button>
+          <button className="btn-secondary btn-final-submit" onClick={handleFinalSubmit}>
+            Final Submit
           </button>
-
-          <div className="btn-center-wrapper">
-            <button
-              className="btn-secondary btn-final-submit"
-              onClick={handleFinalSubmit}
-            >
-              Final Submit
-            </button>
-          </div>
         </div>
+
       </div>
 
-      {/* Popup Modal */}
+      {/* Popup */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup-content">
             <h3>Confirm Final Submission</h3>
             <p>Are you sure you want to submit your release for distribution?</p>
-
             <button className="btn-secondary" onClick={handleConfirm}>
               Yes, Submit
             </button>
-            <button
-              className="btn-secondary"
-              style={{ background: "#ccc", color: "#000", marginTop: "10px" }}
-              onClick={handleCancel}
-            >
+            <button className="btn-secondary cancel-btn" onClick={handleCancel}>
               Cancel
             </button>
           </div>

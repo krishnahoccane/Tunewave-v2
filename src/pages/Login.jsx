@@ -451,12 +451,12 @@ const handleResendOTP = async () => {
         </>
       )}
     </form>
-    <p className="login-p">----------Login----------</p>
+    <p className="login-p">----------  sign-in  ----------</p>
   </div>
 
   
 <div className="login-vertical-text">
-    <span>LOGIN</span>
+    <span>SIGN IN</span>
   </div>
   {/* Right Section */}
   <div className="login-right-side">

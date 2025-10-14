@@ -5,7 +5,7 @@ import "../styles/SelectStoresPage.css";
 const SelectStoresPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const releaseData = location.state || {}; // Tracks + metadata
+  const releaseData = location.state || {};
 
   const storesList = [
     "Spotify",
@@ -16,7 +16,7 @@ const SelectStoresPage = () => {
     "YouTube Music",
   ];
 
-  const [distributionOption, setDistributionOption] = useState(""); // radio
+  const [distributionOption, setDistributionOption] = useState("");
   const [selectedStores, setSelectedStores] = useState([]);
 
   const handleRadioChange = (option) => {
@@ -30,7 +30,7 @@ const SelectStoresPage = () => {
         setSelectedStores(storesList.filter((s) => s !== "YouTube Music"));
       }
     } else {
-      setSelectedStores([]); // manual
+      setSelectedStores([]);
     }
   };
 
@@ -42,19 +42,17 @@ const SelectStoresPage = () => {
     }
   };
 
-  const handleBack = () => navigate(-1); // go back to upload tracks
+  const handleBack = () => navigate(-1);
 
   const handleNext = () => {
     if (!distributionOption) {
       alert("Please select a distribution option.");
       return;
     }
-
     if (distributionOption === "manual" && selectedStores.length === 0) {
       alert("Please select at least one store.");
       return;
     }
-
     navigate("/preview-distribute", {
       state: {
         ...releaseData,
@@ -67,9 +65,6 @@ const SelectStoresPage = () => {
   return (
     <div className="stores-container">
       <div className="stores-card">
-        <span className="back-button" onClick={handleBack}>
-          &times;
-        </span>
         <h2 className="page-title">Select Distribution / Stores</h2>
 
         <div className="stores-options">
@@ -115,7 +110,7 @@ const SelectStoresPage = () => {
         </div>
 
         {distributionOption === "manual" && (
-          <div className="stores-options">
+          <div className="stores-options manual-options">
             {storesList.map((store, idx) => (
               <label key={idx}>
                 <input

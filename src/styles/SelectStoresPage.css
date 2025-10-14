@@ -1,37 +1,28 @@
-
 .stores-container {
   min-height: 100vh;
+  width: 100vw;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: flex-start; /* align card from top */
   background: #eef2f7;
   font-family: "Poppins", sans-serif;
-  padding: 20vh;
-
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 .stores-card {
   background: #fff;
   border-radius: 16px;
-  padding: 40px 50px;
-  width: 90%;
-  max-width: 600px;
-  position: relative;
+  padding: 40px 50px 40px 50px;
+  width: 100%;
+  max-width: 80%;
+  min-height: 75vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-}
-
-.back-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.back-button:hover {
-  color: #1278bb;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  margin-top: 100px; /* moved further down from top */
 }
 
 .page-title {
@@ -46,9 +37,16 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 300px;
+  max-height: 60vh;
   overflow-y: auto;
   margin-top: 20px;
+  padding-right: 5px;
+  /* align-items: center;
+  justify-content: center; */
+}
+
+.stores-options.manual-options {
+  margin-top: 10px; /* reduce gap under "Select Manually" */
 }
 
 .stores-options label {
@@ -60,15 +58,16 @@
   color: #111;
 }
 
-.stores-options input[type="checkbox"] {
+.stores-options input[type="checkbox"],
+.stores-options input[type="radio"] {
   margin-right: 12px;
   accent-color: #1278bb;
 }
 
 .action-buttons {
   display: flex;
-  justify-content: space-between;
-  margin-top: 30px;
+  justify-content: space-around;
+  margin-top: 5em; /* push buttons to bottom */
 }
 
 .btn-secondary {
@@ -80,11 +79,9 @@
   color: white;
   font-weight: 600;
   font-size: 15px;
-  box-shadow: 0 4px 12px rgba(18, 120, 187, 0.3);
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-.btn-secondary:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
 }
 
+/* .btn-secondary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
+} */
