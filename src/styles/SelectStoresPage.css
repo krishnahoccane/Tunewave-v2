@@ -14,7 +14,7 @@
 .stores-card {
   background: #fff;
   border-radius: 16px;
-  padding: 40px 50px 40px 50px;
+  padding: 0px 50px 40px 50px;
   width: 100%;
   max-width: 80%;
   min-height: 75vh;
@@ -26,7 +26,7 @@
 }
 
 .page-title {
-  text-align: center;
+  text-align: start;
   font-size: 26px;
   font-weight: 700;
   margin-bottom: 25px;
@@ -47,6 +47,7 @@
 
 .stores-options.manual-options {
   margin-top: 10px; /* reduce gap under "Select Manually" */
+  margin-left: 10.5em;
 }
 
 .stores-options label {
@@ -66,8 +67,11 @@
 
 .action-buttons {
   display: flex;
-  justify-content: space-around;
-  margin-top: 5em; /* push buttons to bottom */
+  align-items: end;
+  margin-top: auto;
+  justify-content: flex-end;
+ /* justify-items: space-between; */
+  gap: 15px;
 }
 
 .btn-secondary {
@@ -81,7 +85,21 @@
   font-size: 15px;
 }
 
-/* .btn-secondary:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(90.61deg, #0f5e99 4.69%, #0fa387 103.09%);
-} */
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.option-label input[type="radio"] {
+  margin-right: 8px;
+}
+
+.stores-icon {
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+}

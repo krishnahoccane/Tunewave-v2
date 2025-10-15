@@ -314,3 +314,67 @@ body, html {
 .login-p{
   margin-top: auto;
 }
+
+.login-forgot-password,
+.login-btn {
+  display: inline-block;
+  vertical-align: middle;
+  
+}
+.forget-login{
+  justify-content: space-between;
+  display: flex;
+  align-items: center;
+}
+
+.resend-validate-otp {
+  justify-content: space-between;
+  display: flex;
+  align-items: center;
+}
+
+
+
+.success-message-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.not-you-btn {
+  background: none;
+  border: none;
+  color: #0073e6;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.not-you-btn:hover {
+  color: #005bb5;
+  /* text-decoration: underline; */
+}
+.success-message-row {
+  margin-bottom: 10px;
+}
+
+.success {
+  color: #1a7f37;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.click-here-link {
+  color: #1278BB;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.click-here-link:hover {
+  color: #005bb5;
+}

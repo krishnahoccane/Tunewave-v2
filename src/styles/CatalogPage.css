@@ -492,8 +492,6 @@
   }
 }
 
-
-
 /* Download csv / xls */
 .download-wrapper {
   position: relative;
@@ -502,25 +500,29 @@
 
 .download-menu {
   position: absolute;
-  top: 40px;
+  top: 45px; /* dropdown a bit lower */
   right: 0;
   background: white;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 6px 0;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  padding: 10px 0; /* increased vertical padding */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
+  /* min-width: 200px;  */
+  width:max-content
 }
 
 .download-menu button {
   display: block;
   width: 100%;
-  padding: 8px 16px;
+  padding: 12px 20px; /* 👈 taller buttons */
   background: none;
   border: none;
   text-align: left;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 14px; /* same size as before */
+  color: #333;
+  transition: background 0.2s ease;
 }
 
 .download-menu button:hover {

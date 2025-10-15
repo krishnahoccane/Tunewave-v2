@@ -86,13 +86,126 @@ function Home() {
   ];
 
   // Dynamic Releases
-  const releases = [
-    { title: "Dangerous Days", subtitle: "2014 – Single", img: SampleIcon },
-    { title: "Night Sky", subtitle: "2020 – Album", img: SampleIcon },
-    { title: "Lost Dreams", subtitle: "2019 – EP", img: SampleIcon },
-    { title: "Ocean Waves", subtitle: "2022 – Single", img: SampleIcon },
-    { title: "Skyline", subtitle: "2023 – Album", img: SampleIcon },
-  ];
+  // const releases = [
+  //   { title: "Dangerous Days", subtitle: "2014 – Single", img: SampleIcon, audio: "/audio.wav", },
+  //   { title: "Night Sky", subtitle: "2020 – Album", img: SampleIcon, audio: "/audio.wav", },
+  //   { title: "Lost Dreams", subtitle: "2019 – EP", img: SampleIcon, audio: "/audio.wav", },
+  //   { title: "Ocean Waves", subtitle: "2022 – Single", img: SampleIcon, audio: "/audio.wav", },
+  //   { title: "Skyline", subtitle: "2023 – Album", img: SampleIcon, audio: "/audio.wav", },
+  // ];
+const releases = [
+  { 
+    title: "Dangerous Days", 
+    album: "Single", 
+    artist: "Artist", 
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+  { 
+    title: "Night Sky", 
+    album: "Album", 
+    artist: "Artist", 
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+  { 
+    title: "Lost Dreams", 
+    album: "EP", 
+    artist: "Artist", 
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+  { 
+    title: "Ocean Waves", 
+    album: "Single", 
+    artist: "Artist", 
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+  { 
+    title: "Skyline", 
+    album: "Album", 
+    artist: "Artist", 
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+];
+
+  const [currentTrack, setCurrentTrack] = useState(null);
+const [isPlaying, setIsPlaying] = useState(false);
+const [audio, setAudio] = useState(null);
+
+
+const [currentTime, setCurrentTime] = useState(0);
+const [duration, setDuration] = useState(0);
+const handlePlay = (release) => {
+  // If clicking the same track again → toggle play/pause
+  if (currentTrack?.title === release.title) {
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play();
+      setIsPlaying(true);
+    }
+    return;
+  }
+
+  // Stop and cleanup previous audio
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.src = "";
+  }
+
+  // Create new audio instance
+  const newAudio = new Audio(release.audio);
+
+  // Event listeners for metadata and progress
+  newAudio.addEventListener("loadedmetadata", () => {
+    setDuration(newAudio.duration);
+  });
+
+  newAudio.addEventListener("timeupdate", () => {
+    setCurrentTime(newAudio.currentTime);
+  });
+
+  // ✅ When song ends, reset player state
+ newAudio.addEventListener("ended", () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  });
+
+  // Start playback
+  newAudio.play().then(() => {
+    setIsPlaying(true);
+  }).catch(err => {
+    console.error("Audio play failed:", err);
+    setIsPlaying(false);
+  });
+
+  // Save references in state
+  setAudio(newAudio);
+  setCurrentTrack(release);
+};
+
+
+const formatTime = (time) => {
+  if (!time) return "0:00";
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+};
+
+useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = "";
+      }
+    };
+  }, [audio]);
 
   return (
     <div className="home-container">
@@ -140,6 +253,7 @@ function Home() {
 
       <div
         className="releases-container"
+        //  Should change to cards
         onClick={() => navigate("/preview-distribute")}
       >
         {releases.map((release, i) => (
@@ -159,7 +273,12 @@ function Home() {
               </div>
               <img src={release.img} alt={release.title} />
               <div className="overlay">
-                <button className="play-btn">▶</button>
+                <button className="play-btn" onClick={(e) => { 
+                      e.stopPropagation(); // prevent navigation
+                      handlePlay(release);
+                    }}>
+                      {currentTrack?.title === release.title && isPlaying ? "⏸" : "▶"}
+                  </button>
               </div>
             </div>
             <div
@@ -175,8 +294,95 @@ function Home() {
               {release.subtitle}
             </div>
           </div>
-        ))}
+        ))} 
       </div>
+
+
+      {/*   ------------------------------------------------Music Player  */}
+     {currentTrack && (
+                          <div className="music-player">
+                            {/* Main Player Content */}
+                            <div className="player-content">
+                              {/* Left: Album Art */}
+                              <div className="player-left">
+                                <div className="album-art-wrapper">
+                                  <img src={currentTrack.img} alt={currentTrack.title} className="player-img" />
+                                  <button
+                                    className="img-play-btn"
+                                    onClick={() => {
+                                      if (isPlaying) audio.pause();
+                                      else audio.play();
+                                      setIsPlaying(!isPlaying);
+                                    }}
+                                  >
+                                    {isPlaying ? "⏸" : "▶"}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Middle: Progress + Track Info */}
+                              <div className="player-middle">
+                                <div className="player-progress-container">
+                                  <span className="time">{formatTime(currentTime)}</span>
+                                  <input
+                                    type="range"
+                                    min={0}
+                                    max={duration}
+                                    value={currentTime}
+                                    onChange={(e) => {
+                                      const newTime = e.target.value;
+                                      audio.currentTime = newTime;
+                                      setCurrentTime(newTime);
+                                    }}
+                                    className="progress-bar"
+                                    style={{ "--progress": `${(currentTime / duration) * 100}%` }}
+                                  />
+                                  <span className="time">{formatTime(duration)}</span>
+                                </div>
+
+                                <div className="track-info">
+                                  <div className="track-title">{currentTrack.title}</div>
+                                  <div className="track-subtitle">{currentTrack.album}</div>
+                                  <div className="track-title">{currentTrack.artist}</div>
+                                </div>
+                              </div>
+
+                              {/* Right: Volume + Close */}
+                              <div className="player-right">
+                                <input
+                                  type="range"
+                                  min={0}
+                                  max={1}
+                                  step={0.01}
+                                  value={audio?.volume || 1}
+                                  onChange={(e) => {
+                                    audio.volume = e.target.value;
+                                  }}
+                                  className="volume-bar"
+                                />
+                                <button
+                                  className="close-play"
+                                  onClick={() => {
+                                    audio.pause();
+                                    audio.currentTime = 0;
+                                    setAudio(null);
+                                    setCurrentTrack(null);
+                                    setIsPlaying(false);
+                                    setCurrentTime(0);
+                                    setDuration(0);
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+
+
+{/* ----------------------------------------------------------------------------------- */}
+     
     </div>
   );
 }

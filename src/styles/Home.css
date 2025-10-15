@@ -354,3 +354,173 @@
   color: #fff;
   border-radius: 999px; 
 }      
+
+
+
+
+
+/* ------------------------------------------            Music Player           ------------------------------------------ */
+.music-player {
+  position: fixed;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  background: #fff;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.12);
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px;
+  gap: 8px;
+  z-index: 999;
+  box-sizing: border-box;
+}
+
+.player-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Left: Album Art */
+.player-left {
+  flex: 0 0 60px;
+  position: relative;
+}
+
+.album-art-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.player-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.img-play-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: opacity 0.2s;
+}
+
+.album-art-wrapper:hover .img-play-btn {
+  opacity: 1;
+}
+
+/* Middle: Progress + Track Info */
+.player-middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.player-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%; /* full width of middle div */
+}
+
+/* Base progress bar */
+.progress-bar {
+  -webkit-appearance: none;  /* Remove default WebKit styling */
+  -moz-appearance: none;     /* Remove Firefox default styling */
+  appearance: none;  
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #1278BB var(--progress, 0%), #ccc var(--progress, 0%));
+  cursor: pointer;
+}
+
+/* Remove default track in WebKit */
+.progress-bar::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Remove default track in Firefox */
+.progress-bar::-moz-range-track {
+  background: transparent;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Hide the thumb entirely */
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0;
+  height: 0;
+  background: none;
+  cursor: default;
+}
+
+.progress-bar::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  background: none;
+  border: none;
+  cursor: default;
+}
+
+.time {
+  font-size: 12px;
+  width: 40px;
+  text-align: center;
+}
+
+.track-info {
+  display: flex;
+  margin-top: 4px;
+  overflow: hidden;
+  flex-direction:row;
+  justify-content: space-evenly;
+}
+
+.track-title, .track-subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+/* Right: Volume + Close */
+.player-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-bar {
+  width: 80px;
+}
+
+.close-play {
+  font-size: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}

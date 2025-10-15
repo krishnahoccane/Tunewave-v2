@@ -211,6 +211,11 @@ import React, { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/UploadTracks.css";
 
+
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 const UploadTracks = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -252,9 +257,10 @@ const UploadTracks = () => {
 
     files.forEach((file) => {
       if (!validFormats.includes(file.type)) {
-        alert(`File ${file.name} is not a valid format.`);
-        return;
+          toast.error(`❌ ${file.name} is not a valid format.`);
+      return;
       }
+
 
       const audioURL = URL.createObjectURL(file);
       const audio = new Audio(audioURL);
@@ -310,14 +316,15 @@ const UploadTracks = () => {
   // ✅ Proceed to next page
   const handleNextStep = () => {
     if (tracks.length === 0) {
-      alert("Please upload at least one track before continuing.");
+       toast.warn("⚠️ Please upload at least one track before continuing.");
       return;
-    }
+      }
 
     if (tracks.some((t) => !t.detailsCompleted)) {
-      alert("Please complete track details before proceeding.");
-      return;
-    }
+        toast.info("ℹ️ Please complete track details before proceeding.");
+        return;
+      }
+
 
     localStorage.setItem("uploadedTracks", JSON.stringify(tracks));
 
@@ -326,8 +333,11 @@ const UploadTracks = () => {
     });
   };
 
+
+  
   return (
     <div className="upload-container">
+
       <h2 className="title">Upload Tracks</h2>
 
       <div className="upload-box">
@@ -404,7 +414,14 @@ const UploadTracks = () => {
           </p>
         )}
 
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap: "12px" }}>
+          <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => navigate("/create-release")} // Go back to previous page
+                >
+                  Back
+            </button>
           <button
             className="new-release-button"
             disabled={tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)}
@@ -423,6 +440,7 @@ const UploadTracks = () => {
             Next
           </button>
         </div>
+        <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
       </div>
     </div>
   );

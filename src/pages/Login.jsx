@@ -35,11 +35,23 @@ const [displayName, setDisplayName] = useState("");
   // Dynamic Image
   const [cardImage, setCardImage] = useState(lsiImage); // default fallback
 
+
+
+  // ------------------------------------Email Validation-----------------------------
+  const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+
   // --------------------------
   // Step 1: Verify Email
   // --------------------------
   const handleVerifyEmail = async () => {
+
     if (!email) return setError("Please enter your email.");
+    if (!validateEmail(email)) return setError("Please enter a valid email address.");
+
     setLoading(true);
     setError("");
     setSuccessMessage("");
@@ -100,6 +112,21 @@ const [displayName, setDisplayName] = useState("");
       setLoading(false);
     }
   };
+
+
+  
+  // --------------------------
+  // Step 2.1: SNot you
+  // --------------------------
+
+  const handleResetEmail = () => {
+  setEmail("");
+  setPassword("");
+  setEmailVerified(false);
+  setError("");
+  setSuccessMessage("");
+  setForgotStage("none");
+};
 
   // --------------------------
   // Step 3: Send OTP
@@ -330,151 +357,201 @@ const handleResendOTP = async () => {
   // UI Rendering
   // --------------------------
   return (
-<div className="connected-container">
+          <div className="connected-container">
 
-  {/* Left Section */}
-  <div className="login-left-side">
-                {emailVerified ? (
-              <h1 className="login-title">
-                Welcome back, {displayName}!
-              </h1>
-            ) : (
-              <>
-                <h1 className="login-title">HELLO THERE</h1>
-                <p className="login-subtitle">Login to Tunewave</p>
-              </>
-            )}
-     
+            {/* Left Section */}
+            <div className="login-left-side">
+                          {emailVerified ? (
+                        <h1 className="login-title">
+                          Welcome back, {displayName}!
+                        </h1>
+                      ) : (
+                        <>
+                          <h1 className="login-title">HELLO THERE</h1>
+                          <p className="login-subtitle">Login to Tunewave</p>
+                        </>
+                      )}
+              
 
-    <form className="login-form" onSubmit={handleLogin}>
-      
-    
-      {/* <h2>Login to Label</h2> */}
-      {error && <p className="error">{error}</p>}
-      {successMessage && <p className="success">{successMessage}</p>}
-
-      {/* Step 1: Email verify */}
-      {!emailVerified && forgotStage === "none" && (
-        <>
-          <label className="login-label-txt">
-            Email Address 
-            <input className="login-input-box" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-
-          </label>
-          <button type="submit" className="login-btn" onClick={handleVerifyEmail} onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault(); // prevent form from auto-submitting
-          handleVerifyEmail();
-        }
-      }} disabled={loading}>
-            {loading ? "Verifying..." : "Verify Email"}
-          </button>
-        </>
-      )}
-
-      {/* Step 2: Password Login */}
-      {emailVerified && forgotStage === "none" && (
-        <>
-          <label className="login-label-txt">
-            Password
-            <input className="login-input-box" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            </label>
-          
-          <button type="submit" className="login-btn" disabled={loading} onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault(); // prevent form from auto-submitting
-          handleVerifyEmail();
-        }
-      }}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-          <p
-            className="login-forgot-password"
-            style={{ cursor: forgotPasswordLoading ? "not-allowed" : "pointer" }}
-            onClick={() => !forgotPasswordLoading && handleSendOTP()}
-          >
-            Forgot Password?
-          </p>
-        </>
-      )}
-
-      {/* OTP Stage */}
-      {forgotStage === "otp" && (
-        <>
-          <label className="login-label-txt">
-            Enter OTP
-            <input type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} maxLength={6} />
-          </label>
-           <button type="button" className="login-btn" onClick={handleValidateOTP} disabled={forgotPasswordLoading}>
-            {forgotPasswordLoading ? "Validating..." : "Validate OTP"}
-          </button>
-          <p
-            className="login-forgot-password"
-            style={{ cursor: resendDisabled ? "not-allowed" : "pointer" }}
-            onClick={handleResendOTP}
-          >
-            {resendDisabled ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
-          </p>
-        </>
-      )}
-
-      {/* Reset Password */}
-      {forgotStage === "reset" && (
-        <>
-        <div
-          style={{
-            fontSize: "14px",
-            color: "#555",
-            marginTop: "4px",
-            lineHeight: "1.4",
-            textAlign: "left"
-          }}
-        >
-          Note: Your password must meet the following criteria:
-          <ul style={{ paddingLeft: "20px", margin: "4px 0" }}>
-            <li>Minimum length: 8 characters</li>
-            <li>At least one uppercase letter (A-Z)</li>
-            <li>At least one lowercase letter (a-z)</li>
-            <li>At least one number (0-9)</li>
-            <li>At least one special character (e.g., !@#$%^&*)</li>
-            <li>No spaces</li>
-          </ul>
-        </div>
-          <label className="login-label-txt" >New Password
-            <input className="login-input-box" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-          </label>
-          <label className="login-label-txt" >Confirm Password</label>
-          <input className="login-input-box" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-          <button type="button" className="login-btn" onClick={handleSetNewPassword} disabled={forgotPasswordLoading}>
-            {forgotPasswordLoading ? "Updating..." : "Set New Password"}
-          </button>
-        </>
-      )}
-    </form>
-    <p className="login-p">----------  sign-in  ----------</p>
-  </div>
-
-  
-<div className="login-vertical-text">
-    <span>SIGN IN</span>
-  </div>
-  {/* Right Section */}
-  <div className="login-right-side">
-    <div className="login-card">
-      <div className="thunderbolt-ellipse">
-    <img src={thunderbolt} alt="Thunderbolt" className="thunderbolt-image" />
-  </div>
-      <p>
-        <span>Powering</span>
-        <span>Independent</span>
-        <span>Music</span>
-      </p>
-       
-      <img className="login-card-image" src={cardImage} alt="Random Artwork" />
-    </div>
-  </div>  
+          <form className="login-form" onSubmit={handleLogin}>
+                
+              
+                {/* <h2>Login to Label</h2> */}
+                {error && <p className="error">{error}</p>}
+                {/* {successMessage && <p className="success">{successMessage}</p>} */}
+                        {successMessage && (
+                                  <div className="success-message-row">
+                                    {emailVerified ? (
+                                      <p className="success">
+                                       Email verified successfully, {displayName}.{" "}
+                                        <span className="click-here-link" onClick={handleResetEmail}>
+                                          Not me?
+                                        </span>
+                                      </p>
+                                    ) : (
+                                      <p className="success">{successMessage}</p>
+                                    )}
+                                  </div>
+                                )}
+ 
 
 
-   </div>
-  );
-}  
+
+                {/* Step 1: Email verify */}
+                {!emailVerified && forgotStage === "none" && (
+                  <>
+                    <label className="login-label-txt">
+                      Email Address 
+                      <input className="login-input-box" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+
+                    </label>
+                    <button type="submit" className="login-btn" onClick={handleVerifyEmail} onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault(); // prevent form from auto-submitting
+                    handleVerifyEmail();
+                  }
+                }} disabled={loading}>
+                      {loading ? "Verifying..." : "Verify Email"}
+                    </button>
+                  </>
+                )}
+
+                {/* Step 2: Password Login */}
+                {emailVerified && forgotStage === "none" && (
+                  <>
+                    <label className="login-label-txt">
+                      Password
+                      <input className="login-input-box" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                      </label>
+                        <div className="forget-login">
+
+                            <p
+                              className="login-forgot-password"
+                              style={{ cursor: forgotPasswordLoading ? "not-allowed" : "pointer" }}
+                              onClick={() => !forgotPasswordLoading && handleSendOTP()}
+                            >
+                              Forgot Password?
+                            </p>
+
+
+                            <button type="submit" className="login-btn" disabled={loading} onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault(); // prevent form from auto-submitting
+                                  handleVerifyEmail();
+                                }
+                              }}>
+                              {loading ? "Logging in..." : "Login"}
+                            </button>
+                    
+                          </div>
+                  </>
+                )}
+
+                {/* OTP Stage */}
+                {forgotStage === "otp" && (
+                  <>
+                    <label className="login-label-txt">
+                      Enter OTP
+                      <input type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} maxLength={6} />
+                    </label>
+
+                    <div className="resend-validate-otp">
+                          <p
+                            className="login-forgot-password"
+                            style={{ cursor: resendDisabled ? "not-allowed" : "pointer" }}
+                            onClick={handleResendOTP}
+                          >
+                            {resendDisabled ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
+                          </p>
+
+
+                          <button 
+                                  type="button" 
+                                  className="login-btn" 
+                                  onClick={handleValidateOTP} 
+                                  disabled={forgotPasswordLoading} 
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleValidateOTP();
+                                    }
+                          }}>
+                            {forgotPasswordLoading ? "Validating..." : "Validate OTP"}
+                          </button>
+                    </div>
+                    
+                  </>
+                )}
+
+                {/* Reset Password */}
+                {forgotStage === "reset" && (
+                  <>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: "#555",
+                      marginTop: "4px",
+                      lineHeight: "1.4",
+                      textAlign: "left"
+                    }}
+                  >
+                    Note: Your password must meet the following criteria:
+                    <ul style={{ paddingLeft: "20px", margin: "4px 0" }}>
+                      <li>Minimum length: 8 characters</li>
+                      <li>At least one uppercase letter (A-Z)</li>
+                      <li>At least one lowercase letter (a-z)</li>
+                      <li>At least one number (0-9)</li>
+                      <li>At least one special character (e.g., !@#$%^&*)</li>
+                      <li>No spaces</li>
+                    </ul>
+                  </div>
+                    <label className="login-label-txt" >New Password
+                      <input className="login-input-box" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                    </label>
+                    <label className="login-label-txt" >Confirm Password</label>
+                    <input className="login-input-box" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <button 
+                    type="button" 
+                    className="login-btn" 
+                    onClick={handleSetNewPassword} 
+                    disabled={forgotPasswordLoading} 
+                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          e.preventDefault();
+                                          handleValidateOTP();
+                                        }
+                                    }
+                               }
+                    >
+                      {forgotPasswordLoading ? "Updating..." : "Set New Password"}
+                    </button>
+                  </>
+                )}
+              </form>
+              <p className="login-p">----------  sign-in  ----------</p>
+            </div>
+
+            
+          <div className="login-vertical-text">
+              <span>SIGN IN</span>
+            </div>
+            {/* Right Section */}
+            <div className="login-right-side">
+              <div className="login-card">
+                <div className="thunderbolt-ellipse">
+              <img src={thunderbolt} alt="Thunderbolt" className="thunderbolt-image" />
+            </div>
+                <p>
+                  <span>Powering</span>
+                  <span>Independent</span>
+                  <span>Music</span>
+                </p>
+                
+                <img className="login-card-image" src={cardImage} alt="Random Artwork" />
+              </div>
+            </div>  
+
+
+            </div>
+            );
+          }  
