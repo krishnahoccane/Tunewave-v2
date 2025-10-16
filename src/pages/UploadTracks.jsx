@@ -215,7 +215,7 @@ import "../styles/UploadTracks.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
+import defaultCover from "../assets/coverArt.jpg";
 const UploadTracks = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -340,8 +340,10 @@ const UploadTracks = () => {
 
       <h2 className="title">Upload Tracks</h2>
 
-      <div className="upload-box">
+      {/* <div className="upload-box">
         <h3 className="tracks-heading">Tracks</h3>
+
+
 
         <div
           className="upload-section"
@@ -441,7 +443,157 @@ const UploadTracks = () => {
           </button>
         </div>
         <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
+      </div> */}
+      <div className="upload-box">
+  <div className="upload-content">
+    {/* LEFT SIDE — PREVIEW SECTION */}
+<div className="preview-section">
+  <h3 className="preview-header">Release Preview</h3>
+
+  <div className="preview-content">
+    <div className="cover-art-container">
+      <img
+        src={releaseMetadata.coverArt || defaultCover}
+        alt="Cover Art"
+        className="cover-art-image"
+      />
+    </div>
+
+    <div className="preview-item"><strong>Title:</strong> {releaseMetadata.title || "—"}</div>
+    <div className="preview-item"><strong>Version:</strong> {releaseMetadata.version || "—"}</div>
+    <div className="preview-item"><strong>Contributors:</strong> {releaseMetadata.contributors || "—"}</div>
+    <div className="preview-item"><strong>Genre:</strong> {releaseMetadata.genre || "—"}</div>
+    <div className="preview-item"><strong>Digital Release:</strong> {releaseMetadata.digitalRelease || "—"}</div>
+    <div className="preview-item"><strong>Original Release Date:</strong> {releaseMetadata.originalDate || "—"}</div>
+
+    <h4 style={{ marginTop: "1rem", color: "#222" }}>Tracks</h4>
+    {tracks.length > 0 ? (
+      tracks.map((track, idx) => (
+        <div key={idx} className="preview-item">
+          <strong>Track {idx + 1}</strong><br />
+          Title: {track.metadata?.title || "—"} <br />
+          Version: {track.metadata?.version || "—"} <br />
+          Language: {track.metadata?.language || "—"} <br />
+          Artists: {track.metadata?.artists || "—"} <br />
+          CRBT: {track.metadata?.crbt || "—"}
+        </div>
+      ))
+    ) : (
+      <p className="no-preview">No tracks uploaded yet.</p>
+    )}
+  </div>
+</div>
+
+
+    {/* RIGHT SIDE — EXISTING UPLOAD UI */}
+    <div className="upload-section-wrapper">
+      <h3 className="tracks-heading">Upload Tracks</h3>
+
+      <div
+        className="upload-section"
+        onClick={handleUploadSectionClick}
+        style={{ cursor: "pointer" }}
+      >
+        <div className="upload-area">
+          <p className="upload-title">Upload Tracks</p>
+          <p className="upload-subtitle">Format: FLAC or WAV</p>
+          <p className="upload-requirements">
+            Requirements: Minimum 16 bit, 44.1 KHz, stereo <br />
+            Recommended 24 bits, 48KHz or 24 bits, 96KHz
+          </p>
+        </div>
+        <input
+          type="file"
+          accept=".flac,.wav"
+          multiple
+          style={{ display: "none" }}
+          ref={fileInputRef}
+          onChange={handleTrackUpload}
+        />
       </div>
+
+      {tracks.length > 0 && (
+        <div className="uploaded-tracks-list">
+          {tracks.map((track, idx) => (
+            <div
+              key={track.id}
+              className="track-card"
+              draggable
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(idx)}
+              style={{
+                opacity: draggedTrackIdx === idx ? 0.5 : 1,
+                cursor: "move",
+              }}
+            >
+              <div className="track-info" style={{ textAlign: "center" }}>
+                <strong>Upload Track {idx + 1}</strong>
+                <p>{track.name}</p>
+              </div>
+              <div className="track-controls">
+                <audio controls src={track.url}></audio>
+                <span className="duration">{formatDuration(track.duration)}</span>
+                <button
+                  className={`edit-btn ${
+                    !track.detailsCompleted ? "incomplete" : ""
+                  }`}
+                  onClick={() => handleEditTrack(track, idx)}
+                >
+                  Edit {!track.detailsCompleted && "⚠️"}
+                </button>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(track.id)}
+                >
+                  🗑
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "right",
+          marginTop: "20px",
+          gap: "12px",
+        }}
+      >
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => navigate("/create-release")}
+        >
+          Back
+        </button>
+        <button
+          className="new-release-button"
+          disabled={
+            tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
+          }
+          onClick={handleNextStep}
+          style={{
+            cursor:
+              tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
+                ? 0.6
+                : 1,
+          }}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+  <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
+</div>
+
     </div>
   );
 };

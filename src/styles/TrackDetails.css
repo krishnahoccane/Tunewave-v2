@@ -51,7 +51,7 @@
 
 /* Each section in its own "paper" container */
 .section-container {
-  background: #f9fafb;
+  background: #fff;
   border-radius: 12px;
   padding: 25px 30px;
   display: flex;

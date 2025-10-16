@@ -241,64 +241,64 @@ useEffect(() => {
       </div>
 
       {/* Releases Section */}
-      <div className="releases-header">
-        <h2>Recent Releases</h2>
-        <button
-          className="view-all-btn"
-          onClick={() => navigate("/catalog?tab=releases")}
-        >
-          View All
-        </button>
-      </div>
+                <div className="releases-header">
+                        <h2>Recent Releases</h2>
+                        <button
+                          className="view-all-btn"
+                          onClick={() => navigate("/catalog?tab=releases")}
+                        >
+                          View All
+                        </button>
+                  </div>
 
-      <div
-        className="releases-container"
-        //  Should change to cards
-        onClick={() => navigate("/preview-distribute")}
-      >
-        {releases.map((release, i) => (
-          <div key={i} className="release-card">
-            <div className="album-art">
-              <div className="live-tag">
-                <img
-                  style={{
-                    height: "10px",
-                    width: "11px",
-                    marginRight: "5px",
-                    marginTop: "1px",
-                  }}
-                  src={live}
-                />
-                Live
-              </div>
-              <img src={release.img} alt={release.title} />
-              <div className="overlay">
-                <button className="play-btn" onClick={(e) => { 
-                      e.stopPropagation(); // prevent navigation
-                      handlePlay(release);
-                    }}>
-                      {currentTrack?.title === release.title && isPlaying ? "⏸" : "▶"}
-                  </button>
-              </div>
-            </div>
-            <div
-              className="title"
-              style={{ textAlign: "left", paddingLeft: "10px" }}
-            >
-              {release.title}
-            </div>
-            <div
-              className="subtitle"
-              style={{ textAlign: "left", paddingLeft: "10px" }}
-            >
-              {release.subtitle}
-            </div>
-          </div>
-        ))} 
-      </div>
+                      <div className="releases-container">
+                          {releases.map((release, i) => (
+                            <div
+                              key={i}
+                              className="release-card"
+                              onClick={() => navigate("/preview-distribute")}
+                            >
+                              <div className="album-art">
+                                <div className="live-tag">
+                                  <img
+                                    style={{
+                                      height: "10px",
+                                      width: "11px",
+                                      marginRight: "5px",
+                                      marginTop: "1px",
+                                    }}
+                                    src={live}
+                                  />
+                                  Live
+                                </div>
+                                <img src={release.img} alt={release.title} />
+                                <div className="overlay">
+                                  <button
+                                    className="play-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // ❌ Prevents routing
+                                      handlePlay(release); // ✅ Play the audio
+                                    }}
+                                  >
+                                    {currentTrack?.title === release.title && isPlaying ? "⏸" : "▶"}
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="title" style={{ textAlign: "left", paddingLeft: "10px" }}>
+                                {release.title}
+                              </div>
+                              <div
+                                className="subtitle"
+                                style={{ textAlign: "left", paddingLeft: "10px" }}
+                              >
+                                {release.subtitle}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
 
 
-      {/*   ------------------------------------------------Music Player  */}
+      {/*   ------------------------------------------------Music Player------------------------------  */}
      {currentTrack && (
                           <div className="music-player">
                             {/* Main Player Content */}

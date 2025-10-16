@@ -173,11 +173,11 @@ function CreateRelease() {
               },
             },
           },
-        ], // You can add requests here if needed
+        ], 
       },
     };
 
-    // eslint-disable-next-line no-undef
+  
 
     try {
       const response = await axios.post(
@@ -210,38 +210,13 @@ function CreateRelease() {
       linkedProfiles,
     };
 
-    setContributors([...contributors, newContributor]); // ✅ store contributor
+    setContributors([...contributors, newContributor]); 
     setArtistdropDownName("");
     setLinkedProfiles({ Spotify: "", AppleMusic: "", SoundCloud: "" });
     setShowArtistModal(false);
   };
 
-  //https://api.getpostman.com/collections
-
-  // const token = localStorage.getItem("jwtToken");
-
-  // const fetchDetails =  async ()=>{
-  //    try {
-  //       const response = await fetch("https://api.getpostman.com/collections", {
-  //       });
-
-  //       if (!response.ok) {
-  //         throw new Error("Failed to fetch collections");
-  //       }
-
-  //       const data = await response.json();
-  //       console.log(data)
-  //     } catch (error) {
-  //       console.error("Error fetching Postman collections:", error);
-  //     }
-
-  // }
-
-  // useEffect(()=>{
-
-  //   fetchDetails()
-
-  // },[])
+ 
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];

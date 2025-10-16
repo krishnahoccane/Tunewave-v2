@@ -23,7 +23,7 @@
   align-items: center;
   justify-content: space-between;
   position: fixed;
-  top: 100px;              /* push it below navbar (adjust navbar height if needed) */
+  top: 100px;              
   left: 0;
   right: 0;
   z-index: 100;
@@ -405,7 +405,7 @@
 }
 
 .pagination-btn.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  background: linear-gradient(90.61deg, #1278BB 4.69%, #13A89E 103.09%);
   border-color: #3b82f6;
   color: white;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);

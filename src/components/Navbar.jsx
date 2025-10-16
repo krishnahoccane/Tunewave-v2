@@ -18,6 +18,10 @@ import ReleasesIconFill from "../assets/ReleasesIconFill.svg";
 import TracksIconFill from "../assets/TracksIconFill.svg";
 import ArtistsIconFill from "../assets/ArtistsIconFill.svg";
 
+
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -44,6 +48,41 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
     navigate("/login");
   };
 
+
+  // Search Box in navbar 
+  const handleSearch = (e) => {
+  if (e.key === "Enter") {
+    const query = e.target.value.toLowerCase().trim();
+
+    // Map search terms to routes
+    const searchRoutes = {
+      dashboard: "/dashboard",
+      catalog: "/catalog",
+      releases: "/catalog?tab=releases",
+      tracks: "/catalog?tab=tracks",
+      artists: "/catalog?tab=artists",
+      analytics: "/analytics",
+      wallet: "/wallet",
+      tools: "/tools",
+      "yt services": "/yt-services",
+      "support ticket": "/ticket-raise",
+      settings: "/settings",
+    };
+
+    if (searchRoutes[query]) {
+      navigate(searchRoutes[query]);
+      e.target.value = ""; // clear search box
+      setMenuOpen(false);
+      setCatalogOpen(false);
+      setWalletOpen(false);
+      setToolsOpen(false);
+      setProfileOpen(false);
+    } else {
+      toast.error("No page found for this search term!");
+    }
+  }
+};
+
   return (
     <div className="navbar">
       {/* Logo */}
@@ -59,7 +98,13 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
       {/* Search */}
       <div className="search-box">
         <img src={SearchIcon} alt="search" className="search-icon" />
-        <input type="text" className="input-box" placeholder="Search for..." />
+                {/* <input type="text" className="input-box" placeholder="Search for..." /> */}
+                <input
+                    type="text"
+                    className="input-box"
+                    placeholder="Search for..."
+                    onKeyDown={handleSearch}
+                />
       </div>
 
       {/* Hamburger menu */}

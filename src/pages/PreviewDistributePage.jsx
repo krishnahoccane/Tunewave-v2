@@ -577,7 +577,7 @@ export default function PreviewDistributePage() {
   const handleFinalSubmit = () => setShowPopup(true);
   const handleConfirm = () => {
     setShowPopup(false);
-    navigate("/dashboard");
+    navigate(0);
   };
   const handleCancel = () => setShowPopup(false);
 
@@ -586,23 +586,33 @@ export default function PreviewDistributePage() {
     { id: 2, title: "Happy Days - Micky J Meyer", audioUrl: "/tracks/track2.mp3", duration: "03:58" },
   ];
 
+  const [status, setStatus] = useState("Pending"); // Default status
+
   return (
     <div className="full-page-container">
       <div className="content-container">
 
-        {/* Page Title */}
-<div className="page-title-container">
-  <h2 className="page-title-left">Preview & Distribute</h2>
-</div>
-
-
+              {/* Page Title */}
+            <div className="page-title-container">
+              <h2 className="page-title-left">Preview & Distribute</h2>
+                                  <span className={`status-bar status ${status.toLowerCase()}`}> {status}</span>
+              </div>
+                              
+                  
         {/* Main content wrapper */}
         <div className="main-content-wrapper">
           {/* Left Column */}
           <div className="left-column">
             {/* Release Info */}
             <div className="release-info-top">
-              <div className="metadata-row"><span className="meta-label">Title:</span> <span className="meta-value">Happy Days</span></div>
+
+              <div className="metadata-row">
+                <span className="meta-label">
+                  Title:</span> 
+                  <span className="meta-value">
+                    Happy Days  
+                      </span>
+                      </div>
               <div className="metadata-row"><span className="meta-label">Artist:</span> <span className="meta-value">Micky J Meyer</span></div>
               <div className="metadata-row"><span className="meta-label">Label:</span> <span className="meta-value">Vivo</span></div>
             </div>

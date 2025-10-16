@@ -12,6 +12,7 @@
   color: #2563eb; /* Blue color */
   text-align: center; /* Center horizontally */
   margin-bottom: 20px;
+  background-color: transparent!important;
 }
 
 
@@ -764,39 +765,8 @@ label {
 
 .label-name{
   text-align: center;
-     /* Ensure left alignment */
+    
 }
-
-.new-release-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  background: transparent;
-  color: #1178BB;
-  border: 2px solid transparent;
-  border-radius: 999px; /* ensures perfect pill shape */
-  background-image: linear-gradient(#fff, #fff), 
-                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.new-release-button:hover,
-.new-release-button:active {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
-  color: #fff;
-  border-radius: 999px; /* stays pill on hover */
-}
-
-
-
-
 
 
 

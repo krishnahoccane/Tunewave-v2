@@ -39,9 +39,6 @@
 
 
 /* ============================= */
-
-
-
 /* Sticky Header */
 .data-table thead th {
   position: sticky;
@@ -201,31 +198,6 @@
   margin-bottom: 8px;
 }
 
-.pagination-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.pagination-btn {
-  width: 30px;
-  height: 24px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  text-align: center;
-  line-height: 24px;
-  border-radius: 4px;
-}
-
-.pagination-btn.active {
-  background-color: #1278bb;
-  color: #fff;
-}
-
-.pagination-arrow {
-  font-weight: bold;
-}
 
 /* ============================= */
 /* Row Actions & Dropdown */
@@ -266,7 +238,7 @@ tr:hover .row-actions .dots-btn {
   padding: 4px 0;
   min-width: 140px;
   display: flex;
-  flex-direction: column; /* ensures vertical buttons */
+  flex-direction: column;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   z-index: 5;
 }
@@ -279,6 +251,7 @@ tr:hover .row-actions .dots-btn {
   text-align: left;
   cursor: pointer;
   font-size: 14px;
+  z-index: 1;
 }
 
 .dropdown button:hover {
@@ -286,74 +259,51 @@ tr:hover .row-actions .dots-btn {
 }
 
 
-/* 3-dots button with round border, shadow, and hover animation */
 .row-actions .dots-btn {
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid #ccc;       /* border for the circle */
+  border: 1px solid #ccc;       
   background: #fff;             
   cursor: pointer;
   font-size: 18px;
   width: 30px;                  
   height: 30px;                 
-  border-radius: 50%;           /* makes it circular */
+  border-radius: 50%;          
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;                   /* reset padding */
+  padding: 0;                   
   box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
 }
 
 /* Show button on row hover */
 tr:hover .row-actions .dots-btn {
   opacity: 2;
-  border-color: #1278bb;       /* border highlight */
+  border-color: #1278bb;      
   background: #f0f8ff;        
-  transform: scale(1.05);      /* slight enlarge on hover */
+  transform: scale(1.05);      
   box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* 3-dots button */
 .row-actions .dots-btn {
   opacity: 0;
   transition: opacity 0.2s ease;
   border: none;
-  background: transparent; /* ensure transparent background */
+  background: transparent; 
   cursor: pointer;
   font-size: 18px;
   padding: 4px;
-  border-radius: 50%; /* make it round */
+  border-radius: 50%; 
 }
 
 /* Show dots on hover */
 tr:hover .row-actions .dots-btn {
   opacity: 1;
-  background: transparent; /* keep background transparent on hover */
+  background: transparent; 
 }
 
-/* Optional: if you want a white background on hover instead of transparent */
 tr:hover .row-actions .dots-btn {
   opacity: 1;
   background: #fff; /* white background on hover */
 }
-
-
-/* .data-table tbody tr.hovered .row-actions {
-  background-color: white !important;
-}
-
-.row-actions .dots-btn {
-  background: white !important;
-} */

@@ -5,6 +5,26 @@
   flex-direction: column;
   align-items: center;
   font-family: Arial, sans-serif;
+  width: 100%;
+}
+
+/* Upload Box */
+.upload-box {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 95%;
+  max-width: 1100px;
+  height: auto;            /* ✅ allows box to grow with content */
+  min-height: 400px;       /* ensures decent initial size */
+  text-align: center;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+/* Step Indicator */
+.step {
+  text-align: center;
 }
 
 /* Title */
@@ -23,19 +43,51 @@
   margin-bottom: 1.5rem;
 }
 
-/* Upload Box */
-.upload-box {
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 2rem;
-  width: 650px;
-  height: 100%;
-  text-align: center;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
+/* Flex layout for two halves */
+.upload-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
 }
 
-/* Tracks Heading */
+/* Left - Preview Section */
+.preview-section {
+  flex: 1;
+  background: #f9fbff;
+  border: 1px solid #dce3f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+  overflow-y: auto;
+  max-height: 450px; /* balanced height */
+}
+
+.preview-item {
+  background: #eef3ff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.no-preview {
+  color: #777;
+  text-align: center;
+  margin-top: 50px;
+}
+
+/* Right - Upload Section */
+.upload-section-wrapper {
+  flex: 1;
+  text-align: left;
+}
+
+.upload-section-wrapper .tracks-heading {
+  text-align: center;
+}
+
+/* Tracks Section */
 .tracks-heading {
   font-size: 18px;
   font-weight: 600;
@@ -43,7 +95,7 @@
   margin-bottom: 1rem;
 }
 
-/* Upload Section */
+/* Upload Area */
 .upload-section {
   margin: 1.5rem 0;
 }
@@ -72,7 +124,7 @@
   line-height: 1.4;
 }
 
-/* Uploaded Tracks */
+/* Uploaded Tracks List */
 .uploaded-tracks-list {
   margin-top: 1rem;
 }
@@ -129,7 +181,7 @@
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  /* transition: background 0.2s ease; */
 }
 
 .edit-btn:hover {
@@ -149,16 +201,23 @@
   color: #d9534f;
 }
 
-
-
-
-/* Next Button */
-
+/* Next Button Hover */
 .next-btn:hover {
   opacity: 0.9;
 }
 
-.step{
-  text-align: center;
- 
+
+.cover-art-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.cover-art-image {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #dce3f0;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
 }
