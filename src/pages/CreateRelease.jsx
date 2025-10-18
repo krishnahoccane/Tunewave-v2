@@ -239,13 +239,11 @@ function CreateRelease() {
 
   return (
     <div className="create-release-page">
-      <h2 className="page-title">Create A New Release</h2>
+      <h2 className="create-title">Create A New Release</h2>
 
       {/* Step 1 */}
       <div className="section">
         <h3>Enter Release Details</h3>
-
-        
 
         <div className="input-group">
           <label htmlFor="title">
@@ -289,6 +287,21 @@ function CreateRelease() {
           <div
             className="upload-box"
             onClick={() => document.getElementById("fileInput").click()}
+            onDragOver={(e) => e.preventDefault()} // Allow dropping
+            onDragEnter={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add("drag-over"); // optional hover style
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove("drag-over"); // remove hover style
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove("drag-over");
+              const file = e.dataTransfer.files[0];
+              handleFileChange({ target: { files: [file] } });
+            }} 
           >
             <input
               type="file"

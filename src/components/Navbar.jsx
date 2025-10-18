@@ -83,6 +83,9 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   }
 };
 
+
+const currWallet = 100.01;
+
   return (
     <div className="navbar">
       {/* Logo */}
@@ -244,7 +247,7 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
               setWalletOpen(false);
             }}
           >
-            <MdAccountBalanceWallet className="menu-icon" /> Wallet
+            <MdAccountBalanceWallet className="menu-icon" /> ${currWallet}
           </Link>
           {walletOpen && (
             <ul className="dropdown-menu">

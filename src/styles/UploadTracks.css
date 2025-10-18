@@ -1,40 +1,41 @@
 /* Container */
-.upload-container {
-  padding-top: 140px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: Arial, sans-serif;
+.upload-tracks-container {
+  padding: 40px 80px;
+  display: block;              /* enable flex layout */
+  justify-content: center;    /* center content horizontally */
   width: 100%;
+  font-family: "Poppins", sans-serif;
+  margin-top: auto;
+  /* margin-top: auto; */
+   padding: 40px 80px;
+  font-family: "Poppins", sans-serif;
+  background: #f9fafb;
+  margin-top: auto;
 }
 
-/* Upload Box */
-.upload-box {
+.upload-title {
+
+   font-size: 26px;
+   text-align: start;
+  font-weight: 700;
+  margin-bottom: 25px;
+   color: #222;
+  background-color: transparent!important;
+  padding-left: 25px;
+  position: relative;
+  margin-top: 80px;
   background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 16px;
-  padding: 2.5rem;
-  width: 95%;
-  max-width: 1100px;
-  height: auto;            /* ✅ allows box to grow with content */
-  min-height: 400px;       /* ensures decent initial size */
-  text-align: center;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    z-index: 100;
+
 }
+
 /* Step Indicator */
 .step {
   text-align: center;
 }
 
-/* Title */
-.title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-/* Step Indicator */
 .step-indicator {
   border: 1px solid #ccc;
   border-radius: 20px;
@@ -43,26 +44,53 @@
   margin-bottom: 1.5rem;
 }
 
-/* Flex layout for two halves */
-.upload-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
+/* Flex container for preview + upload side by side */
+.upload-layout {
+  display: flex;              /* enables side-by-side layout */
+  flex-direction: row;        /* row ensures side by side */
+  justify-content: center;    /* center horizontally */
+  align-items: flex-start;    /* align top of both boxes */
+  gap: 2rem;                  /* space between preview and upload */
+  width: 100%;
+  max-width: 1200px;          /* max row width */
+  
 }
 
-/* Left - Preview Section */
+/* LEFT — Preview Section */
 .preview-section {
-  flex: 1;
+  flex: 0 0 35%;              /* take 45% of row */
   background: #f9fbff;
   border: 1px solid #dce3f0;
   border-radius: 12px;
   padding: 1.5rem;
-  text-align: left;
+  max-height: 600px;
   overflow-y: auto;
-  max-height: 450px; /* balanced height */
+  margin-left: 1em;
+  
 }
 
+/* RIGHT — Upload Section */
+.upload-box {
+  flex: 0 0 65%;              /* take 45% of row */
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  height: auto;               /* grows with content */
+  min-height: 400px;          /* decent initial size */
+  transition: all 0.3s ease;
+}
+
+/* To increase width of Upload Box:
+   Change flex-basis of upload-box, e.g., flex: 0 0 50%; 
+   You may also adjust preview-section accordingly (e.g., 40%) */
+.upload-box.wider {
+  flex: 0 0 50%;              /* example for wider upload box */
+}
+
+/* Preview Items */
 .preview-item {
   background: #eef3ff;
   padding: 10px 12px;
@@ -77,9 +105,24 @@
   margin-top: 50px;
 }
 
-/* Right - Upload Section */
+/* Cover Art */
+.cover-art-container {
+  display: flex;
+  justify-content: start;
+  margin-bottom: 1rem;
+}
+
+.cover-art-image {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #dce3f0;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Upload Section Wrapper */
 .upload-section-wrapper {
-  flex: 1;
   text-align: left;
 }
 
@@ -98,6 +141,7 @@
 /* Upload Area */
 .upload-section {
   margin: 1.5rem 0;
+  cursor: pointer;
 }
 
 .upload-area {
@@ -105,12 +149,13 @@
   background: #f7f9ff;
   border-radius: 8px;
   padding: 2rem;
+  text-align: center;
+}
+.upload-box {
+  background-color: #f9fbff;
 }
 
-.upload-title {
-  font-size: 18px;
-  font-weight: 600;
-}
+
 
 .upload-subtitle {
   font-size: 14px;
@@ -181,7 +226,6 @@
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  /* transition: background 0.2s ease; */
 }
 
 .edit-btn:hover {
@@ -206,18 +250,10 @@
   opacity: 0.9;
 }
 
-
-.cover-art-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.cover-art-image {
-  width: 160px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 2px solid #dce3f0;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+/* Responsive for small screens */
+@media (max-width: 900px) {
+  .preview-section,
+  .upload-box {
+    flex: 1 1 100%;   /* stack vertically on smaller screens */
+  }
 }

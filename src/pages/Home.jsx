@@ -98,6 +98,7 @@ const releases = [
     title: "Dangerous Days", 
     album: "Single", 
     artist: "Artist", 
+    subtitle: "2014 – Single",
     img: SampleIcon, 
     audio: "/audio.wav" 
   },
@@ -105,6 +106,7 @@ const releases = [
     title: "Night Sky", 
     album: "Album", 
     artist: "Artist", 
+    subtitle: "2014 – Single",
     img: SampleIcon, 
     audio: "/audio.wav" 
   },
@@ -112,6 +114,7 @@ const releases = [
     title: "Lost Dreams", 
     album: "EP", 
     artist: "Artist", 
+    subtitle: "2014 – Single",
     img: SampleIcon, 
     audio: "/audio.wav" 
   },
@@ -119,6 +122,7 @@ const releases = [
     title: "Ocean Waves", 
     album: "Single", 
     artist: "Artist", 
+    subtitle: "2014 – Single",
     img: SampleIcon, 
     audio: "/audio.wav" 
   },
@@ -126,6 +130,7 @@ const releases = [
     title: "Skyline", 
     album: "Album", 
     artist: "Artist", 
+    subtitle: "2014 – Single",
     img: SampleIcon, 
     audio: "/audio.wav" 
   },
@@ -341,13 +346,23 @@ useEffect(() => {
                                 </div>
 
                                 <div className="track-info">
-                                  <div className="track-title">{currentTrack.title}</div>
-                                  <div className="track-subtitle">{currentTrack.album}</div>
-                                  <div className="track-title">{currentTrack.artist}</div>
+                                  <div className="music-track-title">{currentTrack.title}</div>
+                                  <div className="music-track-subtitle">{currentTrack.album}</div>
+                                  <div className="music-track-title">{currentTrack.artist}</div>
                                 </div>
                               </div>
 
                               {/* Right: Volume + Close */}
+
+                              <button
+                                  className="mute-btn"
+                                  onClick={() => {
+                                    if (audio) audio.muted = !audio.muted;
+                                    setIsPlaying((prev) => prev); // optional, to trigger re-render if needed
+                                  }}
+                                >
+                                  {audio?.muted ? "🔇" : "🔊"}
+                                </button>
                               <div className="player-right">
                                 <input
                                   type="range"
@@ -360,6 +375,7 @@ useEffect(() => {
                                   }}
                                   className="volume-bar"
                                 />
+                                
                                 <button
                                   className="close-play"
                                   onClick={() => {

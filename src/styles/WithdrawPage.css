@@ -40,7 +40,7 @@
 }
 
 
-./* Overlay covering entire screen */
+/* Overlay covering entire screen */
 .confirm-popup {
   position: fixed;
   top: 0;

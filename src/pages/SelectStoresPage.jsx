@@ -8,10 +8,6 @@ import allStoresIcon from "../assets/stores/allStores.svg";
 import noYoutubeIcon from "../assets/stores/noYoutube.svg"; 
 import manualIcon from "../assets/stores/manual.svg"; 
 
-
-
-
-
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -61,11 +57,11 @@ const SelectStoresPage = () => {
 
   const handleNext = () => {
       if (!distributionOption) {
-        toast.error("Please select a distribution option.");
+        toast.dark("Please select a distribution option.");
         return;
       }
       if (distributionOption === "manual" && selectedStores.length === 0) {
-        toast.error("Please select at least one store.");
+        toast.dark("Please select at least one store.");
         return;
       }
 
@@ -89,13 +85,10 @@ const SelectStoresPage = () => {
 
   return (
     <div className="stores-container">
-      <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
+      <h2 className="stores-title">Select Distribution / Stores</h2>
       <div className="stores-card">
-        <h2 className="page-title">Select Distribution / Stores</h2>
-
         <div className="stores-options">
           <label>
-            
             <input
               type="radio"
               name="distribution"
@@ -178,8 +171,9 @@ const SelectStoresPage = () => {
           </button>
         </div>
       </div>
-       
+       <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
     </div>
+    
   );
 };
 

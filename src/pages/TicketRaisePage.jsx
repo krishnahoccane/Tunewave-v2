@@ -112,9 +112,20 @@ const TicketPage = () => {
               <input type="file" />
             </label>
 
-            <button type="submit" className="new-release-button" style={{ width:"100Px" , marginLeft:"40%" }}>
-              Submit
-            </button>
+            <div style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap:"10px" }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => navigate(-1)}
+                >
+                  cancel
+                </button>
+                <button
+                  className="new-release-button" style={{ width:"100Px"  }}
+                  onClick={() => setShowDetail(true)}
+                >
+                  Next
+                </button>
+              </div>
           </form>
         )}
 
@@ -172,7 +183,13 @@ const TicketPage = () => {
 
             {/* Next Button appears only when a ticket is selected */}
             {selectedTicket && (
-              <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap:"10px" }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => navigate(-1)}
+                >
+                  cancel
+                </button>
                 <button
                   className="new-release-button" style={{ width:"100Px"  }}
                   onClick={() => setShowDetail(true)}

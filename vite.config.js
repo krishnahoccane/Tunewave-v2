@@ -17,6 +17,7 @@ export default defineConfig({
         secure: true,
         rewrite: (path) => path.replace(/^\/main/, ""),
       },
+      
     },
   },
 });

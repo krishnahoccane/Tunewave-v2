@@ -1,0 +1,369 @@
+/* =======================
+   VARIABLES & THEME
+======================= */
+:root {
+  /* Colors */
+  --primary: #1278BB;
+  --secondary: #13A89E;
+  --primary-dark: #0D5C99;
+  --gray-light: #f3f4f6;
+  --gray-lighter: #f9fafb;
+  --gray-medium: #e5e7eb;
+  --gray-dark: #6b7280;
+  --text-default: #222;
+  --text-muted: #555;
+  --danger: #d9534f;
+  --success: #22c55e;
+  --background: #f0f2f5;
+
+  /* Fonts */
+  --font-primary: 'Poppins', sans-serif;
+  --font-secondary: 'Inter', sans-serif;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Sizes */
+  --nav-height: 93px;
+  --card-radius: 12px;
+  --pill-radius: 999px;
+}
+
+/* =======================
+   RESET & GLOBALS
+======================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-secondary);
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--text-default);
+  line-height: 1.5;
+  background: var(--background);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-primary);
+  margin: 0;
+}
+
+h1 { font-weight: 700; font-size: 36px; }
+h2 { font-weight: 700; font-size: 32px; }
+h3 { font-weight: 600; font-size: 28px; }
+h4 { font-weight: 600; font-size: 24px; }
+h5 { font-weight: 600; font-size: 20px; }
+h6 { font-weight: 600; font-size: 16px; }
+
+p {
+  font-family: var(--font-secondary);
+  font-weight: 400;
+  font-size: 16px;
+  margin-bottom: var(--space-md);
+}
+
+/* =======================
+   PAGE CONTAINERS
+======================= */
+.page-container {
+  padding-top: var(--nav-height);
+  width: 100%;
+}
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+/* =======================
+   NAVBAR
+======================= */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-bottom: 1px solid var(--gray-medium);
+  z-index: 1000;
+}
+
+.logo { height: 50px; cursor: pointer; }
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--gray-lighter);
+  border: 1px solid var(--gray-medium);
+  border-radius: 6px;
+  padding: 6px 12px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  margin-left: var(--space-sm);
+  width: 100%;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: var(--space-lg);
+}
+
+.menu li a,
+.menu li button {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu li a.active,
+.menu li button.active { color: var(--primary); }
+
+/* Dropdowns */
+.dropdown-menu {
+  position: absolute;
+  background: #fff;
+  border: 1px solid var(--gray-medium);
+  border-radius: var(--card-radius);
+  padding: 8px 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  list-style: none;
+}
+
+.dropdown-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover { background: var(--gray-light); }
+
+/* =======================
+   BUTTONS
+======================= */
+.btn-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: var(--pill-radius);
+  border: 2px solid transparent;
+  cursor: pointer;
+  background-image: linear-gradient(#fff,#fff),
+                    linear-gradient(93.93deg, var(--primary), var(--secondary));
+  background-clip: padding-box, border-box;
+  transition: all 0.3s ease;
+}
+
+.btn-pill:hover,
+.btn-pill:active {
+  background: linear-gradient(92.99deg, var(--primary-dark) 3.3%, var(--secondary) 100%);
+  color: #fff;
+  border: none;
+}
+
+/* =======================
+   TABS
+======================= */
+.tabs {
+  display: flex;
+  gap: 40px;
+}
+
+.tabs button {
+  padding: 14px 30px;
+  border: none;
+  border-radius: var(--card-radius);
+  background: #e0e0e0;
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.tabs button.active {
+  background: linear-gradient(90.61deg, var(--primary) 4.69%, var(--secondary) 103.09%);
+  color: #fff;
+}
+
+.tabs button:hover { transform: translateY(-2px); }
+
+/* =======================
+   CARDS & PANELS
+======================= */
+.card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  padding: var(--space-lg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.track-card,
+.wallet-balance-card,
+.beneficiary-details-card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  padding: var(--space-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.track-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+/* =======================
+   TRACKS & AUDIO
+======================= */
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+  gap: var(--space-lg);
+}
+
+.track-thumbnail {
+  width: 100%;
+  height: 120px;
+  background: #333;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+  position: relative;
+}
+
+.play-button {
+  color: #fff;
+  font-size: 24px;
+  background: rgba(30,64,175,0.9);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* =======================
+   MODALS & POPUPS
+======================= */
+.popup-overlay,
+.confirm-popup {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.4);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+
+.confirm-content,
+.popup {
+  background: #fff;
+  padding: 25px;
+  border-radius: var(--card-radius);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  width: 360px;
+  max-width: 90%;
+  text-align:center;
+}
+
+/* =======================
+   FORMS & INPUTS
+======================= */
+.input-group input,
+.popup input,
+.popup select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: var(--space-xs);
+  box-sizing: border-box;
+}
+
+.button-group button {
+  flex:1;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight:500;
+  border-radius:6px;
+  cursor:pointer;
+  border:none;
+  text-align:center;
+  transition:opacity 0.2s;
+}
+
+.submit-btn,
+.yes-btn {
+  background: linear-gradient(90deg,var(--primary) 5%, var(--secondary) 105%);
+  color: #fff;
+}
+
+.cancel-btn,
+.no-btn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.submit-btn:hover,
+.cancel-btn:hover,
+.yes-btn:hover,
+.no-btn:hover { opacity: 0.9; }
+
+/* =======================
+   RESPONSIVE
+======================= */
+@media screen and (max-width: 1024px) {
+  .wallet-info,
+  .wallet-main,
+  .tabs-add-container {
+    flex-direction: column;
+  }
+
+  .wallet-graph,
+  .wallet-table,
+  .card,
+  .card-details,
+  .wallet-balance,
+  .beneficiary-details-card {
+    width: 100%;
+  }
+}
+

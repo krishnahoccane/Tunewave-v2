@@ -1,15 +1,11 @@
 
 
 /* Full page container */
-.full-page-container {
-  width: 100vw;
-  height: 100vh;
-  background: #f9fafb;
+.preview-page-container {
+  padding: 40px 80px;
   font-family: "Poppins", sans-serif;
-  display: flex;
-  justify-content: center;
-  padding: 20px 0;
-  overflow: hidden; /* hide scrollbar */
+  background: #f9fafb;
+  margin-top: auto;
 }
 
 /* Main content container (scrollable) */
@@ -17,7 +13,8 @@
   width: 98%;
   max-width: 1600px;
   min-height: 95vh;
-  background: #fff;
+  background: #f9fafb;
+  background-color: transparent;
   border-radius: 16px;
   padding: 40px 50px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.1);
@@ -42,7 +39,7 @@
 }
 
 /* Page Title: slightly lower, left-aligned, visible */
-.page-title {
+.previw-distribute-title {
   font-size: 38px;
   font-weight: 700;
   color: #222;
@@ -54,7 +51,7 @@
   
   margin-top: 80px;  /* pushes it downwards from top */
   margin-bottom: 30px;
-  background: #fff;
+  background: #f9fafb;
   padding-top: 10px;
   padding-bottom: 10px;
   z-index: 100;
@@ -94,6 +91,7 @@
 .main-content-wrapper {
   display: flex;
   gap: 40px;
+  background: #f9fafb;
 }
 
 /* Left Column */
@@ -193,6 +191,7 @@ audio {
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
+  flex-direction: end;
 }
 
 .btn-secondary {
@@ -266,4 +265,33 @@ audio {
 
 .status.rejected {
   background-color: #ef4444; /* Red */
+}
+.preview-distribute-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #222;
+  margin: 70px 0 20px 50px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.preview-container {
+  width: 98%;
+  max-width: 1600px;
+  min-height: 90vh;
+  background: transparent;
+  border-radius: 16px;
+  padding: 30px 50px;
+  /* box-shadow: 0 8px 30px rgba(0,0,0,0.1); */
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
 }

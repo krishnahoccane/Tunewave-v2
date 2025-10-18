@@ -6,11 +6,11 @@
   margin-top: auto;
 }
 
-.page-title {
+.create-title {
   font-size: 28px;
   font-weight: 600;
-  color: #2563eb; /* Blue color */
-  text-align: center; /* Center horizontally */
+  margin-top: 80px;
+  text-align: start; /* Center horizontally */
   margin-bottom: 20px;
   background-color: transparent!important;
 }
@@ -76,6 +76,7 @@
   width: 600px;
   height: 400px;
   text-align: center;
+  
   min-height: 220px;
   align-items: center;
   color: #555;

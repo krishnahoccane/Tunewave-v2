@@ -209,3 +209,21 @@
     background-position: 0% 50%;
   }
 }
+/* Smooth fade in + fade out animation */
+/* .Toastify__toast {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 5s ease, transform 5s ease; 
+}
+
+.Toastify__toast--animate {
+  opacity: 1;
+  transform: translateY(0);
+} */
+
+/* 3-second fade-out effect */
+/* .Toastify__toast--animate.Toastify__toast--close {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 3s ease, transform 3s ease;  
+ } */

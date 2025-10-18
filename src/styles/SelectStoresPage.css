@@ -1,36 +1,34 @@
 .stores-container {
-  min-height: 100vh;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* align card from top */
-  background: #eef2f7;
+  padding: 40px 80px;
   font-family: "Poppins", sans-serif;
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+  background: #f9fafb;
+  margin-top: auto;
 }
 
 .stores-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 0px 50px 40px 50px;
-  width: 100%;
-  max-width: 80%;
-  min-height: 75vh;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  box-sizing: border-box;
+background: #fff;
+  border-radius: 12px;
+  padding: 25px 30px;
   display: flex;
   flex-direction: column;
-  margin-top: 100px; /* moved further down from top */
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.page-title {
-  text-align: start;
-  font-size: 26px;
-  font-weight: 700;
+.stores-title {
+   font-size: 26px;
+   text-align: start;
+  font-weight: 600;
   margin-bottom: 25px;
-  color: #222;
+   color: #222;
+  background-color: transparent!important;
+  padding-left: 25px;
+  position: relative;
+  margin-top: 80px;
+  background: #fff;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    z-index: 100;
 }
 
 .stores-options {
@@ -47,7 +45,7 @@
 
 .stores-options.manual-options {
   margin-top: 10px; /* reduce gap under "Select Manually" */
-  margin-left: 10.5em;
+  margin-left: 3.15em;
 }
 
 .stores-options label {
