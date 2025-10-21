@@ -1,7 +1,17 @@
 import React, { useState } from "react";
 import "../styles/YTServicesPage.css";
 
+
+import { useNavigate } from "react-router-dom";
+  
+
 const YTServicesPage = () => {
+
+
+  const navigate = useNavigate();
+
+
+
   const [activeTab, setActiveTab] = useState("claim");
   const [showClaimPopup, setShowClaimPopup] = useState(false);
   const [showOacPopup, setShowOacPopup] = useState(false);
@@ -21,19 +31,26 @@ const YTServicesPage = () => {
     setTopicChannels(updated);
   };
 
+
+
+
+  
+
   return (
-    <div className="ytservices-page">
-      <div className="ytservices-container">
-        {/* Header */}
-        <div className="ytservices-header">
-          <h2>Youtube Requests</h2>
-          <button
+    <div className="track-details-container">
+
+      {/* <div className="ytservices-header"> */}
+          <h2 className="track-title">Youtube Requests</h2>
+          {/* <button
             className="close-btn"
             onClick={() => (window.location.href = "/dashboard")}
           >
             ×
-          </button>
-        </div>
+          </button> */}
+        {/* </div> */}
+      <div className="section-container">
+        {/* Header */}
+        
 
         {/* Tabs + Add New */}
         <div className="tabs-add-container">
@@ -86,6 +103,14 @@ const YTServicesPage = () => {
                 </tr>
               </tbody>
             </table>
+            <div className="popup-actions">
+              <button
+                className="btn-secondary"
+                onClick={() =>  navigate("/")}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
@@ -114,6 +139,14 @@ const YTServicesPage = () => {
                 </tr>
               </tbody>
             </table>
+            <div className="popup-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </div>

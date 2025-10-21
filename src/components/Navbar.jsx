@@ -313,18 +313,7 @@ const currWallet = 100.01;
   <img src={NavProfile} alt="profile" className="profile-icon" />
   {profileOpen && (
     <ul className="profile-menu">
-      <li
-  onClick={() => setShowThemeModal(true)}
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-    cursor: "pointer",
-    padding: "8px 12px",
-  }}
->
-  🎨 Theme
-</li>
+ 
 
 
       <li>
@@ -333,25 +322,25 @@ const currWallet = 100.01;
         </Link>
       </li>
 
-      <li>
+  
         {/* ✅ Updated Logout */}
-        <button
-          onClick={handleLogout}
+        <li
+          onClick={() =>handleLogout()}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            background: "none",
-            border: "none",
+          //   display: "flex",
+          //   alignItems: "center",
+          //   gap: "5px",
+          //   background: "none",
+          //   border: "none",
             cursor: "pointer",
-            color: "inherit",
-            width: "100%",
-            textAlign: "left",
-            padding: "8px 12px",
+            color: "red",
+          //   width: "100%",
+          //   textAlign: "left",
+          //   padding: "8px 12px",
           }}
         >
           Logout
-        </button>
+      
       </li>
     </ul>
   )}

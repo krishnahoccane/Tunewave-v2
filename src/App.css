@@ -136,7 +136,7 @@
 }
  /* {new global style for button} */
 
-.new-release-button {
+.gradient-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,7 +147,7 @@
   background: transparent;
   color: #1178BB;
   border: 2px solid transparent;
-  border-radius: 999px; /* ensures perfect pill shape */
+  border-radius: 999px; 
   background-image: linear-gradient(#fff, #fff), 
                     linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
   background-origin: border-box;
@@ -156,11 +156,11 @@
   transition: all 0.3s ease;
 }
 
-.new-release-button:hover,
-.new-release-button:active {
+.gradient-button:hover,
+.gradient-button:active {
   background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
   color: #fff;
-  border-radius: 999px; /* stays pill on hover */
+  border-radius: 999px; 
 }
 
 /* Submit button  */

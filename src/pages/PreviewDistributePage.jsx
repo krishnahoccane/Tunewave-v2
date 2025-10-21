@@ -587,8 +587,9 @@ export default function PreviewDistributePage() {
   ];
 
  const publishers = [
-  // { id: 1, name: "ABC Music Publishing", symbol: "©" }, 
+  
   { id: 1, name: "XYZ Records", symbol: "℗" },          // ℗ for sound recording
+  { id: 2, name: "ABC Music Publishing", symbol: "©" }, 
 ];
 
 
@@ -652,7 +653,7 @@ return (
 
           {/* --- Metadata Section --- */}
           <div className="metadata-container section-container">
-            <h3>Metadata</h3>
+            {/* <h3>Metadata</h3> */}
             <div className="metadata-row">
               <span className="meta-label">Language</span>
               <span className="meta-value">English</span>
@@ -673,7 +674,7 @@ return (
 
           {/* --- Release Dates & Codes --- */}
           <div className="metadata-codes-container section-container">
-            <h3>Release Dates & Codes</h3>
+            {/* <h3>Release Dates & Codes</h3> */}
             <div className="metadata-row">
               <span className="meta-label">Digital Release Date</span>
               <span className="meta-value">15/02/2025</span>
@@ -699,7 +700,7 @@ return (
 
           </div>
 <div className="metadata-copyright section-container">
-  <h3>Publishers and Copyright</h3>
+  {/* <h3>Publishers and Copyright</h3> */}
   {publishers.map((pub) => (
     <div className="metadata-row" key={pub.id}>
       <span className="meta-label">{pub.symbol}</span>

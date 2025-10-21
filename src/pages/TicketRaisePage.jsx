@@ -35,10 +35,10 @@ const TicketPage = () => {
   );
 
   return (
-    <div className="ticket-page">
+    // <div className="ticket-page">
       <div className="ticket-container">
         {/* Top-left back symbol */}
-        <span
+        {/* <span
           className="back-button"
           onClick={() => {
             if (showDetail) {
@@ -58,35 +58,37 @@ const TicketPage = () => {
           }}
         >
           ⏴
-        </span>
+        </span> */}
 
-        <h2 style={{textAlign:"center"}}>Tickets</h2>
+        <h2 className="ticket-title ">Tickets</h2>
 
         {/* Tabs */}
-        <div className="ticket-tabs">
-          <button
-            type="button"
-            className={activeTab === "raise" ? "active" : ""}
-            onClick={() => setActiveTab("raise")}
-          >
-            Raise Ticket
-          </button>
-          <button
-            type="button"
-            className={activeTab === "myTickets" ? "active" : ""}
-            onClick={() => setActiveTab("myTickets")}
-          >
-            My Tickets
-          </button>
-        </div>
+                    <div className="ticket-tabs">
+                      <button
+                        type="button"
+                        className={activeTab === "raise" ? "active" : ""}
+                        onClick={() => setActiveTab("raise")}
+                      >
+                        Raise Ticket
+                      </button>
+                      <button
+                        type="button"
+                        className={activeTab === "myTickets" ? "active" : ""}
+                        onClick={() => setActiveTab("myTickets")}
+                      >
+                        My Tickets
+                      </button>
+                    </div>
 
         {/* Raise Ticket Form */}
         {activeTab === "raise" && (
           <form className="ticket-form" onSubmit={(e) => e.preventDefault()}>
-            <label>
-              <div>
-                Issue Type <span className="required">*</span>
-                </div>
+            <label className="section-container">
+                      <div>
+                        <span style={{display: "flex", flexDirection: "row"}}> <h5>Issue Type </h5> <span className="required">*</span>  </span>
+                       
+                        
+                      </div>
               <select required>
                 <option value="" disabled>
                   Select issue type
@@ -99,20 +101,23 @@ const TicketPage = () => {
             </label>
 
             <label>
-              <div>
-                 Description <span className="required">*</span>
+              <div className="section-container" >
+
+                <span style={{display: "flex", flexDirection: "row"}}> <h5>Description</h5> <span className="required">*</span></span>
+                
+                 <textarea  placeholder="Enter your issue" required />
 
               </div>
-             
-              <textarea placeholder="Enter your issue" required />
+             {/* style={{display: "flex", flexDirection: "row"}} */}
+              
             </label>
 
-            <label>
-              Upload File
+            <label className="section-container">
+              <h5>Upload File</h5>
               <input type="file" />
             </label>
 
-            <div style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap:"10px" }}>
+            <div className="popup-actions">
                 <button
                   className="btn-secondary"
                   onClick={() => navigate(-1)}
@@ -120,7 +125,7 @@ const TicketPage = () => {
                   cancel
                 </button>
                 <button
-                  className="new-release-button" style={{ width:"100Px"  }}
+                  className="new-release-button" 
                   onClick={() => setShowDetail(true)}
                 >
                   Next
@@ -131,7 +136,7 @@ const TicketPage = () => {
 
         {/* My Tickets Table */}
         {activeTab === "myTickets" && !showDetail && (
-          <div className="tickets-list">
+          <div className="tickets-list ">
             {/* Search Bar */}
             <div className="ticket-search">
               <input
@@ -142,7 +147,7 @@ const TicketPage = () => {
               />
             </div>
 
-            <table>
+            <table >
               <thead>
                 <tr>
                   <th>Ticket No</th>
@@ -225,9 +230,9 @@ const TicketPage = () => {
               <span>Status:</span>
               <span>{selectedTicket.status}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "center" }}>
+            <div className="popup-actions">
               <button
-                className="new-release-button" style={{ width:"100Px"  }}
+                className="btn-secondary" style={{ width:"100Px"  }}
                 onClick={() => {
                   setShowDetail(false);
                   setSelectedTicket(null);
@@ -240,7 +245,7 @@ const TicketPage = () => {
           </div>
         )}
       </div>
-    </div>
+    // </div>
   );
 };
 

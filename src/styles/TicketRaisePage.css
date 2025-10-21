@@ -1,4 +1,40 @@
 /* Container and Page */
+
+
+.ticket-container {
+  padding: 40px 80px;
+  font-family: "Poppins", sans-serif;
+  background: #f9fafb;
+  margin-top: auto;
+}
+
+.ticket-title {
+ font-size: 26px;
+   text-align: start;
+  font-weight: 600;
+  margin-bottom: 25px;
+   color: #222;
+  background-color: transparent!important;
+  padding-left: 25px;
+  position: relative;
+  margin-top: 80px;
+  background: #fff;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    z-index: 100;
+
+}
+
+.section-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
 .ticket-page {
   font-family: "Poppins", sans-serif;
   margin-top: 110px;
@@ -11,16 +47,6 @@
   position: relative;
 }
 
-.ticket-container {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 30px 40px;
-  max-width: 900px;   /* large width for table */
-  width: 100%;
-  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.05);
-  position: relative;
-}
 
 /* Heading */
 .ticket-page h2 {

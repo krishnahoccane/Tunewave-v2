@@ -1,42 +1,47 @@
-.ytservices-page {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding-top: 100px;
-  background: #f0f2f5;
-  font-family: "Poppins", sans-serif;
-}
+
 
 .ytservices-container {
-  width: 95%;
-  max-width: 1100px;
-  background: #fff;
-  border: 2px solid #008cff;
-  border-radius: 12px;
-  padding: 30px 40px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  min-height: 700px;
+  padding: 40px 80px;
+  font-family: "Poppins", sans-serif;
+  background: #f9fafb;
+  margin-top: auto;
 }
 
-.ytservices-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+.ytservices-title {
+ font-size: 26px;
+   text-align: start;
+  font-weight: 600;
+  margin-bottom: 25px;
+   color: #222;
+  background-color: transparent!important;
+  padding-left: 25px;
+  position: relative;
+  margin-top: 80px;
+  background: #fff;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    z-index: 100;
+
 }
+
+.section-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+
 
 .ytservices-header h2 {
   font-size: 22px;
   font-weight: 600;
 }
 
-.close-btn {
-  background: transparent;
-  border: none;
-  font-size: 26px;
-  cursor: pointer;
-}
+
 
 .tabs-add-container {
   display: flex;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
 import "../styles/Home.css";
+import "../styles/style.css";
 import SampleIcon from "../assets/samplIcon.png";
 import live from "../assets/Live.svg";
 function Home() {
@@ -222,7 +223,7 @@ useEffect(() => {
           <p className="greeting-role">{user.role}</p>
         </div>
         <button
-          className="new-release-button"
+          className="gradient-button"
           onClick={() => navigate("/create-release")}
         >
           Create Release

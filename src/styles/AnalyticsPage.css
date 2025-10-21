@@ -136,8 +136,8 @@
 }
 .popup-actions button {
   padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
+  /* border: none; */
+  border-radius: 999px;
   cursor: pointer;
 }
 .popup-actions button.confirm {

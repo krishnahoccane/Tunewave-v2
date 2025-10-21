@@ -35,13 +35,13 @@ const AnalyticsPage = () => {
   ];
 
   return (
-    <div className="analytics-page">
+    <div className="all-pages-container">
       {/* Close Button */}
       <button className="close-btn" onClick={() => setShowExitPopup(true)}>
         ×
       </button>
 
-      <h2>Analytics</h2>
+      <h2 className="all-title">Analytics</h2>
 
       {/* Filters */}
       <div className="filters">

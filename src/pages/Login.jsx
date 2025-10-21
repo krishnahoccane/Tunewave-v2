@@ -55,7 +55,7 @@ const [displayName, setDisplayName] = useState("");
     setLoading(true);
     setError("");
     setSuccessMessage("");
-    setEmailVerified(true);
+    // setEmailVerified(true);
     try {
       const res = await fetch(
         `https://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
@@ -131,7 +131,7 @@ const [displayName, setDisplayName] = useState("");
   const handleResetEmail = () => {
   setEmail("");
   setPassword("");
-  setEmailVerified(false);
+  setEmailVerified(true);
   setError("");
   setSuccessMessage("");
   setForgotStage("none");
@@ -362,6 +362,7 @@ const handleResendOTP = async () => {
 
   fetchCardImage();
 }, []);
+
 
   // UI Rendering
   // --------------------------

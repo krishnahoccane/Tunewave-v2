@@ -49,7 +49,7 @@
   color: #666;
 }
 
-.new-release-button {
+/* .new-release-button {
   background: #1e40af;
   color: #fff;
   padding: 12px 24px;
@@ -62,7 +62,7 @@
 }
 .new-release-button:hover {
   background: #153c9e;
-}
+} */
 
 /* Cards Section */
 .cards {

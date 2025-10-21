@@ -457,23 +457,3 @@
   color: white;
 }
 
-/* Cancel / Close button */
-.close-button {
-  position: absolute;
-  top: 20px;
-  right: 40px;
-  background: rgba(255, 255, 255, 0.3); 
-  color: white;
-  border: none;
-  border-radius: 50%;
-  padding: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s ease;
-}
-
-.close-button:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
