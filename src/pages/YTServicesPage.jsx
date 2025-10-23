@@ -37,10 +37,10 @@ const YTServicesPage = () => {
   
 
   return (
-    <div className="track-details-container">
+    <div className="pages-layout-container">
 
       {/* <div className="ytservices-header"> */}
-          <h2 className="track-title">Youtube Requests</h2>
+          <h2 className="pages-main-title">Youtube Requests</h2>
           {/* <button
             className="close-btn"
             onClick={() => (window.location.href = "/dashboard")}
@@ -69,7 +69,7 @@ const YTServicesPage = () => {
             </button>
           </div>
           <button
-            className="new-release-button"
+            className="btn-gradient"
             onClick={() =>
               activeTab === "claim"
                 ? setShowClaimPopup(true)
@@ -105,7 +105,7 @@ const YTServicesPage = () => {
             </table>
             <div className="popup-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() =>  navigate("/")}
               >
                 Cancel
@@ -141,7 +141,7 @@ const YTServicesPage = () => {
             </table>
             <div className="popup-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => navigate(-1)}
               >
                 Cancel
@@ -172,12 +172,12 @@ const YTServicesPage = () => {
             </label>
             <div className="popup-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => setShowClaimPopup(false)}
               >
                 Cancel
               </button>
-              <button className="new-release-button">Submit</button>
+              <button className="btn-gradient">Submit</button>
             </div>
           </div>
         </div>
@@ -262,12 +262,12 @@ const YTServicesPage = () => {
 
             <div className="popup-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => setShowOacPopup(false)}
               >
                 Cancel
               </button>
-              <button className="new-release-button">Submit</button>
+              <button className="btn-gradient">Submit</button>
             </div>
           </div>
         </div>

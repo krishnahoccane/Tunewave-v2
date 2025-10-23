@@ -1,35 +1,3 @@
-.wallet-page {
-  padding: 40px;
-  margin-top: 100px;
-  font-family: "Poppins", sans-serif;
-  background: hsl(210, 20%, 98%);
-}
-
-
-
-/* Big container */
-.wallet-container {
-  background: #f3f4f6;
-  padding: 30px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-/* Header */
-.wallet-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 85px;
-  background: #fff;
-  padding: 0 20px;
-  font-size: 24px;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border-radius: 8px;
-}
 
 .close-btn {
   background: none;

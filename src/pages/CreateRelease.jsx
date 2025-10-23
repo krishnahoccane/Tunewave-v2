@@ -1,5 +1,6 @@
 
 import "../styles/CreateRelease.css";
+import "../styles/styled.css";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import iIcon from "../assets/material-symbols_info-outline.png";
@@ -238,8 +239,8 @@ function CreateRelease() {
   };
 
   return (
-    <div className="create-release-page">
-      <h2 className="create-title">Create A New Release</h2>
+    <div className="pages-layout-container">
+      <h2 className="pages-main-title">Create A New Release</h2>
 
       {/* Step 1 */}
       <div className="section">
@@ -375,7 +376,7 @@ function CreateRelease() {
         {showicons && (
           <div className="contributors-buttons">
             <button
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => {
                 setShowArtistModal(true);
                 setArtistDropDownRole("");
@@ -388,7 +389,7 @@ function CreateRelease() {
           
 
             <button
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => {
                 setShowAddArtistModal(true);
                 setArtistDropDownRole("");
@@ -400,7 +401,7 @@ function CreateRelease() {
             </button>
 
             <button
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => {
                 setShowPerformer(true);
                 setperformerDropDownRole("");
@@ -412,7 +413,7 @@ function CreateRelease() {
             </button>
 
             <button
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => {
                 setShowProducer(true);
                 setproducerDropDownRole("");
@@ -425,7 +426,7 @@ function CreateRelease() {
 
 
              <button
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => {
                 setShowProducer(true);
                 setproducerDropDownRole("");
@@ -477,7 +478,7 @@ function CreateRelease() {
                 <button
                   value={"new"}
                     type="button"
-                    className="new-release-button"
+                    className="btn-gradient"
                     style={{ width: "100%", marginTop: "10px" }}
                     onClick={() => {setShowLinkProfileModal(true);
                       setthirdDropDown("");
@@ -548,13 +549,13 @@ function CreateRelease() {
                 {/* Save contributor */}
                 <div style={{ marginTop: "20px", textAlign: "right" }}>
                   <button
-                    className="btn-secondary"
+                    className="btn-cancel"
                     onClick={() => setShowArtistModal(false)}
                   >
                     Cancel
                   </button>
                   <button
-                    className="new-release-button"
+                    className="btn-gradient"
                     onClick={saveContributor}
                   >
                     Save Artist
@@ -662,7 +663,7 @@ function CreateRelease() {
             <div style={{ marginTop: "30px" }}>
               {" "}
               {/* Add spacing before button */}
-              <button className="btn-secondary ">Localize Your Release</button>
+              <button className="btn-cancel ">Localize Your Release</button>
             </div>
 
             <p className="field-tip">
@@ -707,19 +708,18 @@ function CreateRelease() {
 
             <div className="modal-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => {
                   setShowArtistModal(false);
                 }}
               >
                 Cancel
               </button>
-              <button className="btn-primary">Create</button>
+              <button className="btn-gradient">Create</button>
             </div>
           </div>
         </div>
       )}
-
       {/* show add artist model */}
       {showAddArtistModal && (
         <div className="modal-overlay">
@@ -750,7 +750,7 @@ function CreateRelease() {
             </select>
             <button
                     type="button"
-                    className="new-release-button"
+                    className="btn-gradient"
                     style={{ width: "100%", marginTop: "10px" }}
                     onClick={() => setShowLinkProfileModal(true)} // open your modal
                 >
@@ -790,7 +790,7 @@ function CreateRelease() {
                   {" "}
                   {/* Add spacing before button */}
                   <button
-                    className="btn-secondary localize-btn"
+                    className="btn-cancel localize-btn"
                     onClick={() => {
                       setShowLocalizeModal(true);
                       setShowAddArtistModal(false);
@@ -856,7 +856,7 @@ function CreateRelease() {
             <hr className="line" />
             <div className="modal-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => {
                   setShowAddArtistModal(false);
                   setArtistDropDownRole("");
@@ -867,7 +867,7 @@ function CreateRelease() {
               >
                 Cancel
               </button>
-              <button className="new-release-button">Add Artist</button>
+              <button className="btn-gradient">Add Artist</button>
             </div>
           </div>
         </div>
@@ -938,7 +938,7 @@ function CreateRelease() {
                   {" "}
                   {/* Add spacing before button */}
                   <button
-                    className="btn-secondary localize-btn"
+                    className="btn-cancel localize-btn"
                     onClick={() => {
                       setShowLocalizeModal(true);
                       setShowPerformer(false);
@@ -1004,7 +1004,7 @@ function CreateRelease() {
             <hr className="line" />
             <div className="modal-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => {
                   setShowPerformer(false),
                     setArtistDropDownRole(""),
@@ -1015,7 +1015,7 @@ function CreateRelease() {
               >
                 Cancel
               </button>
-              <button className="new-release-button">Add Artist</button>
+              <button className="btn-gradient">Add Artist</button>
             </div>
           </div>
         </div>
@@ -1087,7 +1087,7 @@ function CreateRelease() {
                   {" "}
                   {/* Add spacing before button */}
                   <button
-                    className="btn-secondary localize-btn"
+                    className="btn-cancel localize-btn"
                     onClick={() => {
                       setShowLocalizeModal(true);
                       setShowProducer(false);
@@ -1151,9 +1151,9 @@ function CreateRelease() {
             )}
 
             <hr className="line" />
-            <div className="modal-actions">
+            <div className="popup-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => {
                   setShowProducer(false);
                   setproducerDropDownRole("");
@@ -1163,7 +1163,7 @@ function CreateRelease() {
               >
                 Cancel
               </button>
-              <button className="new-release-button">Add Artist</button>
+              <button className="btn-gradient">Add Artist</button>
             </div>
           </div>
         </div>
@@ -1193,15 +1193,15 @@ function CreateRelease() {
                 "Enter your SoundCloud username from your profile URL. For example, if your URL is https://soundcloud.com/artistname123, enter only artistname123 (not the full link).\n\nNote: SoundCloud maps each ISRC to a single profile, so only the Main Primary Artist’s profile URL will be sent."}
             </p>
 
-            <div className="button-group">
+            <div className="pop-up-actions">
               <button
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => setShowLinkProfileModal(false)}
               >
                 Cancel
               </button>
               <button
-                className="new-release-button"
+                className="btn-gradient"
                 onClick={() => setShowLinkProfileModal(false)}
               >
                 Apply
@@ -1356,11 +1356,11 @@ function CreateRelease() {
 
       {/* Action Buttons */}
       <div className="form-actions">
-        <button className="btn-secondary" onClick={() => navigate("/")}>
+        <button className="btn-cancel" onClick={() => navigate("/")}>
           Cancel
         </button>
         <button
-          className="new-release-button"
+          className="btn-gradient"
           onClick={() => {
             navigate("/upload-tracks");
             handleSubmit();

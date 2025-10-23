@@ -181,7 +181,7 @@ function CatalogPage() {
 </div>
 
           {/* Create Release */}
-          <button className="new-release-button" onClick={() => navigate("/create-release")}>
+          <button className="btn-gradient" onClick={() => navigate("/create-release")}>
             Create Release
           </button>
         </div>

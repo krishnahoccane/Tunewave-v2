@@ -1,10 +1,10 @@
 
-.create-release-page {
+/* .create-release-page {
   padding: 40px 80px;
   font-family: "Poppins", sans-serif;
   background: #f9fafb;
   margin-top: auto;
-}
+} */
 
 .create-title {
   font-size: 28px;
@@ -23,19 +23,7 @@
   line-height: 1.6;
 }
 
-.section {
-  background: #fff;
-  padding: 30px;
-  margin-bottom: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
 
-.section h3 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 25px;
-}
 
 .input-group {
   margin-bottom: 20px;
@@ -177,34 +165,8 @@
   margin-top: 30px;
 }
 
-.btn-primary {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 14px 30px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  transition: background 0.2s;
-}
 
-.btn-primary:hover {
-  background: #1e40af;
-}
 
-.btn-secondary {
-  background: #f3f4f6 !important;
-  color: #333 !important;
-  border: none !important;
-  padding: 14px 30px !important;
-  border-radius: 50px !important;
-  cursor: pointer !important;
-  font-size: 15px !important;
-}
-.btn-secondary:hover {
-  border: 1px solid #504e4e !important;
-}
 .file-types {
   font-size: 13px;
   color: #888;
@@ -348,15 +310,6 @@
   background: #d1d5db; /* Medium Gray when clicked */
   transform: scale(0.98);
 }
- /* {
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 15px;
-  outline: none;
-  background: #fff;
-} */
 
 .input-field:focus {
   border-color: #2563eb;
@@ -535,11 +488,11 @@
   box-shadow: 0 6px 15px rgba(0,0,0,0.2);
 }
 
-h2 {
+/* h2 {
   text-align: left;
   font-weight: bold;
   font-size: 20px;
-}
+} */
 
 label {
   font-weight: 500;
@@ -581,13 +534,6 @@ label {
   margin-top: 20px;
 }
 
-.cancel-btn {
-  background: #e0e0e0;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
 
 .apply-btn {
   background: #2563eb; /* Bright blue for Apply */

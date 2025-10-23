@@ -32,6 +32,9 @@ const TrackDetails = () => {
   const [isrcCode, setIsrcCode] = useState("");
   const [explicitStatus, setExplicitStatus] = useState("");
 
+
+ 
+
   // Contributors states
   const [showicons, setShowIcons] = useState(true);
 
@@ -134,11 +137,32 @@ const TrackDetails = () => {
 };
 
 
+// Ensure valid time input and auto-format to 2 digits
+const handleCrbtInputChange = (index, unit, value) => {
+  let num = value.replace(/\D/g, ""); // remove non-digits
+  if (num === "") num = "00";
+
+  const limit = unit === "hours" ? 23 : 59;
+  if (parseInt(num, 10) > limit) num = limit.toString();
+
+  const updated = [...crbts];
+  updated[index][unit] = num.slice(0, 2).padStart(2, "0");
+  setCrbts(updated);
+};
+
+const handleTimeBlur = (index, unit, value) => {
+  let formatted = value.padStart(2, "0");
+  const updated = [...crbts];
+  updated[index][unit] = formatted;
+  setCrbts(updated);
+};
+
+
 
   return (
     // <div className="page-container">
-      <div className="track-details-container ">
-        <h2 className="track-title">Track Details</h2>
+      <div className="pages-layout-container">
+        <h2 className="pages-main-title">Track Details</h2>
 
         <div className="section-container section">
           {/* <h3 className="track-title">Tracks</h3> */}
@@ -154,11 +178,11 @@ const TrackDetails = () => {
           <h3>Artists</h3>
           {showicons && (
             <div className="contributors-buttons">
-              <button className="btn-secondary">+ Add Main Primary Artist</button>
-              <button className="btn-secondary">+ Add Producer</button>
-              <button className="btn-secondary">+ Add Director</button>
-              <button className="btn-secondary">+ Add Composer</button>
-              <button className="btn-secondary">+ Add Lyricist</button>
+              <button className="btn-cancel">+ Add Main Primary Artist</button>
+              <button className="btn-cancel">+ Add Producer</button>
+              <button className="btn-cancel">+ Add Director</button>
+              <button className="btn-cancel">+ Add Composer</button>
+              <button className="btn-cancel">+ Add Lyricist</button>
             </div>
           )}
         </div>
@@ -231,49 +255,45 @@ const TrackDetails = () => {
                         </div>
                       )}
 
-
-        {/* CRBT */}
-       <div className="section section-container">
-            <label className="section-title">CRBT</label>
-            {crbts.map((crbt, index) => (
-              <div key={index} className="crbt-row-wrapper">
-                <div className="crbt-row">
-                  {["hours","minutes","seconds"].map((unit, i) => (
-                    <React.Fragment key={i}>
-                      <select
-                        className="time-select"
-                        value={crbt[unit]}
-                        onChange={(e) => handleCrbtChange(index, unit, e.target.value)}
-                      >
-                        {Array.from({ length: unit==="hours"?24:60 }, (_, n) => (
-                          <option key={n} value={n.toString().padStart(2,"0")}>
-                            {n.toString().padStart(2,"0")}
-                          </option>
-                        ))}
-                      </select>
-                      {i < 2 && <span>:</span>}
-                    </React.Fragment>
-                  ))}
-                  {crbts.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCrbt(index)}
-                      className="btn-secondary"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-
-      {/* Labels under dropdowns */}
-      <div className="crbt-labels">
-        <span>HH</span>
-        <span>MM</span>
-        <span>SS</span>
+{/* CRBT */}
+<div className="section section-container">
+  <label className="section-title">CRBT</label>
+  {crbts.map((crbt, index) => (
+    <div key={index} className="crbt-row-wrapper">
+      <div className="crbt-row">
+        {["hours", "minutes", "seconds"].map((unit, i) => (
+          <React.Fragment key={i}>
+            <input
+              type="number"
+              className="time-input"
+              value={crbt[unit]}
+              onChange={(e) => handleCrbtInputChange(index, unit, e.target.value)}
+              min={0}
+              max={unit === "hours" ? 23 : 59}
+              onBlur={(e) => handleTimeBlur(index, unit, e.target.value)}
+            />
+            {i < 2 && <span>:</span>}
+          </React.Fragment>
+        ))}
+        {crbts.length > 1 && (
+          <button
+            type="button"
+            onClick={() => handleDeleteCrbt(index)}
+            className="btn-cancel"
+          >
+            Remove
+          </button>
+        )}
       </div>
     </div>
-  ))}
+  ))}<div className="crbt-labels">
+        <span><p>HH</p></span>
+        <span><p>MM</p></span>
+        <span><p>SS</p></span>
+      </div>
 </div>
+
+      {/* Labels under dropdowns */}
 
 
         {/* ISRC */}
@@ -286,15 +306,15 @@ const TrackDetails = () => {
           {isrcOption === "yes" && <input type="text" placeholder="Enter ISRC Code" className="form-input" value={isrcCode} onChange={e => setIsrcCode(e.target.value)} />}
         </div>
 
-        <div className="tracks-details-buttons">
+        <div className="popup-actions">
           <button
                 type="button"
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => navigate("/upload-tracks")} // Navigate back
               >
                 Cancel
           </button>
-        <button type="button" className="new-release-button" onClick={handleSaveAndContinue}>
+        <button type="button" className="btn-gradient" onClick={handleSaveAndContinue}>
           Save & Continue
         </button>
         </div>

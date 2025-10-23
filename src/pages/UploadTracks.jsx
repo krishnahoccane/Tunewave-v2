@@ -1,13 +1,22 @@
 
-
+// hooks and libraries
 import React, { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "../styles/UploadTracks.css";
+
 
 import { toast, ToastContainer } from "react-toastify";
+
+
+// css
+import "../styles/UploadTracks.css";
 import "react-toastify/dist/ReactToastify.css";
 
+
+// assets
 import defaultCover from "../assets/coverArt.jpg";
+
+
+
 
 const UploadTracks = () => {
   const location = useLocation();
@@ -120,8 +129,8 @@ const UploadTracks = () => {
   };
 
   return (
-    <div className="upload-tracks-container">
-      <h2 className="upload-title">Upload Tracks</h2>
+    <div className="pages-layout-container">
+      <h2 className="pages-main-title">Upload Tracks</h2>
 
       <div className="upload-layout">
         {/* LEFT SIDE — PREVIEW SECTION */}
@@ -245,24 +254,28 @@ const UploadTracks = () => {
                 ))}
               </div>
             )}
+          </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "right",
-                marginTop: "20px",
-                gap: "12px",
-              }}
+          <ToastContainer
+            position="bottom-center"
+            autoClose={3000}
+            hideProgressBar={false}
+          />
+        </div>
+      </div>
+
+          <div
+            className="form-actions"
             >
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => navigate("/create-release")}
               >
                 Back
               </button>
               <button
-                className="new-release-button"
+                className="btn-gradient"
                 disabled={tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)}
                 onClick={handleNextStep}
                 style={{
@@ -274,20 +287,12 @@ const UploadTracks = () => {
                     tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
                       ? 0.6
                       : 1,
-                }}
-              >
+                  }}
+                >
                 Next
               </button>
             </div>
-          </div>
-
-          <ToastContainer
-            position="bottom-center"
-            autoClose={3000}
-            hideProgressBar={false}
-          />
-        </div>
-      </div>
+      
     </div>
   );
 };

@@ -1,0 +1,219 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* Page Layouts */
+
+.pages-layout-container {
+  padding: 40px 80px;
+  font-family: "Poppins", sans-serif;
+  background: #f9fafb;
+  margin-top: auto;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* Page Titles */
+.pages-main-title {
+  font-size: 26px;
+  text-align: start;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: #222;
+  background-color: transparent!important;
+  padding-left: 25px;
+  position: relative;
+  margin-top: 80px;
+  background: #fff;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  z-index: 100;
+}
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* section */
+
+.section {
+  background: #fff;
+  padding: 20px 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.section {
+  background: #fff;
+  padding: 30px;
+  margin-bottom: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+/* Buttons */
+
+.btn-gradient {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  background: transparent;
+  color: #1178BB;
+  border: 2px solid transparent;
+  border-radius: 999px; 
+  background-image: linear-gradient(#fff, #fff), 
+                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover,
+.btn-gradient:active {
+  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
+  color: #fff;
+  border-radius: 999px; 
+}
+
+
+/* Cancel Button */
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1e40af;
+}
+
+.btn-cancel {
+  /* background: #e9ebef !important; */
+  color: #333 !important;
+  border: none !important;
+  padding: 14px 30px !important;
+  border-radius: 50px !important;
+  cursor: pointer !important;
+  font-size: 15px !important;
+  background: rgba(242, 242, 242, 1);
+
+}
+.btn-cancel:hover {
+  border: 1px solid #504e4e !important;
+}
+
+
+/* Copy Btn */
+/* -------------------------------------------------------------------------------------------------------------------------------- */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.copy-btn.copied {
+  background-color: #dcfce7;
+  border-color: #478cc5;
+  color: #79a9d7;
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+.copy-btn svg {
+  transition: all 0.2s ease;
+}
+
+
+
+
+
+/* Actions */
+
+.btn-actions {
+  position: absolute;
+  top: auto;
+  bottom: 50px;
+  right: 50px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+
+/* .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  margin-top: 30px;
+} */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding-top: 30px;
+}
+
+/* -------------------------------------------------------------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+
+/* Specials */
+
+.required {
+  color: red;
+}
+
+
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------------------------------------------------------------ */

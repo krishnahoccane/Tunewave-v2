@@ -36,49 +36,36 @@ const TicketPage = () => {
 
   return (
     // <div className="ticket-page">
-      <div className="ticket-container">
-        {/* Top-left back symbol */}
-        {/* <span
-          className="back-button"
-          onClick={() => {
-            if (showDetail) {
-              setShowDetail(false); // go back to ticket selection
-              setSelectedTicket(null); // deselect ticket
-            } else {
-              navigate(-1); // go back to previous page (front page)
-            }
-          }}
-          style={{
-            position: "absolute",
-            left: "20px",
-            top: "20px",
-            cursor: "pointer",
-            fontSize: "24px",
-            fontWeight: "bold",
-          }}
-        >
-          ⏴
-        </span> */}
+      <div className="pages-layout-container">
 
-        <h2 className="ticket-title ">Tickets</h2>
+        <h2 className="pages-main-title">Tickets</h2>
 
         {/* Tabs */}
                     <div className="ticket-tabs">
-                      <button
-                        type="button"
-                        className={activeTab === "raise" ? "active" : ""}
-                        onClick={() => setActiveTab("raise")}
-                      >
-                        Raise Ticket
-                      </button>
-                      <button
-                        type="button"
-                        className={activeTab === "myTickets" ? "active" : ""}
-                        onClick={() => setActiveTab("myTickets")}
-                      >
-                        My Tickets
-                      </button>
-                    </div>
+                                <button
+                                  type="button"
+                                  className={activeTab === "raise" ? "active" : ""}
+                                  onClick={() => {
+                                    setActiveTab("raise");
+                                    setShowDetail(false);
+                                    setSelectedTicket(null);
+                                  }}
+                                >
+                                  Raise Ticket
+                                </button>
+                                <button
+                                  type="button"
+                                  className={activeTab === "myTickets" ? "active" : ""}
+                                  onClick={() => {
+                                    setActiveTab("myTickets");
+                                    setShowDetail(false);
+                                    setSelectedTicket(null);
+                                  }}
+                                >
+                                  My Tickets
+                                </button>
+                              </div>
+
 
         {/* Raise Ticket Form */}
         {activeTab === "raise" && (
@@ -119,13 +106,13 @@ const TicketPage = () => {
 
             <div className="popup-actions">
                 <button
-                  className="btn-secondary"
+                  className="btn-cancel"
                   onClick={() => navigate(-1)}
                 >
                   cancel
                 </button>
                 <button
-                  className="new-release-button" 
+                  className="btn-gradient" 
                   onClick={() => setShowDetail(true)}
                 >
                   Next
@@ -190,13 +177,13 @@ const TicketPage = () => {
             {selectedTicket && (
               <div style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap:"10px" }}>
                 <button
-                  className="btn-secondary"
+                  className="btn-cancel"
                   onClick={() => navigate(-1)}
                 >
                   cancel
                 </button>
                 <button
-                  className="new-release-button" style={{ width:"100Px"  }}
+                  className="btn-gradient" style={{ width:"100Px"  }}
                   onClick={() => setShowDetail(true)}
                 >
                   Next
@@ -230,9 +217,9 @@ const TicketPage = () => {
               <span>Status:</span>
               <span>{selectedTicket.status}</span>
             </div>
-            <div className="popup-actions">
+            <div className="btn-actions">
               <button
-                className="btn-secondary" style={{ width:"100Px"  }}
+                className="btn-cancel" style={{ width:"100Px"  }}
                 onClick={() => {
                   setShowDetail(false);
                   setSelectedTicket(null);

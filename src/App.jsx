@@ -220,7 +220,9 @@ import PreviewDistributePage from "./pages/PreviewDistributePage.jsx";
 import TrackDetails from "./pages/TrackDetails.jsx";
 import TicketRaisePage from "./pages/TicketRaisePage.jsx";
 import SelectStoresPage from "./pages/SelectStoresPage.jsx";
-// import "./styles/style.css";
+
+// change name later
+import "./styles/styled.css";
 
 // ✅ Wrapper to use useLocation inside Router
 function AppWrapper() {

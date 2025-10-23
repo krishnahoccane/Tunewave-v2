@@ -7,9 +7,10 @@
   background: #f9fafb;
 
   
-  height: 100vh;          /* full screen */
-  overflow: hidden;       /* disables scroll */
+  height: 100vh;          
+  overflow: hidden;
   box-sizing: border-box;
+
 }
 
 /* Greeting Section */
@@ -17,10 +18,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* background: #fff; */
   padding: 20px;
   border-radius: 12px;
-  /* box-shadow: 0 2px 5px rgba(0,0,0,0.1); */
   margin-bottom: 40px;
   margin-top: 40px;
 }
@@ -48,21 +47,6 @@
   font-size: 14px;
   color: #666;
 }
-
-/* .new-release-button {
-  background: #1e40af;
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  transition: background 0.3s ease;
-}
-.new-release-button:hover {
-  background: #153c9e;
-} */
 
 /* Cards Section */
 .cards {
@@ -150,39 +134,6 @@
   margin: 0;
 }
 
-.view-all-btn {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
-  color: #fff;
-  border-radius: 999px;
-}
-
-.view-all-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  background: transparent;
-  color: #1178BB;
-  border: 2px solid transparent;
-  border-radius: 999px; 
-  background-image: linear-gradient(#fff, #fff), 
-                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.view-all-btn:hover,
-.view-all-btn:active {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
-  color: #fff;
-  border-radius: 999px; 
-}
-
 /* Releases Container */
 .releases-container {
   display: flex;
@@ -241,21 +192,6 @@
   opacity: 1;
 }
 
-.play-btn {
-  background: #1e40af;
-  color: white;
-  border: none;
-  font-size: 20px;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-.play-btn:hover {
-  background: #153c9e;
-  transform: scale(1.1);
-}
 
 /* Titles */
 .release-card .title {
@@ -290,71 +226,6 @@
     gap: 15px;
   }
 }
-
-
-.new-release-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  background: transparent;
-  color: #1178BB;
-  border: 2px solid transparent;
-  border-radius: 999px; /* ensures perfect pill shape */
-  background-image: linear-gradient(#fff, #fff), 
-                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.new-release-button:hover,
-.new-release-button:active {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
-  color: #fff;
-  border-radius: 999px; /* stays pill on hover */
-}
-
-
-/* view All */
-
-.view-all-btn {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
-  color: #fff;
-  border-radius: 999px;
-}
-
-.view-all-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  background: transparent;
-  color: #1178BB;
-  border: 2px solid transparent;
-  border-radius: 999px; 
-  background-image: linear-gradient(#fff, #fff), 
-                    linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.view-all-btn:hover,
-.view-all-btn:active {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
-  color: #fff;
-  border-radius: 999px; 
-}      
-
 
 
 

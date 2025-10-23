@@ -1,29 +1,4 @@
-/* Container and Page */
 
-
-.ticket-container {
-  padding: 40px 80px;
-  font-family: "Poppins", sans-serif;
-  background: #f9fafb;
-  margin-top: auto;
-}
-
-.ticket-title {
- font-size: 26px;
-   text-align: start;
-  font-weight: 600;
-  margin-bottom: 25px;
-   color: #222;
-  background-color: transparent!important;
-  padding-left: 25px;
-  position: relative;
-  margin-top: 80px;
-  background: #fff;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    z-index: 100;
-
-}
 
 .section-container {
   background: #fff;
@@ -137,40 +112,6 @@
   color: red;
 }
 
-/* Submit button */
-.submit-btn {
-  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
-  border: none;
-  padding: 14px 0;
-  border-radius: 6px;
-  color: #fff;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.2s ease-in-out;
-  width: 150px;
-  align-self: flex-start;
-}
-
-.submit-btn:hover {
-  opacity: 0.9;
-}
-
-/* Close button */
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #555;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  color: #1278bb;
-}
 
 /* Tickets Table */
 .tickets-list {

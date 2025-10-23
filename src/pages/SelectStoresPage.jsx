@@ -84,8 +84,8 @@ const SelectStoresPage = () => {
 
 
   return (
-    <div className="stores-container">
-      <h2 className="stores-title">Select Distribution / Stores</h2>
+    <div className="pages-layout-container">
+      <h2 className="pages-main-title">Select Distribution / Stores</h2>
       <div className="stores-card">
         <div className="stores-options">
           <label>
@@ -162,16 +162,18 @@ const SelectStoresPage = () => {
           </div>
         )}
 
-       <div className="action-buttons">
-          <button className="btn-secondary" onClick={handleBack}>
+       
+      </div>
+       <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
+
+       <div className="btn-actions">
+          <button className="btn-cancel" onClick={handleBack}>
             Back
           </button>
-          <button className="new-release-button" onClick={handleNext}>
+          <button className="btn-gradient" onClick={handleNext}>
             Next
           </button>
         </div>
-      </div>
-       <ToastContainer position="bottom-center" autoClose={3000} hideProgressBar={false} />
     </div>
     
   );

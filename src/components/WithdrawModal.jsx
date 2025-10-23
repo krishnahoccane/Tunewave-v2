@@ -85,7 +85,7 @@ const WithdrawRequest = () => {
           </div>
 
           <div className="button-group">
-            <button type="submit" className="submit-button">Submit</button>
+            
             <button
               type="reset"
               onClick={() => {
@@ -99,6 +99,7 @@ const WithdrawRequest = () => {
             >
               Cancel
             </button>
+            <button type="submit" className="submit-button">Submit</button>
           </div>
         </form>
       </div>

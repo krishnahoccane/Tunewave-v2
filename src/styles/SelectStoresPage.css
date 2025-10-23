@@ -1,9 +1,4 @@
-.stores-container {
-  padding: 40px 80px;
-  font-family: "Poppins", sans-serif;
-  background: #f9fafb;
-  margin-top: auto;
-}
+
 
 .stores-card {
 background: #fff;
@@ -15,36 +10,20 @@ background: #fff;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.stores-title {
-   font-size: 26px;
-   text-align: start;
-  font-weight: 600;
-  margin-bottom: 25px;
-   color: #222;
-  background-color: transparent!important;
-  padding-left: 25px;
-  position: relative;
-  margin-top: 80px;
-  background: #fff;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    z-index: 100;
-}
-
 .stores-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   max-height: 60vh;
   overflow-y: auto;
-  margin-top: 20px;
+  /* margin-top: 20px; */
   padding-right: 5px;
   /* align-items: center;
   justify-content: center; */
 }
 
 .stores-options.manual-options {
-  margin-top: 10px; /* reduce gap under "Select Manually" */
+  margin-top: 0px; 
   margin-left: 3.15em;
 }
 
@@ -63,25 +42,7 @@ background: #fff;
   accent-color: #1278bb;
 }
 
-.action-buttons {
-  display: flex;
-  align-items: end;
-  margin-top: auto;
-  justify-content: flex-end;
- /* justify-items: space-between; */
-  gap: 15px;
-}
 
-.btn-secondary {
-  padding: 12px 24px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
-  color: white;
-  font-weight: 600;
-  font-size: 15px;
-}
 
 .option-label {
   display: flex;

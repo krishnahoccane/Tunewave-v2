@@ -22,42 +22,25 @@ const WithdrawPage = () => {
   };
 
   return (
-    <div className="withdraw-modal">
-      
+    <div className="pages-layout-container">
+      <h2 className="pages-main-title">Beneficiary’s Details - (Withdraw Request)</h2>
       {/* Withdraw Request Title with Close Symbol */}
-      <div className="withdraw-header">
-        <h2>Withdraw Request</h2>
-        <button
-          className="close-btn"
-          onClick={() => setShowConfirmPopup(true)}
-        >
-          ×
-        </button>
-      </div>
 
-      <div className="withdraw-content">
+      {/* <div className="withdraw-content"> */}
 
         {/* Confirmation Popup */}
-        {showConfirmPopup && (
-  <div className="confirm-popup">
-    <div className="confirm-content">
-      <p>Do you want to confirm exit?</p>
-      <div className="confirm-buttons">
-        <button className="yes-btn" onClick={() => navigate("/dashboard")}>Yes</button>
-        <button className="no-btn" onClick={() => setShowConfirmPopup(false)}>No</button>
-      </div>
-    </div>
-  </div>
-)}
+        
 
         {/* Beneficiary Details Card */}
-        <div className="beneficiary-details-card">
-          <h3>🏠 Beneficiary’s Details</h3>
+        {/* <div className="beneficiary-details-card"> */}
+           <div className="wallet-info-message">
           <p>Please provide the correct bank details to ensure the withdrawal reaches the right account.</p>
 
-          <form onSubmit={handleSubmit} className="withdraw-form">
-            <div className="input-group">
-              <label>Beneficiary’s Account Number *</label>
+        </div>
+          
+          <form onSubmit={handleSubmit} className="withdraw-form ">
+            <div className="input-group section">
+              <label>Beneficiary’s Account Number <span className="required">*</span></label>
               <input
                 type="text"
                 value={accountNumber}
@@ -67,8 +50,8 @@ const WithdrawPage = () => {
               />
             </div>
 
-            <div className="input-group">
-              <label>Re-enter Bank Account Number *</label>
+            <div className="input-group section">
+              <label>Re-enter Bank Account Number <span className="required">*</span></label>
               <input
                 type="text"
                 value={reAccountNumber}
@@ -78,8 +61,8 @@ const WithdrawPage = () => {
               />
             </div>
 
-            <div className="input-group">
-              <label>Beneficiary Name *</label>
+            <div className="input-group section">
+              <label>Beneficiary Name <span className="required">*</span></label>
               <input
                 type="text"
                 value={beneficiaryName}
@@ -89,8 +72,8 @@ const WithdrawPage = () => {
               />
             </div>
 
-            <div className="input-group">
-              <label>IFSC Code *</label>
+            <div className="input-group section">
+              <label>IFSC Code <span className="required">*</span></label>
               <input
                 type="text"
                 value={ifsc}
@@ -100,8 +83,8 @@ const WithdrawPage = () => {
               />
             </div>
 
-            <div className="input-group">
-              <label>PAN Number *</label>
+            <div className="input-group section" >
+              <label>PAN Number <span className="required">*</span></label>
               <input
                 type="text"
                 value={pan}
@@ -111,21 +94,55 @@ const WithdrawPage = () => {
               />
             </div>
 
-            <div className="button-group">
+
+
+              {showConfirmPopup && (
+                                <div className="confirm-popup">
+                                  <div className="confirm-content">
+                                    <p>Do you want to confirm exit?</p>
+                                    <div className="popup-actions">
+                                      <button 
+                                        className="btn-gradient" 
+                                        onClick={() => navigate("/dashboard")}
+                                      >
+                                        Yes
+                                      </button>
+                                      <button 
+                                        className="btn-cancel" 
+                                        onClick={() => setShowConfirmPopup(false)}
+                                      >
+                                        No
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+            
+          </form><div className="popup-actions">
+              
               <button 
-                    type="submit" 
+                      type="button" 
+                      className="btn-cancel" 
+                      // onClick={() => navigate("/dashboard")}
+                        onClick={() => setShowConfirmPopup(true)}
+                      >
+                      Cancel
+              </button>
+
+
+              <button 
+                    type="button" 
                     // className="submit-btn"
-                    className="new-release-button "
+                    className="btn-gradient"
                     >
                       Submit
               </button>
-              <button type="button" className="btn-secondary" onClick={() => navigate("/dashboard")}>Cancel</button>
             </div>
-          </form>
         </div>
 
-      </div>
-    </div>
+      // </div>
+    // </div>
   );
 };
 

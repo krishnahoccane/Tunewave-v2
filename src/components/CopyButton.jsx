@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../styles/CopyButton.css";
+import "../styles/styled.css";
 
 function CopyButton({ text, className = "" }) {
   const [copied, setCopied] = useState(false);

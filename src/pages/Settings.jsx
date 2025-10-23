@@ -108,56 +108,44 @@ const Settings = ({ user, setUser }) => {
   };
 
   return (
-    <div className="settings-container">
-      {/* Greeting Bar */}
-      <div className="greeting-time">
-        <span className="greeting">
-          {greeting}, {formData.firstName}!
-        </span>
-        <span className="time">{time}</span>
-      </div>
+    <div className="pages-layout-container">
+
 
       {/* Header */}
-      <div className="settings-header">
+      {/* <div className="settings-header">
         <h1 className="settings-title">
           Welcome, {formData.firstName} {formData.lastName}
         </h1>
         <button className="close-btn">
           <X size={20} />
         </button>
-      </div>
-
+      </div> */}
+     <h2 className="pages-main-title">Settings</h2>
       {/* User Info Card */}
-      <div className="user-info-card">
-        <div className="card-header">
-          <h2>User Info</h2> 
-        <button 
-    className="secondary-btn close-btn" 
-    onClick={() => navigate("/")}
-  >
-    <X size={20} />
-  </button>
-        </div>
+      {/* <div className="user-info-card"> */}
+                {/* <div className="card-header">
+                  <h2>User Info</h2> 
+                </div> */}
 
         <div className="user-profile-section">
           <div className="profile-image-container">
-            <img src={profileImage} alt="Profile" className="profile-image" />
-            <button className="edit-profile-btn" onClick={triggerFileInput}>
-              <Edit2 size={16} color="white" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-            />
-          </div>
+                 <img src={profileImage} alt="Profile" className="profile-image" />
+                  <button className="edit-profile-btn" onClick={triggerFileInput}>
+                      <Edit2 size={16} color="white" /> 
+                  </button>
+                 <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
+            </div>
           <h3 className="profile-name">{formData.firstName}</h3>
         </div>
 
-        <div className="form-section">
-          <div className="form-row">
+        <div className="form-section ">
+          <div className="form-row section">
             <div className="form-group">
               <label>First Name</label>
               <input
@@ -180,7 +168,7 @@ const Settings = ({ user, setUser }) => {
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="form-group section">
             <label>E-Mail</label>
             <input
               type="email"
@@ -191,10 +179,10 @@ const Settings = ({ user, setUser }) => {
             {errors.email && <span className="error-text">{errors.email}</span>}
           </div>
 
-          <div className="password-section">
+          <div className="password-section section ">
             <h3>Change Password</h3>
 
-            <div className="form-group">
+            <div className="form-group ">
               <div className="floating-label">
                 <input
                   type={showOldPassword ? 'text' : 'password'}
@@ -207,7 +195,7 @@ const Settings = ({ user, setUser }) => {
                 <button
                   type="button"
                   onClick={() => setShowOldPassword(!showOldPassword)}
-                  className="password-toggle"
+                  className="password-toggle "
                 >
                   {showOldPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -216,7 +204,7 @@ const Settings = ({ user, setUser }) => {
             </div>
 
             <div className="form-group">
-              <div className="floating-label">
+              <div className="floating-label ">
                 <input
                   type={showNewPassword ? 'text' : 'password'}
                   value={formData.newPassword}
@@ -259,18 +247,20 @@ const Settings = ({ user, setUser }) => {
               )}
             </div>
 
-            <button type="button" onClick={handleUpdatePassword} className="reset-password-btn">
+            <button type="button" onClick={handleUpdatePassword} className="btn-gradient">
               Update Password
             </button>
           </div>
 
           <div className="form-actions">
-            <button onClick={handleSaveChanges} className="new-release-button">
+
+            <button className="btn-cancel" onClick = {() => navigate("/") }>close</button>
+            <button onClick={handleSaveChanges} className="btn-gradient">
               Save Changes
             </button>
           </div>
         </div>
-      </div>
+      {/* </div> */}
     </div>
   );
 };

@@ -48,14 +48,14 @@ function Wallet() {
   }, []);
 
   return (
-    <div className="wallet-page">
-      <div className="wallet-container">
-
-        {/* Top Bar */}
-        <div className="wallet-header">
+    <div className="pages-layout-container">
+      {/* Top Bar */}
+        <div className="pages-main-title">
           <h2>Wallet</h2>
-          <button className="close-btn" onClick={handleCloseClick}>×</button>
+          {/* <button className="close-btn" onClick={handleCloseClick}>X</button> */}
         </div>
+
+        
 
         {/* Info Message */}
         <div className="wallet-info-message">
@@ -63,33 +63,33 @@ function Wallet() {
         </div>
 
         {/* Info Cards */}
-        <div className="wallet-info">
-          <div className="card-details">
-            <h3>Card Details</h3>
-            <div className="detail-row"><span>Beneficiary Name</span><span>Prashanth Varma</span></div>
-            <div className="detail-row"><span>Bank Name</span><span>ABC *****</span></div>
-            <div className="detail-row"><span>Account Number</span><span>ABC0******</span></div>
-            <div className="detail-row"><span>IFSC Code</span><span>ABC******</span></div>
-            <div className="detail-row"><span>PAN Number</span><span>ABCDE1234F</span></div>
-          </div>
+                    <div className="wallet-info section">
+                              <div className="card-details">
+                                    <h3>Card Details</h3>
+                                    <div className="detail-row"><span>Beneficiary Name</span><span>Prashanth Varma</span></div>
+                                    <div className="detail-row"><span>Bank Name</span><span>ABC *****</span></div>
+                                    <div className="detail-row"><span>Account Number</span><span>ABC0******</span></div>
+                                    <div className="detail-row"><span>IFSC Code</span><span>ABC******</span></div>
+                                    <div className="detail-row"><span>PAN Number</span><span>ABCDE1234F</span></div>
+                              </div>
 
-          {/* Wallet Balance + Withdraw */}
-          <div className="wallet-balance">
-            <h3>TuneWave Wallet</h3>
-            <div className="balance-row">
-              <p>$45,500.12</p>
-              <button 
-                className="withdraw-btn"
-                onClick={() => navigate("/wallet/withdraw")}
-              >
-                Withdraw
-              </button>
-            </div>
-          </div>
-        </div>
+                      {/* Wallet Balance + Withdraw */}
+                      <div className="wallet-balance">
+                        <h3>TuneWave Wallet</h3>
+                        <div className="balance-row">
+                          <p>$45,500.12</p>
+                          <button 
+                            className="withdraw-btn"
+                            onClick={() => navigate("/wallet/withdraw")}
+                          >
+                            Withdraw
+                          </button>
+                        </div>
+                      </div>
+                    </div>
 
         {/* Graph and Transactions */}
-        <div className="wallet-main">
+        <div className="wallet-main section">
           <div className="wallet-graph">
             <div className="graph-header">
               <h3>Overview Balance</h3>
@@ -152,7 +152,7 @@ function Wallet() {
           </div>
 
         </div>
-      </div>
+      {/* </div> */}
 
       {/* Confirmation Popup */}
       {showConfirm && (
@@ -166,6 +166,16 @@ function Wallet() {
           </div>
         </div>
       )}
+
+
+      <div className="popup-actions">
+              <button
+                className="btn-cancel"
+                onClick={() =>  navigate("/")}
+              >
+                Cancel
+              </button>
+            </div>
     </div>
   );
 }

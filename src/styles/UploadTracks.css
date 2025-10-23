@@ -1,35 +1,4 @@
-/* Container */
-.upload-tracks-container {
-  padding: 40px 80px;
-  display: block;              /* enable flex layout */
-  justify-content: center;    /* center content horizontally */
-  width: 100%;
-  font-family: "Poppins", sans-serif;
-  margin-top: auto;
-  /* margin-top: auto; */
-   padding: 40px 80px;
-  font-family: "Poppins", sans-serif;
-  background: #f9fafb;
-  margin-top: auto;
-}
 
-.upload-title {
-
-   font-size: 26px;
-   text-align: start;
-  font-weight: 700;
-  margin-bottom: 25px;
-   color: #222;
-  background-color: transparent!important;
-  padding-left: 25px;
-  position: relative;
-  margin-top: 80px;
-  background: #fff;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    z-index: 100;
-
-}
 
 /* Step Indicator */
 .step {
@@ -79,7 +48,7 @@
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
   text-align: center;
   height: auto;               /* grows with content */
-  min-height: 400px;          /* decent initial size */
+  min-height: 440px;          /* decent initial size */
   transition: all 0.3s ease;
 }
 

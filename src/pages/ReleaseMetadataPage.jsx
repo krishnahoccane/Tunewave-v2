@@ -51,6 +51,7 @@ const handleNext = () => {
   };
 
   return (
+    
     <div className="release-metadata-container">
       <div className="release-metadata-card">
         {/* Just the cross symbol */}

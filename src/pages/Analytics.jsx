@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   LineChart,
   Line,
@@ -12,10 +14,13 @@ import {
   Bar,
 } from "recharts";
 import "../styles/AnalyticsPage.css";
+import "../styles/styled.css";
 
 const AnalyticsPage = () => {
-  const [showExitPopup, setShowExitPopup] = useState(false);
 
+  
+  const [showExitPopup, setShowExitPopup] = useState(false);
+  const navigate = useNavigate();
   // Multi-DSP Line Chart Data
   const lineData = [
     { month: "Jan", youtube: 200, spotify: 150, apple: 100 },
@@ -35,13 +40,13 @@ const AnalyticsPage = () => {
   ];
 
   return (
-    <div className="all-pages-container">
+    <div className="pages-layout-container">
       {/* Close Button */}
-      <button className="close-btn" onClick={() => setShowExitPopup(true)}>
+      {/* <button className="close-btn" onClick={() => setShowExitPopup(true)}>
         ×
-      </button>
+      </button> */}
 
-      <h2 className="all-title">Analytics</h2>
+      <h2 className="pages-main-title">Analytics</h2>
 
       {/* Filters */}
       <div className="filters">
@@ -221,10 +226,12 @@ const AnalyticsPage = () => {
           <div className="popup">
             <p>Are you sure you want to exit Analytics?</p>
             <div className="popup-actions">
-              <button onClick={() => setShowExitPopup(false)}>Cancel</button>
+              <button className="btn-cancel" onClick={() => setShowExitPopup(false)}>Cancel</button>
               <button
-                className="confirm"
-                onClick={() => (window.location.href = "/dashboard")}
+                className="btn-gradient"
+                onClick={() => 
+                  // (window.location.href = "/dashboard")}
+                  navigate("/dashboard")}
               >
                 Yes, Exit
               </button>
@@ -232,6 +239,13 @@ const AnalyticsPage = () => {
           </div>
         </div>
       )}
+      <div className="popup-actions">
+         <button className="btn-cancel" style={{display: "flex", flexDirection: "end"}} onClick={() => setShowExitPopup(true)}>
+        close
+      </button>
+
+      </div>
+     
     </div>
   );
 };

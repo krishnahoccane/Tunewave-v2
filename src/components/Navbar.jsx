@@ -17,7 +17,7 @@ import ArtistsIcon from "../assets/ArtistsIcon.svg";
 import ReleasesIconFill from "../assets/ReleasesIconFill.svg";
 import TracksIconFill from "../assets/TracksIconFill.svg";
 import ArtistsIconFill from "../assets/ArtistsIconFill.svg";
-
+import supportIcon from "../assets/support.png";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -82,6 +82,19 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
     }
   }
 };
+React.useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (!e.target.closest(".navbar")) {
+      setCatalogOpen(false);
+      setWalletOpen(false);
+      setToolsOpen(false);
+      setProfileOpen(false);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
 
 
 const currWallet = 100.01;
@@ -139,7 +152,14 @@ const currWallet = 100.01;
             className={`dropdown-toggle ${
               isActive("/catalog") ? "active" : ""
             }`}
-            onClick={() => setCatalogOpen(!catalogOpen)}
+            onClick={(e) => {
+                    e.stopPropagation();
+                    setCatalogOpen(!catalogOpen);
+                    setWalletOpen(false);
+                    setToolsOpen(false);
+                    setProfileOpen(false);
+                  }}
+
           >
             Catalog
             <img
@@ -238,40 +258,20 @@ const currWallet = 100.01;
           </Link>
         </li>
 
-        {/* Wallet */}
-        <li className="dropdown-parent nav-item menu">
-          <Link
-            to="/wallet"
-            onClick={() => {
-              setMenuOpen(false);
-              setWalletOpen(false);
-            }}
-          >
-            <MdAccountBalanceWallet className="menu-icon" /> ${currWallet}
-          </Link>
-          {walletOpen && (
-            <ul className="dropdown-menu">
-              <li>
-                <Link
-                  to="/wallet/withdraw"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setWalletOpen(false);
-                  }}
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <FaHandHoldingUsd className="menu-icon" /> Withdraw
-                </Link>
-              </li>
-            </ul>
-          )}
-        </li>
+        
 
         {/* Tools Dropdown */}
         <li className="dropdown-parent nav-item">
           <button
             className={`dropdown-toggle ${isActive("/tools") ? "active" : ""}`}
-            onClick={() => setToolsOpen(!toolsOpen)}
+            onClick={(e) => {
+                  e.stopPropagation();
+                  setToolsOpen(!toolsOpen);
+                  setCatalogOpen(false);
+                  setWalletOpen(false);
+                  setProfileOpen(false);
+                }}
+
           >
             Tools
             <img
@@ -296,8 +296,44 @@ const currWallet = 100.01;
                 </Link>
               </li>
               <li>
-                <Link to="/ticket-raise" onClick={() => setProfileOpen(false)}>
+                <Link to="/ticket-raise" onClick={() => {setProfileOpen(false); setMenuOpen(false);
+                    setToolsOpen(false);
+                    }}> <img src={supportIcon} alt="" />
                   Support Ticket
+                </Link>
+              </li>
+            </ul>
+          )}
+        </li>
+
+
+        {/* Wallet */}
+        <li className="dropdown-parent nav-item menu">
+          <Link
+            to="/wallet"
+           onClick={(e) => {
+                      e.stopPropagation();
+                      setWalletOpen(!walletOpen);
+                      setCatalogOpen(false);
+                      setToolsOpen(false);
+                      setProfileOpen(false);
+                    }}
+
+          >
+            <MdAccountBalanceWallet className="menu-icon" /> ${currWallet}
+          </Link>
+          {walletOpen && (
+            <ul className="dropdown-menu">
+              <li>
+                <Link
+                  to="/wallet/withdraw"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setWalletOpen(false);
+                  }}
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <FaHandHoldingUsd className="menu-icon" /> Withdraw
                 </Link>
               </li>
             </ul>
@@ -305,10 +341,19 @@ const currWallet = 100.01;
         </li>
       </ul>
 
+      
+
       {/* Profile Dropdown */}
 <div
   className="profile-section"
-  onClick={() => setProfileOpen(!profileOpen)}
+  onClick={(e) => {
+          e.stopPropagation();
+          setProfileOpen(!profileOpen);
+          setCatalogOpen(false);
+          setWalletOpen(false);
+          setToolsOpen(false);
+        }}
+
 >
   <img src={NavProfile} alt="profile" className="profile-icon" />
   {profileOpen && (

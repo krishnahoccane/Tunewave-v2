@@ -136,7 +136,7 @@
 }
  /* {new global style for button} */
 
-.gradient-button {
+/* .gradient-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,17 +154,17 @@
   background-clip: padding-box, border-box;
   cursor: pointer;
   transition: all 0.3s ease;
-}
+} */
 
-.gradient-button:hover,
+/* .gradient-button:hover,
 .gradient-button:active {
   background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
   color: #fff;
   border-radius: 999px; 
-}
+} */
 
 /* Submit button  */
-.btn-submit {
+/* .btn-submit {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,14 +175,14 @@
   background: transparent;
   color: #1178BB;
   border: 2px solid transparent;
-  border-radius: 999px; /* ensures perfect pill shape */
+  border-radius: 999px; /* ensures perfect pill shape 
   background-image: linear-gradient(#fff, #fff), 
                     linear-gradient(93.93deg, #1178BB -5.69%, #15A79F 107.1%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   cursor: pointer;
   transition: all 0.3s ease;
-}
+} */
 
 /* Hover + Active State with animated gradient */
 /* Hover + Active with animated gradient fill */
@@ -194,7 +194,7 @@
   animation: slidebg 4s linear infinite;
   color: #fff;
   border-radius: 999px;
-  border: none; /* solid fill look on hover */
+  border: none; 
 }
 
 /* Keyframes for sliding gradient effect */

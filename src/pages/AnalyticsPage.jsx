@@ -37,9 +37,9 @@ const AnalyticsPage = () => {
   return (
     <div className="analytics-page">
       {/* Close Button */}
-      <button className="close-btn" onClick={() => setShowExitPopup(true)}>
+      {/* <button className="close-btn" onClick={() => setShowExitPopup(true)}>
         ×
-      </button>
+      </button> */}
 
       <h2>Analytics</h2>
 

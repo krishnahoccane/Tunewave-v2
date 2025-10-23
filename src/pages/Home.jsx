@@ -135,6 +135,23 @@ const releases = [
     img: SampleIcon, 
     audio: "/audio.wav" 
   },
+  { 
+    title: "Abdi Abdi", 
+    album: "EP", 
+    artist: "Artist", 
+    subtitle: "2014 – Single",
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+  { 
+    title: "org gngstr", 
+    album: "Single", 
+    artist: "Artist", 
+    subtitle: "2014 – Single",
+    img: SampleIcon, 
+    audio: "/audio.wav" 
+  },
+  
 ];
 
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -217,13 +234,13 @@ useEffect(() => {
     <div className="home-container">
       {/* Greeting Card */}
       <div className="greeting-card">
-        <img src={user.profilePic} alt="Profile" className="profile-card-pic" />
+        <img src={user.profilePic} alt="Profile" style={{cursor: "pointer"}} className="profile-card-pic" onClick={() => navigate("/settings")} />
         <div className="greeting-info">
-          <h1 className="greeting-name">{user.name}</h1>
+          <h1 className="greeting-name" style={{cursor: "pointer"}} onClick={() => navigate("/settings") } >{user.name}</h1>
           <p className="greeting-role">{user.role}</p>
         </div>
         <button
-          className="gradient-button"
+          className="btn-gradient"
           onClick={() => navigate("/create-release")}
         >
           Create Release
@@ -250,7 +267,7 @@ useEffect(() => {
                 <div className="releases-header">
                         <h2>Recent Releases</h2>
                         <button
-                          className="view-all-btn"
+                          className="btn-gradient"
                           onClick={() => navigate("/catalog?tab=releases")}
                         >
                           View All
@@ -280,7 +297,7 @@ useEffect(() => {
                                 <img src={release.img} alt={release.title} />
                                 <div className="overlay">
                                   <button
-                                    className="play-btn"
+                                    className="btn-gradient"
                                     onClick={(e) => {
                                       e.stopPropagation(); // ❌ Prevents routing
                                       handlePlay(release); // ✅ Play the audio
