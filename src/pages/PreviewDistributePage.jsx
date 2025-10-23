@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/PreviewDistributePage.css";
 import previewImg from "../assets/lsi.jpeg";
-
+import "../styles/styled.css";
 export default function PreviewDistributePage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -13,7 +13,7 @@ export default function PreviewDistributePage() {
   const handleFinalSubmit = () => setShowPopup(true);
   const handleConfirm = () => {
     setShowPopup(false);
-    navigate(0);
+    navigate("/dashboard");
   };
   const handleCancel = () => setShowPopup(false);
 
@@ -157,7 +157,7 @@ return (
       </div>
 
       {/* ===== Action Buttons ===== */}
-      <div className="action-buttons">
+      <div className="form-actions">
         <button className="btn-cancel" onClick={() => navigate(-1)}>Back</button>
         <button className="btn-gradient" onClick={handleFinalSubmit}>Final Submit</button>
       </div>
@@ -169,8 +169,8 @@ return (
       <div className="popup-overlay">
         <div className="popup-content">
           <h3>Confirm Final Submission</h3>
-          <p>Are you sure you want to submit your release for distribution?</p>
-          <div className="popup-actions">
+          <p>Are you sure? you want to submit your release for distribution?</p>
+          <div className="form-actions">
             <button className="btn-gradient" onClick={handleConfirm}>Yes, Submit</button>
             <button className="btn-cancel" onClick={handleCancel}>Cancel</button>
           </div>
