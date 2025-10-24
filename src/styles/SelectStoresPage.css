@@ -1,13 +1,11 @@
-
-
 .stores-card {
-background: #fff;
+  background: #fff;
   border-radius: 12px;
   padding: 25px 30px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .stores-options {
@@ -23,7 +21,7 @@ background: #fff;
 }
 
 .stores-options.manual-options {
-  margin-top: 0px; 
+  margin-top: 0px;
   margin-left: 3.15em;
 }
 
@@ -41,8 +39,6 @@ background: #fff;
   margin-right: 12px;
   accent-color: #1278bb;
 }
-
-
 
 .option-label {
   display: flex;

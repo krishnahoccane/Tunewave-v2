@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
-import lsiImage from '../assets/lsi.jpeg'; // import the image at the top
+import lsiImage from "../assets/lsi.jpeg"; // import the image at the top
 import axios from "axios";
 import thunderbolt from "../assets/thunderbolt.png";
+
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
 
@@ -29,28 +29,24 @@ export default function Login({ onLogin }) {
 
   const [refreshIntervalId, setRefreshIntervalId] = useState(null);
 
-
-const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
   // Dynamic Image
   const [cardImage, setCardImage] = useState(lsiImage); // default fallback
 
-
-
   // ------------------------------------Email Validation-----------------------------
   const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   // --------------------------
   // Step 1: Verify Email
   // --------------------------
   const handleVerifyEmail = async () => {
-
     if (!email) return setError("Please enter your email.");
-    if (!validateEmail(email)) return setError("Please enter a valid email address.");
+    if (!validateEmail(email))
+      return setError("Please enter a valid email address.");
 
     setLoading(true);
     setError("");
@@ -61,8 +57,8 @@ const [displayName, setDisplayName] = useState("");
         `https://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
       );
       const data = await res.json();
-      
-       console.log("🛰️ Response status:", data.status);
+
+      console.log("🛰️ Response status:", data.status);
       if (data.exists) {
         setEmailVerified(true);
         setSuccessMessage(`Please enter your password.`);
@@ -85,7 +81,7 @@ const [displayName, setDisplayName] = useState("");
   //   if (!emailVerified) return setError("Please verify your email first.");
   //   setLoading(true);
   //   setError("");
-    
+
   //   try {
   //     const res = await fetch(
   //       "https://spacestation.tunewave.in/wp-json/jwt-auth/v1/token",
@@ -115,27 +111,26 @@ const [displayName, setDisplayName] = useState("");
   //   }
   // };
 
-
   const handleLogin = (e) => {
-  e.preventDefault();
-  localStorage.setItem("jwtToken", "dummy-token");
-  localStorage.setItem("isLoggedIn", "true");
-  localStorage.setItem("displayName", displayName);
-  onLogin();
-  navigate("/dashboard");
-};
+    e.preventDefault();
+    localStorage.setItem("jwtToken", "dummy-token");
+    localStorage.setItem("isLoggedIn", "true");
+    localStorage.setItem("displayName", displayName);
+    onLogin();
+    navigate("/dashboard");
+  };
   // --------------------------
   // Step 2.1: SNot you
   // --------------------------
 
   const handleResetEmail = () => {
-  setEmail("");
-  setPassword("");
-  setEmailVerified(true);
-  setError("");
-  setSuccessMessage("");
-  setForgotStage("none");
-};
+    setEmail("");
+    setPassword("");
+    setEmailVerified(true);
+    setError("");
+    setSuccessMessage("");
+    setForgotStage("none");
+  };
 
   // --------------------------
   // Step 3: Send OTP
@@ -216,31 +211,38 @@ const [displayName, setDisplayName] = useState("");
   // --------------------------
 
   const validatePassword = (password) => {
-  const minLength = /.{8,}/;
-  const uppercase = /[A-Z]/;
-  const lowercase = /[a-z]/;
-  const number = /[0-9]/;
-  const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
-  const noSpaces = /^\S+$/;
+    const minLength = /.{8,}/;
+    const uppercase = /[A-Z]/;
+    const lowercase = /[a-z]/;
+    const number = /[0-9]/;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
+    const noSpaces = /^\S+$/;
 
-  if (!minLength.test(password)) return "Password must be at least 8 characters long.";
-  if (!uppercase.test(password)) return "Password must include at least one uppercase letter.";
-  if (!lowercase.test(password)) return "Password must include at least one lowercase letter.";
-  if (!number.test(password)) return "Password must include at least one number.";
-  if (!specialChar.test(password)) return "Password must include at least one special character (!@#$%^&*).";
-  if (!noSpaces.test(password)) return "Password must not contain spaces.";
+    if (!minLength.test(password))
+      return "Password must be at least 8 characters long.";
+    if (!uppercase.test(password))
+      return "Password must include at least one uppercase letter.";
+    if (!lowercase.test(password))
+      return "Password must include at least one lowercase letter.";
+    if (!number.test(password))
+      return "Password must include at least one number.";
+    if (!specialChar.test(password))
+      return "Password must include at least one special character (!@#$%^&*).";
+    if (!noSpaces.test(password)) return "Password must not contain spaces.";
 
-  return null; // valid password
-};
+    return null; // valid password
+  };
 
   const handleSetNewPassword = async () => {
-      const validationError = validatePassword(newPassword);
-  if (validationError) {
-    setError(validationError);
-    return;
-  }
-    if (!newPassword || !confirmPassword) return setError("Enter both password fields.");
-    if (newPassword !== confirmPassword) return setError("Passwords do not match.");
+    const validationError = validatePassword(newPassword);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    if (!newPassword || !confirmPassword)
+      return setError("Enter both password fields.");
+    if (newPassword !== confirmPassword)
+      return setError("Passwords do not match.");
 
     setForgotPasswordLoading(true);
     setError("");
@@ -253,7 +255,10 @@ const [displayName, setDisplayName] = useState("");
       const data = await res.json();
 
       if (data.success) {
-        setSuccessMessage(data.message || "✅ Password changed successfully! You can now log in.");
+        setSuccessMessage(
+          data.message ||
+            "✅ Password changed successfully! You can now log in."
+        );
         setForgotStage("none");
         setOtpCode("");
         setNewPassword("");
@@ -272,44 +277,44 @@ const [displayName, setDisplayName] = useState("");
   // --------------------------
   // Resend OTP
   // --------------------------
-const handleResendOTP = async () => {
-  if (resendDisabled) return;
-  setForgotPasswordLoading(true);
-  setError("");
-  setSuccessMessage("");
+  const handleResendOTP = async () => {
+    if (resendDisabled) return;
+    setForgotPasswordLoading(true);
+    setError("");
+    setSuccessMessage("");
 
-  try {
-    const res = await fetch(
-      `https://spacestation.tunewave.in/wp-json/users/v2/resendcode?user=${email}&key=${resetKey}`,
-      { method: "POST" }
-    );
-    const data = await res.json();
+    try {
+      const res = await fetch(
+        `https://spacestation.tunewave.in/wp-json/users/v2/resendcode?user=${email}&key=${resetKey}`,
+        { method: "POST" }
+      );
+      const data = await res.json();
 
-    if (data.success) {
-      setSuccessMessage(data.message || "OTP resent successfully.");
-      if (data.attempt) {
-        setResendDisabled(true);
-        setResendTimer(data.attempt * 30);
-        const timerInterval = setInterval(() => {
-          setResendTimer((prev) => {
-            if (prev <= 1) {
-              clearInterval(timerInterval);
-              setResendDisabled(false);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
+      if (data.success) {
+        setSuccessMessage(data.message || "OTP resent successfully.");
+        if (data.attempt) {
+          setResendDisabled(true);
+          setResendTimer(data.attempt * 30);
+          const timerInterval = setInterval(() => {
+            setResendTimer((prev) => {
+              if (prev <= 1) {
+                clearInterval(timerInterval);
+                setResendDisabled(false);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+      } else {
+        setError(data.error || "Failed to resend OTP.");
       }
-    } else {
-      setError(data.error || "Failed to resend OTP.");
+    } catch {
+      setError("Network error.");
+    } finally {
+      setForgotPasswordLoading(false);
     }
-  } catch {
-    setError("Network error.");
-  } finally {
-    setForgotPasswordLoading(false);
-  }
-};
+  };
 
   // --------------------------
   // JWT auto refresh
@@ -345,223 +350,251 @@ const handleResendOTP = async () => {
 
   // --------------------------
 
-
-
   // Fetch dynamic image on mountuseEffect(() => {
   useEffect(() => {
-  const fetchCardImage = async () => {
-    try {
-      const res = await axios.get(
-        "https://spacestation.tunewave.in/wp-json/frontend/v2/artwork"
-      );
-      if (res.data.image) setCardImage(res.data.image);
-    } catch (err) {
-      console.error("Failed to fetch card image:", err);
-    }
-  };
+    const fetchCardImage = async () => {
+      try {
+        const res = await axios.get(
+          "https://spacestation.tunewave.in/wp-json/frontend/v2/artwork"
+        );
+        if (res.data.image) setCardImage(res.data.image);
+      } catch (err) {
+        console.error("Failed to fetch card image:", err);
+      }
+    };
 
-  fetchCardImage();
-}, []);
-
+    fetchCardImage();
+  }, []);
 
   // UI Rendering
   // --------------------------
   return (
-          <div className="connected-container">
+    <div className="connected-container">
+      {/* Left Section */}
+      <div className="login-left-side">
+        {emailVerified ? (
+          <h1 className="login-title">Welcome back, {displayName}!</h1>
+        ) : (
+          <>
+            <h1 className="login-title">HELLO THERE</h1>
+            <p className="login-subtitle">Login to Tunewave</p>
+          </>
+        )}
 
-            {/* Left Section */}
-            <div className="login-left-side">
-                          {emailVerified ? (
-                        <h1 className="login-title">
-                          Welcome back, {displayName}!
-                        </h1>
-                      ) : (
-                        <>
-                          <h1 className="login-title">HELLO THERE</h1>
-                          <p className="login-subtitle">Login to Tunewave</p>
-                        </>
-                      )}
-              
+        <form className="login-form" onSubmit={handleLogin}>
+          {/* <h2>Login to Label</h2> */}
+          {error && <p className="error">{error}</p>}
+          {/* {successMessage && <p className="success">{successMessage}</p>} */}
+          {successMessage && (
+            <div className="success-message-row">
+              {emailVerified ? (
+                <p className="success">
+                  Email verified successfully, {displayName}.{" "}
+                  <span className="click-here-link" onClick={handleResetEmail}>
+                    Not me?
+                  </span>
+                </p>
+              ) : (
+                <p className="success">{successMessage}</p>
+              )}
+            </div>
+          )}
 
-          <form className="login-form" onSubmit={handleLogin}>
-                
-              
-                {/* <h2>Login to Label</h2> */}
-                {error && <p className="error">{error}</p>}
-                {/* {successMessage && <p className="success">{successMessage}</p>} */}
-                        {successMessage && (
-                                  <div className="success-message-row">
-                                    {emailVerified ? (
-                                      <p className="success">
-                                       Email verified successfully, {displayName}.{" "}
-                                        <span className="click-here-link" onClick={handleResetEmail}>
-                                          Not me?
-                                        </span>
-                                      </p>
-                                    ) : (
-                                      <p className="success">{successMessage}</p>
-                                    )}
-                                  </div>
-                                )}
- 
-
-
-
-                {/* Step 1: Email verify */}
-                {!emailVerified && forgotStage === "none" && (
-                  <>
-                    <label className="login-label-txt">
-                      Email Address 
-                      <input className="login-input-box" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-
-                    </label>
-                    <button type="button" className="login-btn" onClick={handleVerifyEmail} onKeyDown={(e) => {
+          {/* Step 1: Email verify */}
+          {!emailVerified && forgotStage === "none" && (
+            <>
+              <label className="login-label-txt">
+                Email Address
+                <input
+                  className="login-input-box"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className="login-btn"
+                onClick={handleVerifyEmail}
+                onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault(); // prevent form from auto-submitting
                     handleVerifyEmail();
                   }
-                }} disabled={loading}>
-                      {loading ? "Verifying..." : "Verify Email"}
-                    </button>
-                  </>
-                )}
+                }}
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify Email"}
+              </button>
+            </>
+          )}
 
-                {/* Step 2: Password Login */}
-                {emailVerified && forgotStage === "none" && (
-                  <>
-                    <label className="login-label-txt">
-                      Password
-                      <input className="login-input-box" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                      </label>
-                        <div className="forget-login">
-
-                            <p
-                              className="login-forgot-password"
-                              style={{ cursor: forgotPasswordLoading ? "not-allowed" : "pointer" }}
-                              onClick={() => !forgotPasswordLoading && handleSendOTP()}
-                            >
-                              Forgot Password?
-                            </p>
-
-
-                            <button type="submit" className="login-btn" disabled={loading} onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault(); // prevent form from auto-submitting
-                                  handleVerifyEmail();
-                                }
-                              }}>
-                              {loading ? "Logging in..." : "Login"}
-                            </button>
-                    
-                          </div>
-                  </>
-                )}
-
-                {/* OTP Stage */}
-                {forgotStage === "otp" && (
-                  <>
-                    <label className="login-label-txt">
-                      Enter OTP
-                      <input type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} maxLength={6} />
-                    </label>
-
-                    <div className="resend-validate-otp">
-                          <p
-                            className="login-forgot-password"
-                            style={{ cursor: resendDisabled ? "not-allowed" : "pointer" }}
-                            onClick={handleResendOTP}
-                          >
-                            {resendDisabled ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
-                          </p>
-
-
-                          <button 
-                                  type="button" 
-                                  className="login-btn" 
-                                  onClick={handleValidateOTP} 
-                                  disabled={forgotPasswordLoading} 
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      handleValidateOTP();
-                                    }
-                          }}>
-                            {forgotPasswordLoading ? "Validating..." : "Validate OTP"}
-                          </button>
-                    </div>
-                    
-                  </>
-                )}
-
-                {/* Reset Password */}
-                {forgotStage === "reset" && (
-                  <>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: "#555",
-                      marginTop: "4px",
-                      lineHeight: "1.4",
-                      textAlign: "left"
-                    }}
-                  >
-                    Note: Your password must meet the following criteria:
-                    <ul style={{ paddingLeft: "20px", margin: "4px 0" }}>
-                      <li>Minimum length: 8 characters</li>
-                      <li>At least one uppercase letter (A-Z)</li>
-                      <li>At least one lowercase letter (a-z)</li>
-                      <li>At least one number (0-9)</li>
-                      <li>At least one special character (e.g., !@#$%^&*)</li>
-                      <li>No spaces</li>
-                    </ul>
-                  </div>
-                    <label className="login-label-txt" >New Password
-                      <input className="login-input-box" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                    </label>
-                    <label className="login-label-txt" >Confirm Password</label>
-                    <input className="login-input-box" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                    <button 
-                    type="button" 
-                    className="login-btn" 
-                    onClick={handleSetNewPassword} 
-                    disabled={forgotPasswordLoading} 
-                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                          e.preventDefault();
-                                          handleValidateOTP();
-                                        }
-                                    }
-                               }
-                    >
-                      {forgotPasswordLoading ? "Updating..." : "Set New Password"}
-                    </button>
-                  </>
-                )}
-              </form>
-              <p className="login-p">----------  sign-in  ----------</p>
-            </div>
-
-            
-          <div className="login-vertical-text">
-              <span>SIGN IN</span>
-            </div>
-            {/* Right Section */}
-            <div className="login-right-side">
-              <div className="login-card">
-                <div className="thunderbolt-ellipse">
-              <img src={thunderbolt} alt="Thunderbolt" className="thunderbolt-image" />
-            </div>
-                <p>
-                  <span>Powering</span>
-                  <span>Independent</span>
-                  <span>Music</span>
+          {/* Step 2: Password Login */}
+          {emailVerified && forgotStage === "none" && (
+            <>
+              <label className="login-label-txt">
+                Password
+                <input
+                  className="login-input-box"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </label>
+              <div className="forget-login">
+                <p
+                  className="login-forgot-password"
+                  style={{
+                    cursor: forgotPasswordLoading ? "not-allowed" : "pointer",
+                  }}
+                  onClick={() => !forgotPasswordLoading && handleSendOTP()}
+                >
+                  Forgot Password?
                 </p>
-                
-                <img className="login-card-image" src={cardImage} alt="Random Artwork" />
+
+                <button
+                  type="submit"
+                  className="login-btn"
+                  disabled={loading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault(); // prevent form from auto-submitting
+                      handleVerifyEmail();
+                    }
+                  }}
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </button>
               </div>
-            </div>  
+            </>
+          )}
 
+          {/* OTP Stage */}
+          {forgotStage === "otp" && (
+            <>
+              <label className="login-label-txt">
+                Enter OTP
+                <input
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  maxLength={6}
+                />
+              </label>
 
-            </div>
-            );
-          }  
+              <div className="resend-validate-otp">
+                <p
+                  className="login-forgot-password"
+                  style={{ cursor: resendDisabled ? "not-allowed" : "pointer" }}
+                  onClick={handleResendOTP}
+                >
+                  {resendDisabled
+                    ? `Resend OTP in ${resendTimer}s`
+                    : "Resend OTP"}
+                </p>
+
+                <button
+                  type="button"
+                  className="login-btn"
+                  onClick={handleValidateOTP}
+                  disabled={forgotPasswordLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleValidateOTP();
+                    }
+                  }}
+                >
+                  {forgotPasswordLoading ? "Validating..." : "Validate OTP"}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Reset Password */}
+          {forgotStage === "reset" && (
+            <>
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: "#555",
+                  marginTop: "4px",
+                  lineHeight: "1.4",
+                  textAlign: "left",
+                }}
+              >
+                Note: Your password must meet the following criteria:
+                <ul style={{ paddingLeft: "20px", margin: "4px 0" }}>
+                  <li>Minimum length: 8 characters</li>
+                  <li>At least one uppercase letter (A-Z)</li>
+                  <li>At least one lowercase letter (a-z)</li>
+                  <li>At least one number (0-9)</li>
+                  <li>At least one special character (e.g., !@#$%^&*)</li>
+                  <li>No spaces</li>
+                </ul>
+              </div>
+              <label className="login-label-txt">
+                New Password
+                <input
+                  className="login-input-box"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </label>
+              <label className="login-label-txt">Confirm Password</label>
+              <input
+                className="login-input-box"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="login-btn"
+                onClick={handleSetNewPassword}
+                disabled={forgotPasswordLoading}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleValidateOTP();
+                  }
+                }}
+              >
+                {forgotPasswordLoading ? "Updating..." : "Set New Password"}
+              </button>
+            </>
+          )}
+        </form>
+        <p className="login-p">---------- sign-in ----------</p>
+      </div>
+
+      <div className="login-vertical-text">
+        <span>SIGN IN</span>
+      </div>
+      {/* Right Section */}
+      <div className="login-right-side">
+        <div className="login-card">
+          <div className="thunderbolt-ellipse">
+            <img
+              src={thunderbolt}
+              alt="Thunderbolt"
+              className="thunderbolt-image"
+            />
+          </div>
+          <p>
+            <span>Powering</span>
+            <span>Independent</span>
+            <span>Music</span>
+          </p>
+
+          <img
+            className="login-card-image"
+            src={cardImage}
+            alt="Random Artwork"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -313,7 +313,7 @@ const currWallet = 100.01;
             to="/wallet"
            onClick={(e) => {
                       e.stopPropagation();
-                      setWalletOpen(!walletOpen);
+                      // setWalletOpen(!walletOpen);
                       setCatalogOpen(false);
                       setToolsOpen(false);
                       setProfileOpen(false);
@@ -322,7 +322,7 @@ const currWallet = 100.01;
           >
             <MdAccountBalanceWallet className="menu-icon" /> ${currWallet}
           </Link>
-          {walletOpen && (
+          {/* {walletOpen && (
             <ul className="dropdown-menu">
               <li>
                 <Link
@@ -337,7 +337,7 @@ const currWallet = 100.01;
                 </Link>
               </li>
             </ul>
-          )}
+          )} */}
         </li>
       </ul>
 

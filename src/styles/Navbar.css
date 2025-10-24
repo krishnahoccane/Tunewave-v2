@@ -18,7 +18,7 @@
   /* position: fixed;        stick to top */
   top: 0;
   left: 0;
-  right: 0;               /* ensures it spans full screen width */
+  right: 0; /* ensures it spans full screen width */
   height: var(--nav-height);
   background: #ffffff;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
@@ -28,7 +28,7 @@
   justify-content: space-between;
   padding: 0 60px;
 
-  z-index: 1000;          /* always above content */
+  z-index: 1000; /* always above content */
 }
 
 .logo {
@@ -56,7 +56,7 @@
 
 .search-box .input-box {
   border: none;
-  
+
   outline: none;
   background: transparent;
   font-size: 14px;
@@ -83,21 +83,12 @@
   color: #007bff !important;
 }
 
-.profile {
-  width: 118px;
-  height: 60px;
-  padding: 10px 20px 10px 30px;
-  object-fit: contain;
-  cursor: pointer;
-}
-
 .catalog-link img {
   transition: 0.2s ease-in-out;
 }
 .catalog-link:hover {
   color: #007bff; /* or your theme */
 }
-
 
 /* Arrow inside menu for  */
 .menu li img {
@@ -125,7 +116,7 @@
 /* ---------------- DESKTOP ≥1024px ---------------- */
 @media (min-width: 1024px) {
   .menu li a {
-    font-size: 16px; 
+    font-size: 16px;
   }
   .hamburger {
     display: none;
@@ -204,7 +195,6 @@
   }
 }
 
-
 /* Toggle Arrow */
 
 /* Arrow icons (Down + Up both same size) */
@@ -213,7 +203,7 @@
   height: 16px;
   margin-left: 5px;
   vertical-align: middle;
-  object-fit: contain;   /* keeps proportions */
+  object-fit: contain; /* keeps proportions */
 }
 
 /* Dropdown */
@@ -240,35 +230,16 @@
 .menu li a.active,
 .dropdown-toggle.active,
 .dropdown-menu li a.active {
-  color: #007bff !important;  /* same as hover */
+  color: #007bff !important; /* same as hover */
   font-weight: 600;
 }
 
-
-/* Profile Container */
-.profile-container {
-  display: flex;
-  align-items: center;
-  position: relative;
-  gap: 5px;
-}
-
 .profile {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
-}
-
-/* Profile Dropdown arrow button */
-.profile-arrow {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
 }
 
 /* Profile Dropdown Menu */
@@ -281,7 +252,7 @@
   padding: 8px 0;
   margin: 0;
   border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0,0,0,0.15);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15);
   min-width: 140px;
   z-index: 1000;
 }
@@ -301,8 +272,6 @@
   color: #007bff;
 }
 
-
-
 /* Add spacing between each nav item */
 .menu .nav-item {
   margin-right: 20px; /* adjust as per your design */
@@ -320,7 +289,6 @@
   align-items: center;
   gap: 6px;
 }
-
 
 /* Make dropdown toggles look like normal nav links (Dashboard style) */
 .dropdown-toggle {
@@ -340,7 +308,6 @@
   color: #007bff;
   font-weight: 600;
 }
-
 
 /* Top-level nav items: Dashboard, Catalog, Analytics, Wallet, Tools */
 .menu > li > a,
@@ -367,8 +334,6 @@
   color: #007bff;
   font-weight: 500;
 }
-
-
 
 /* ---------- CLEAN FINAL DROPDOWN STYLE ---------- */
 .dropdown-menu {
@@ -409,4 +374,65 @@
 .dropdown-menu .nav-link:hover {
   background-color: #f1f1f1;
   color: #007bff;
+}
+.dropdown-menu li img,
+.dropdown-menu li svg {
+  width: 20px; /* same width for all icons */
+  height: 20px; /* same height */
+  object-fit: contain;
+}
+.dropdown-menu li {
+  width: 100%;
+}
+
+.dropdown-menu li a,
+.dropdown-menu .nav-link {
+  display: flex;
+  align-items: center; /* vertically centers icon + text */
+  gap: 8px; /* space between icon and text */
+  padding: 6px 12px;
+  text-decoration: none;
+  color: #333;
+  font-size: 15px;
+  white-space: nowrap;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+/* Hover effect */
+.dropdown-menu li a:hover,
+.dropdown-menu .nav-link:hover {
+  background-color: #f1f1f1;
+  color: #007bff;
+}
+/* Top-level menu items: Dashboard, Catalog, Analytics, Wallet, Tools */
+.menu > li > a,
+.menu > li > .dropdown-toggle {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400; /* Regular */
+  font-style: normal; /* Regular style */
+  font-size: 16px; /* 16px as per your spec */
+  line-height: 100%; /* equivalent to 16px */
+  letter-spacing: 0%;
+  text-align: center;
+  text-transform: capitalize;
+  color: #000;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* keeps arrow spaced */
+  transition: color 0.2s ease;
+  padding: 0;
+}
+
+/* Hover + Active */
+.menu > li > a:hover,
+.menu > li > .dropdown-toggle:hover,
+.menu > li > a.active,
+.menu > li > .dropdown-toggle.active {
+  color: #007bff;
+  font-weight: 500; /* slightly bolder on hover/active */
 }

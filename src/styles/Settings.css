@@ -1,4 +1,3 @@
-
 .user-info-card {
   background: white;
   border-radius: 20px;
@@ -10,13 +9,12 @@
 
 .card-header {
   /* background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); */
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
+  background: linear-gradient(92.99deg, #1278bb 3.3%, #13a89e 100%);
 
   color: white;
   padding: 25px 40px;
   text-align: center;
 }
-
 
 .user-profile-section {
   display: flex;
@@ -36,7 +34,7 @@
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #1278BB;
+  border: 3px solid #1278bb;
   box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
   transition: all 0.3s ease;
 }
@@ -50,7 +48,7 @@
   position: absolute;
   bottom: 5px;
   right: 5px;
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
+  background: linear-gradient(92.99deg, #1278bb 3.3%, #13a89e 100%);
   border: none;
   border-radius: 50%;
   width: 35px;
@@ -64,7 +62,7 @@
 }
 
 .edit-profile-btn:hover {
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
+  background: linear-gradient(92.99deg, #1278bb 3.3%, #13a89e 100%);
   transform: scale(1.1);
 }
 
@@ -119,8 +117,6 @@
   position: relative;
 }
 
-
-
 /* .form-input:hover:not(:disabled) {
   border-color: #6366f1;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
@@ -139,7 +135,7 @@
 } */
 
 .form-group:hover label {
-  color: #1278BB;
+  color: #1278bb;
 }
 
 .password-section {
@@ -192,31 +188,25 @@
   opacity: 1;
 }
 
-
-
-
-
-
-
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .settings-container {
     padding: 15px;
   }
-  
+
   .settings-title {
     font-size: 2rem;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .form-section {
     padding: 25px;
   }
-  
+
   .user-profile-section {
     padding: 30px 25px 15px;
   }
@@ -226,12 +216,12 @@
   .settings-title {
     font-size: 1.5rem;
   }
-  
+
   .profile-image {
     width: 100px;
     height: 100px;
   }
-  
+
   .form-section {
     padding: 20px;
   }
@@ -239,9 +229,15 @@
 
 /* Animation for form interactions */
 @keyframes inputFocus {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 /* 
 .form-input:focus {
@@ -271,7 +267,6 @@
 .floating-label {
   position: relative;
   width: 60%;
-  
 }
 
 .floating-label input {
@@ -327,15 +322,12 @@
   display: block;
 }
 
-
-
-
 /* Card Header */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%);
+  background: linear-gradient(92.99deg, #1278bb 3.3%, #13a89e 100%);
   color: white;
   padding: 20px 40px;
   position: relative;
@@ -348,4 +340,3 @@
   font-size: 1.5rem;
   color: white;
 }
-

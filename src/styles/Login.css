@@ -6,7 +6,8 @@
   font-family: "Poppins", sans-serif;
 }
 
-body, html {
+body,
+html {
   width: 100%;
   height: 100%;
   overflow-x: hidden;
@@ -18,7 +19,7 @@ body, html {
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* ---------------------- Left Section ---------------------- */
@@ -81,7 +82,7 @@ body, html {
   font-size: 0.9rem;
   color: #fff;
   border-radius: 16px;
-  background: linear-gradient(99.78deg, #1278BB -5.85%, #13A89E 109.55%);
+  background: linear-gradient(99.78deg, #1278bb -5.85%, #13a89e 109.55%);
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -114,14 +115,20 @@ body, html {
 }
 
 @keyframes fadeSlideUp {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------------------- Right Section ---------------------- */
 .login-right-side {
   flex: 1;
-  background: linear-gradient(217.93deg, #CEBE88 -5.84%, #122B4A 106.45%);
+  background: linear-gradient(217.93deg, #cebe88 -5.84%, #122b4a 106.45%);
   position: relative;
   display: flex;
   justify-content: center;
@@ -148,7 +155,7 @@ body, html {
   border-radius: 2rem;
   padding: 2rem;
   background: rgba(255, 255, 255, 0.21);
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -192,7 +199,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   z-index: 3;
 }
 
@@ -210,7 +217,7 @@ body, html {
   transform: translateY(-50%) rotate(-90deg);
   font-weight: 700;
   font-size: clamp(4rem, 15vw, 12rem);
-  color: rgba(0,0,0,0.05);
+  color: rgba(0, 0, 0, 0.05);
   pointer-events: none;
   z-index: 1;
 }
@@ -218,7 +225,7 @@ body, html {
 .login-vertical-text-right {
   right: -5vw;
   transform: translateY(-50%) rotate(90deg);
-  color: rgba(255,255,255,0.15);
+  color: rgba(255, 255, 255, 0.15);
 }
 
 .login-vertical-text-left {
@@ -302,16 +309,14 @@ body, html {
   white-space: nowrap;
 }
 
-
 .login-forgot-password {
- 
   font-size: 0.9rem;
-  color: #1278BB;
+  color: #1278bb;
   cursor: pointer;
-  text-align: center; 
-} 
+  text-align: center;
+}
 
-.login-p{
+.login-p {
   margin-top: auto;
 }
 
@@ -319,9 +324,8 @@ body, html {
 .login-btn {
   display: inline-block;
   vertical-align: middle;
-  
 }
-.forget-login{
+.forget-login {
   justify-content: space-between;
   display: flex;
   align-items: center;
@@ -332,8 +336,6 @@ body, html {
   display: flex;
   align-items: center;
 }
-
-
 
 .success-message-row {
   display: flex;
@@ -368,7 +370,7 @@ body, html {
 }
 
 .click-here-link {
-  color: #1278BB;
+  color: #1278bb;
   cursor: pointer;
   font-weight: 600;
   text-decoration: none;

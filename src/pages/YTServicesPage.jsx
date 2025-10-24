@@ -1,16 +1,10 @@
 import React, { useState } from "react";
 import "../styles/YTServicesPage.css";
 
-
 import { useNavigate } from "react-router-dom";
-  
 
 const YTServicesPage = () => {
-
-
   const navigate = useNavigate();
-
-
 
   const [activeTab, setActiveTab] = useState("claim");
   const [showClaimPopup, setShowClaimPopup] = useState(false);
@@ -31,26 +25,19 @@ const YTServicesPage = () => {
     setTopicChannels(updated);
   };
 
-
-
-
-  
-
   return (
     <div className="pages-layout-container">
-
       {/* <div className="ytservices-header"> */}
-          <h2 className="pages-main-title">Youtube Requests</h2>
-          {/* <button
+      <h2 className="pages-main-title">Youtube Requests</h2>
+      {/* <button
             className="close-btn"
             onClick={() => (window.location.href = "/dashboard")}
           >
             ×
           </button> */}
-        {/* </div> */}
+      {/* </div> */}
       <div className="section-container">
         {/* Header */}
-        
 
         {/* Tabs + Add New */}
         <div className="tabs-add-container">
@@ -103,14 +90,14 @@ const YTServicesPage = () => {
                 </tr>
               </tbody>
             </table>
-            <div className="popup-actions">
+            {/* <div className="popup-actions">
               <button
                 className="btn-cancel"
                 onClick={() =>  navigate("/")}
               >
                 Cancel
               </button>
-            </div>
+            </div> */}
           </div>
         )}
 
@@ -139,14 +126,6 @@ const YTServicesPage = () => {
                 </tr>
               </tbody>
             </table>
-            <div className="popup-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </button>
-            </div>
           </div>
         )}
       </div>
@@ -157,17 +136,17 @@ const YTServicesPage = () => {
           <div className="popup">
             <h3>Add New Claim</h3>
             <label>
-              Type*
+              Type<span className="required">*</span>
               <select>
                 <option>Add</option>
               </select>
             </label>
             <label>
-              URL*
+              URL<span className="required">*</span>
               <input type="text" placeholder="Enter URL" />
             </label>
             <label>
-              ISRC*
+              ISRC<span className="required">*</span>
               <input type="text" placeholder="Enter ISRC" />
             </label>
             <div className="popup-actions">
@@ -189,18 +168,20 @@ const YTServicesPage = () => {
           <div className="popup">
             <h3>Add New OAC Upgrade Request</h3>
             <label>
-              Select Artist*
+              Select Artist<span className="required">*</span>
               <select>
                 <option>Select Artist from your catalog</option>
               </select>
             </label>
             <label>
-              Official Channel Link*
+              Official Channel Link <span className="required">*</span>
               <input type="text" placeholder="Enter Official Channel Link" />
             </label>
 
             {/* Dynamic Topic Channels */}
-            <label>Topic Channels*</label>
+            <label>
+              Topic Channels <span className="required">*</span>{" "}
+            </label>
             {topicChannels.map((channel, index) => (
               <div key={index} className="topic-channel-row">
                 <input
@@ -226,30 +207,35 @@ const YTServicesPage = () => {
             {/* Vevo Channel Section */}
             <div className="vevo-container">
               <p className="vevo-label">Has a Vevo Channel?</p>
-              <div className="radio-inline">
-                <div style={{display:"flex"}}>
-                <input
-                  type="radio"
-                  id="vevo-yes"
-                  name="vevo"
-                  value="yes"
-                  checked={vevo === "yes"}
-                  onChange={(e) => setVevo(e.target.value)}
-                />
-                <label htmlFor="vevo-yes" style={{textAlign:"center"}}>Yes</label>
-                </div>
-                <div style={{display:"flex"}}>
+              <div
+                className="radio-inline"
+                style={{ display: "flex", gap: "20px", alignItems: "center" }}
+              >
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <input
+                    type="radio"
+                    name="vevo"
+                    value="yes"
+                    checked={vevo === "yes"}
+                    onChange={(e) => setVevo(e.target.value)}
+                  />
+                  <span>Yes</span>
+                </label>
 
-                <input
-                  type="radio"
-                  id="vevo-no"
-                  name="vevo"
-                  value="no"
-                  checked={vevo === "no"}
-                  onChange={(e) => setVevo(e.target.value)}
-                />
-                <label htmlFor="vevo-no">No</label>
-                </div>
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <input
+                    type="radio"
+                    name="vevo"
+                    value="no"
+                    checked={vevo === "no"}
+                    onChange={(e) => setVevo(e.target.value)}
+                  />
+                  <span>No</span>
+                </label>
               </div>
 
               {vevo === "yes" && (
@@ -272,6 +258,11 @@ const YTServicesPage = () => {
           </div>
         </div>
       )}
+      <div className="btn-actions">
+        <button className="btn-cancel" onClick={() => navigate("dashboard")}>
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };

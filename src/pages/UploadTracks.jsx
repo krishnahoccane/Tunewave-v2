@@ -1,22 +1,15 @@
-
 // hooks and libraries
 import React, { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-
 import { toast, ToastContainer } from "react-toastify";
-
 
 // css
 import "../styles/UploadTracks.css";
 import "react-toastify/dist/ReactToastify.css";
 
-
 // assets
 import defaultCover from "../assets/coverArt.jpg";
-
-
-
 
 const UploadTracks = () => {
   const location = useLocation();
@@ -54,7 +47,7 @@ const UploadTracks = () => {
 
     files.forEach((file) => {
       if (!validFormats.includes(file.type)) {
-        toast.error(`❌ ${file.name} is not a valid format.`);
+        toast.dark(`❌ ${file.name} is not a valid format.`);
         return;
       }
 
@@ -148,11 +141,15 @@ const UploadTracks = () => {
             {/* Album Info */}
             <div className="preview-info">
               <div className="preview-item">
-                <p><strong>Album Name</strong></p>
+                <p>
+                  <strong>Album Name</strong>
+                </p>
                 <p>{releaseMetadata.title || "Tunewave"}</p>
               </div>
               <div className="preview-item">
-                <p><strong>Main Primary Artist</strong></p>
+                <p>
+                  <strong>Main Primary Artist</strong>
+                </p>
                 <p>{releaseMetadata.mainPrimaryArtist || "Tunewave"}</p>
               </div>
             </div>
@@ -186,7 +183,7 @@ const UploadTracks = () => {
             if (validFiles.length > 0) {
               handleTrackUpload({ target: { files: validFiles } });
             } else {
-              toast.error("Only FLAC and WAV files are allowed.");
+              toast.dark("Only FLAC and WAV files are allowed.");
             }
           }}
         >
@@ -236,9 +233,13 @@ const UploadTracks = () => {
                     </div>
                     <div className="track-controls">
                       <audio controls src={track.url}></audio>
-                      <span className="duration">{formatDuration(track.duration)}</span>
+                      <span className="duration">
+                        {formatDuration(track.duration)}
+                      </span>
                       <button
-                        className={`edit-btn ${!track.detailsCompleted ? "incomplete" : ""}`}
+                        className={`edit-btn ${
+                          !track.detailsCompleted ? "incomplete" : ""
+                        }`}
                         onClick={() => handleEditTrack(track, idx)}
                       >
                         Edit {!track.detailsCompleted && "⚠️"}
@@ -264,35 +265,34 @@ const UploadTracks = () => {
         </div>
       </div>
 
-          <div
-            className="form-actions"
-            >
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => navigate("/create-release")}
-              >
-                Back
-              </button>
-              <button
-                className="btn-gradient"
-                disabled={tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)}
-                onClick={handleNextStep}
-                style={{
-                  cursor:
-                    tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
-                      ? "not-allowed"
-                      : "pointer",
-                  opacity:
-                    tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
-                      ? 0.6
-                      : 1,
-                  }}
-                >
-                Next
-              </button>
-            </div>
-      
+      <div className="btn-actions">
+        <button
+          type="button"
+          className="btn-cancel"
+          onClick={() => navigate("/create-release")}
+        >
+          Back
+        </button>
+        <button
+          className="btn-gradient"
+          disabled={
+            tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
+          }
+          onClick={handleNextStep}
+          style={{
+            cursor:
+              tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              tracks.length === 0 || tracks.some((t) => !t.detailsCompleted)
+                ? 0.6
+                : 1,
+          }}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

@@ -36,8 +36,6 @@
   border-collapse: collapse;
 }
 
-
-
 /* ============================= */
 /* Sticky Header */
 .data-table thead th {
@@ -54,7 +52,7 @@
   left: 0;
   background: #fff;
   z-index: 4;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
   width: 40px;
 }
 
@@ -65,8 +63,7 @@
   left: 40px;
   background: #fff;
   z-index: 5;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.03);
-  
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.03);
 }
 
 .data-table th:nth-child(2),
@@ -75,16 +72,13 @@
   left: 40px;
   background: #fff;
   z-index: 5;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.03);
-  
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.03);
 }
 
 .data-table tbody tr.hovered td:nth-child(2),
 .data-table tbody tr.selected td:nth-child(2) {
   z-index: 6; /* higher than row hover background */
 }
-
-
 
 /* ============================= */
 /* Row States */
@@ -102,12 +96,12 @@
 
 .data-table tbody tr.selected {
   background-color: #76c1e9;
-  border-left: 3px solid #1178BB;
+  border-left: 3px solid #1178bb;
 }
 
 .data-table tbody tr.selected.hovered {
   background-color: rgba(18, 120, 187, 0.25);
-  border-left: 3px solid #1178BB;
+  border-left: 3px solid #1178bb;
 }
 
 /* ============================= */
@@ -198,7 +192,6 @@
   margin-bottom: 8px;
 }
 
-
 /* ============================= */
 /* Row Actions & Dropdown */
 .row-actions {
@@ -239,7 +232,7 @@ tr:hover .row-actions .dots-btn {
   min-width: 140px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 5;
 }
 
@@ -258,31 +251,30 @@ tr:hover .row-actions .dots-btn {
   background-color: #f0f8ff;
 }
 
-
 .row-actions .dots-btn {
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid #ccc;       
-  background: #fff;             
+  border: 1px solid #ccc;
+  background: #fff;
   cursor: pointer;
   font-size: 18px;
-  width: 30px;                  
-  height: 30px;                 
-  border-radius: 50%;          
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;                   
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Show button on row hover */
 tr:hover .row-actions .dots-btn {
   opacity: 2;
-  border-color: #1278bb;      
-  background: #f0f8ff;        
-  transform: scale(1.05);      
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
+  border-color: #1278bb;
+  background: #f0f8ff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 3-dots button */
@@ -290,17 +282,17 @@ tr:hover .row-actions .dots-btn {
   opacity: 0;
   transition: opacity 0.2s ease;
   border: none;
-  background: transparent; 
+  background: transparent;
   cursor: pointer;
   font-size: 18px;
   padding: 4px;
-  border-radius: 50%; 
+  border-radius: 50%;
 }
 
 /* Show dots on hover */
 tr:hover .row-actions .dots-btn {
   opacity: 1;
-  background: transparent; 
+  background: transparent;
 }
 
 tr:hover .row-actions .dots-btn {

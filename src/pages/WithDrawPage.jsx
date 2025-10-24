@@ -23,125 +23,133 @@ const WithdrawPage = () => {
 
   return (
     <div className="pages-layout-container">
-      <h2 className="pages-main-title">Beneficiary’s Details - (Withdraw Request)</h2>
+      <h2 className="pages-main-title">
+        Beneficiary’s Details - (Withdraw Request)
+      </h2>
       {/* Withdraw Request Title with Close Symbol */}
 
       {/* <div className="withdraw-content"> */}
 
-        {/* Confirmation Popup */}
-        
+      {/* Confirmation Popup */}
 
-        {/* Beneficiary Details Card */}
-        {/* <div className="beneficiary-details-card"> */}
-           <div className="wallet-info-message">
-          <p>Please provide the correct bank details to ensure the withdrawal reaches the right account.</p>
+      {/* Beneficiary Details Card */}
+      {/* <div className="beneficiary-details-card"> */}
+      <div className="wallet-info-message">
+        <p>
+          Please provide the correct bank details to ensure the withdrawal
+          reaches the right account.
+        </p>
+      </div>
 
-        </div>
-          
-          <form onSubmit={handleSubmit} className="withdraw-form ">
-            <div className="input-group section">
-              <label>Beneficiary’s Account Number <span className="required">*</span></label>
-              <input
-                type="text"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                required
-                placeholder="Account number"
-              />
-            </div>
-
-            <div className="input-group section">
-              <label>Re-enter Bank Account Number <span className="required">*</span></label>
-              <input
-                type="text"
-                value={reAccountNumber}
-                onChange={(e) => setReAccountNumber(e.target.value)}
-                required
-                placeholder="Re-enter Account Number"
-              />
-            </div>
-
-            <div className="input-group section">
-              <label>Beneficiary Name <span className="required">*</span></label>
-              <input
-                type="text"
-                value={beneficiaryName}
-                onChange={(e) => setBeneficiaryName(e.target.value)}
-                required
-                placeholder="Enter Beneficiary Name"
-              />
-            </div>
-
-            <div className="input-group section">
-              <label>IFSC Code <span className="required">*</span></label>
-              <input
-                type="text"
-                value={ifsc}
-                onChange={(e) => setIfsc(e.target.value)}
-                required
-                placeholder="Enter IFSC Code"
-              />
-            </div>
-
-            <div className="input-group section" >
-              <label>PAN Number <span className="required">*</span></label>
-              <input
-                type="text"
-                value={pan}
-                onChange={(e) => setPan(e.target.value)}
-                required
-                placeholder="Enter PAN"
-              />
-            </div>
-
-
-
-              {showConfirmPopup && (
-                                <div className="confirm-popup">
-                                  <div className="confirm-content">
-                                    <p>Do you want to confirm exit?</p>
-                                    <div className="popup-actions">
-                                      <button 
-                                        className="btn-gradient" 
-                                        onClick={() => navigate("/dashboard")}
-                                      >
-                                        Yes
-                                      </button>
-                                      <button 
-                                        className="btn-cancel" 
-                                        onClick={() => setShowConfirmPopup(false)}
-                                      >
-                                        No
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
-            
-          </form><div className="popup-actions">
-              
-              <button 
-                      type="button" 
-                      className="btn-cancel" 
-                      // onClick={() => navigate("/dashboard")}
-                        onClick={() => setShowConfirmPopup(true)}
-                      >
-                      Cancel
-              </button>
-
-
-              <button 
-                    type="button" 
-                    // className="submit-btn"
-                    className="btn-gradient"
-                    >
-                      Submit
-              </button>
-            </div>
+      <form onSubmit={handleSubmit} className="withdraw-form ">
+        <div className="input-group section">
+          <label>
+            Beneficiary’s Account Number <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={accountNumber}
+            onChange={(e) => setAccountNumber(e.target.value)}
+            required
+            placeholder="Account number"
+          />
         </div>
 
-      // </div>
+        <div className="input-group section">
+          <label>
+            Re-enter Bank Account Number <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={reAccountNumber}
+            onChange={(e) => setReAccountNumber(e.target.value)}
+            required
+            placeholder="Re-enter Account Number"
+          />
+        </div>
+
+        <div className="input-group section">
+          <label>
+            Beneficiary Name <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={beneficiaryName}
+            onChange={(e) => setBeneficiaryName(e.target.value)}
+            required
+            placeholder="Enter Beneficiary Name"
+          />
+        </div>
+
+        <div className="input-group section">
+          <label>
+            IFSC Code <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={ifsc}
+            onChange={(e) => setIfsc(e.target.value)}
+            required
+            placeholder="Enter IFSC Code"
+          />
+        </div>
+
+        <div className="input-group section">
+          <label>
+            PAN Number <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={pan}
+            onChange={(e) => setPan(e.target.value)}
+            required
+            placeholder="Enter PAN"
+          />
+        </div>
+
+        {showConfirmPopup && (
+          <div className="confirm-popup">
+            <div className="confirm-content">
+              <p>Do you want to confirm exit?</p>
+              <div className="popup-actions">
+                <button
+                  className="btn-gradient"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  Yes
+                </button>
+                <button
+                  className="btn-cancel"
+                  onClick={() => setShowConfirmPopup(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </form>
+      <div className="popup-actions">
+        <button
+          type="button"
+          className="btn-cancel"
+          // onClick={() => navigate("/dashboard")}
+          onClick={() => setShowConfirmPopup(true)}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          // className="submit-btn"
+          className="btn-gradient"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+
+    // </div>
     // </div>
   );
 };

@@ -1,6 +1,8 @@
 
 :root {
-  --nav-height: 93px;
+  --nav-height: 93px;  
+  --toastify-color-progress-dark: linear-gradient(92.99deg, #1278BB 3.3%, #13A89E 100%
+  );
 }
 
 .navbar {

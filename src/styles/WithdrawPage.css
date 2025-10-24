@@ -1,9 +1,7 @@
-
-
 .withdraw-header {
   width: 1320px;
   height: 60px;
-  margin: 60px auto 20px auto; 
+  margin: 60px auto 20px auto;
   padding: 0 25px;
   display: flex;
   justify-content: space-between;
@@ -15,8 +13,6 @@
   position: relative;
   opacity: 1;
 }
-
-
 
 /* Overlay covering entire screen */
 .confirm-popup {
@@ -45,28 +41,20 @@
   max-width: 90%;
 }
 
-
-
-
-
-
-
-
 .withdraw-header h2 {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
 }
 
-
 /* Scrollable Content */
 .withdraw-content {
-  flex: 1;                 /* fill remaining height */
+  flex: 1; /* fill remaining height */
   padding: 20px 30px;
   overflow-y: auto;
   width: 95%;
   margin: 0 auto;
-  background: #f9fafb;      /* subtle background to distinguish content */
+  background: #f9fafb; /* subtle background to distinguish content */
   border-radius: 0 0 12px 12px;
 }
 
@@ -80,7 +68,7 @@
 }
 
 .withdraw-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #1278BB 5%, #13A89E 105%);
+  background: linear-gradient(90deg, #1278bb 5%, #13a89e 105%);
   border-radius: 6px;
 }
 
@@ -124,33 +112,25 @@
   width: 100%;
 }
 
-
-
-
-
 .withdraw-subtitle {
   font-size: 14px;
   color: #555;
-  margin-top: 30px;  /* Increased gap */
+  margin-top: 30px; /* Increased gap */
   margin-bottom: 15px;
 }
-
-
-
-
 
 .beneficiary-details-card p {
   font-size: 14px;
   color: #555;
   margin-bottom: 30px;
-  text-align: center;  /* Center the subtitle text */
+  text-align: center; /* Center the subtitle text */
 }
 
 .withdraw-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  width: 60%;          /* Form takes 60% of card width */
+  width: 60%; /* Form takes 60% of card width */
   /* max-width: 600px;     */
 }
 .beneficiary-details-card h3,
@@ -158,6 +138,3 @@
   text-align: left;
   width: 100%;
 }
-
-
-

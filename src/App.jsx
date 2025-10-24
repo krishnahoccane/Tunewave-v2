@@ -161,43 +161,13 @@
 
 // export default App;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./App.css";
 import Navbar from "./components/Navbar.jsx";
@@ -276,26 +246,92 @@ function App() {
       )}
 
       <Routes>
-        <Route path="/login" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
-        <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-        <Route path="/dashboard" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/catalog" element={isLoggedIn ? <CatalogPage /> : <Navigate to="/login" />} />
-        <Route path="/catalog/*" element={isLoggedIn ? <CatalogPage /> : <Navigate to="/login" />} />
-        <Route path="/analytics" element={isLoggedIn ? <Analytics /> : <Navigate to="/login" />} />
-        <Route path="/transactions" element={isLoggedIn ? <Transactions /> : <Navigate to="/login" />} />
-        <Route path="/settings" element={isLoggedIn ? <Settings /> : <Navigate to="/login" />} />
-        <Route path="/create-release" element={isLoggedIn ? <CreateRelease /> : <Navigate to="/login" />} />
-        <Route path="/releases" element={isLoggedIn ? <ReleasesTab /> : <Navigate to="/login" />} />
-        <Route path="/wallet/withdraw" element={isLoggedIn ? <WithdrawPage /> : <Navigate to="/login" />} />
-        <Route path="/wallet" element={isLoggedIn ? <Wallet /> : <Navigate to="/login" />} />
-        <Route path="/release-metadata" element={isLoggedIn ? <ReleaseMetadataPage /> : <Navigate to="/login" />} />
-        <Route path="/upload-tracks" element={isLoggedIn ? <UploadTracks /> : <Navigate to="/login" />} />
-        <Route path="/select-stores" element={isLoggedIn ? <SelectStoresPage /> : <Navigate to="/login" />} />
-        <Route path="/four-page" element={isLoggedIn ? <ReleaseForm /> : <Navigate to="/login" />} />
-        <Route path="/preview-distribute" element={isLoggedIn ? <PreviewDistributePage /> : <Navigate to="/login" />} />
-        <Route path="/track-details" element={isLoggedIn ? <TrackDetails /> : <Navigate to="/login" />} />
-        <Route path="/ticket-raise" element={isLoggedIn ? <TicketRaisePage /> : <Navigate to="/login" />} />
-        <Route path="/yt-services" element={isLoggedIn ? <YTServicesPage /> : <Navigate to="/login" />} />
+        <Route
+          path="/login"
+          element={<Login onLogin={() => setIsLoggedIn(true)} />}
+        />
+        <Route
+          path="/"
+          element={
+            isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/catalog"
+          element={isLoggedIn ? <CatalogPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/catalog/*"
+          element={isLoggedIn ? <CatalogPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/analytics"
+          element={isLoggedIn ? <Analytics /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/transactions"
+          element={isLoggedIn ? <Transactions /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/settings"
+          element={isLoggedIn ? <Settings /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/create-release"
+          element={isLoggedIn ? <CreateRelease /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/releases"
+          element={isLoggedIn ? <ReleasesTab /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/wallet/withdraw"
+          element={isLoggedIn ? <WithdrawPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/wallet"
+          element={isLoggedIn ? <Wallet /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/release-metadata"
+          element={
+            isLoggedIn ? <ReleaseMetadataPage /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/upload-tracks"
+          element={isLoggedIn ? <UploadTracks /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/select-stores"
+          element={isLoggedIn ? <SelectStoresPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/four-page"
+          element={isLoggedIn ? <ReleaseForm /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/preview-distribute"
+          element={
+            isLoggedIn ? <PreviewDistributePage /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/track-details"
+          element={isLoggedIn ? <TrackDetails /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/ticket-raise"
+          element={isLoggedIn ? <TicketRaisePage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/yt-services"
+          element={isLoggedIn ? <YTServicesPage /> : <Navigate to="/login" />}
+        />
       </Routes>
     </>
   );

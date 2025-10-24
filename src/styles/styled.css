@@ -180,8 +180,8 @@
 .btn-actions {
   position: absolute;
   top: auto;
-  bottom: 50px;
-  right: 50px;
+  bottom: 40px;
+  right: 95px;
   display: flex;
   justify-content: flex-end;
   gap: 20px;
@@ -198,7 +198,9 @@
   display: flex;
   justify-content: center;
   margin-top: 40px;
-  padding-top: 30px;
+  /* padding-top: 30px; */
+  bottom: 70px!important;
+  right: 70px!important;
 }
 
 /* -------------------------------------------------------------------------------------------------------------------------------- */

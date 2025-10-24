@@ -1,4 +1,3 @@
-
 .close-btn {
   background: none;
   border: none;
@@ -24,10 +23,8 @@
   gap: 10px;
 }
 
-
-
 .wallet-balance-card {
-  background: linear-gradient(135deg, #1278BB 0%, #13A89E 100%);
+  background: linear-gradient(135deg, #1278bb 0%, #13a89e 100%);
   color: white;
   padding: 20px;
   border-radius: 20px;
@@ -50,7 +47,8 @@
   border-collapse: collapse;
 }
 
-.wallet-activity th, .wallet-activity td {
+.wallet-activity th,
+.wallet-activity td {
   padding: 12px;
   border-bottom: 1px solid #eaeaea;
 }
@@ -63,12 +61,13 @@
   color: green;
 }
 
-.card-details, .wallet-balance {
+.card-details,
+.wallet-balance {
   background: #fff;
   padding: 20px;
   flex: 1;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .detail-row {
@@ -77,18 +76,18 @@
   margin-bottom: 10px;
 }
 
-
 /* Graph and Table */
 .wallet-main {
   display: flex;
   gap: 20px;
 }
 
-.wallet-graph, .wallet-table {
+.wallet-graph,
+.wallet-table {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   flex: 1;
 }
 
@@ -114,7 +113,8 @@
   border-collapse: collapse;
 }
 
-.wallet-table th, .wallet-table td {
+.wallet-table th,
+.wallet-table td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
@@ -123,7 +123,6 @@
 .wallet-table th {
   background: #f3f4f6;
 }
-
 
 .graph-header {
   display: flex;
@@ -152,24 +151,20 @@
   margin-top: 5px;
 }
 
-
-
 /* -------------------- RESPONSIVE -------------------- */
 @media screen and (max-width: 1024px) {
-  .wallet-info, .wallet-main {
+  .wallet-info,
+  .wallet-main {
     flex-direction: column;
   }
 
-  .wallet-graph, .wallet-table,
-  .card-details, .wallet-balance {
+  .wallet-graph,
+  .wallet-table,
+  .card-details,
+  .wallet-balance {
     width: 100%;
   }
 }
-
-
-
-
-
 
 /* Simple CSS Bar Graph */
 .bar-graph {
@@ -182,7 +177,7 @@
 
 .bar {
   width: 30px;
-  background: linear-gradient(180deg, #1278BB 0%, #13A89E 100%);
+  background: linear-gradient(180deg, #1278bb 0%, #13a89e 100%);
   border-radius: 4px 4px 0 0;
   transition: 0.3s;
   cursor: pointer;
@@ -199,9 +194,6 @@
   font-size: 14px;
   color: #374151;
 }
-
-
-
 
 /* Confirmation Popup Overlay */
 .confirm-popup {
@@ -220,10 +212,10 @@
 /* Small Popup Box */
 .confirm-content {
   background: #fff;
-  padding: 20px 25px;       /* small padding */
-  border-radius: 12px;      /* rounded corners */
+  padding: 20px 25px; /* small padding */
+  border-radius: 12px; /* rounded corners */
   text-align: center;
-  width: 320px;             /* small width */
+  width: 320px; /* small width */
   max-width: 90%;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   font-family: "Poppins", sans-serif;
@@ -255,7 +247,7 @@
 
 /* Yes Button Gradient */
 .yes-btn {
-  background: linear-gradient(90deg, #1278BB 0%, #13A89E 100%);
+  background: linear-gradient(90deg, #1278bb 0%, #13a89e 100%);
   color: #fff;
 }
 
@@ -264,7 +256,6 @@
   background: #e5e7eb;
   color: #111827;
 }
-
 
 .balance-row {
   display: flex;
@@ -281,7 +272,7 @@
   font-weight: 600;
   color: #fff;
   cursor: pointer;
-  background: linear-gradient(90.61deg, #1278BB 4.69%, #13A89E 103.09%);
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
   transition: opacity 0.2s ease;
   white-space: nowrap;
 }
@@ -289,7 +280,6 @@
 .withdraw-btn:hover {
   opacity: 0.9;
 }
-
 
 .three-dots {
   font-size: 18px;
@@ -304,7 +294,7 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 5px 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 100;
 }
 

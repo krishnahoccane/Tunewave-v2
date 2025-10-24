@@ -1,5 +1,3 @@
-
-
 /* Fixed Layout - Everything stays in place except table scrolling */
 .catalog-page {
   display: flex;
@@ -23,7 +21,7 @@
   align-items: center;
   justify-content: space-between;
   position: fixed;
-  top: 100px;              
+  top: 100px;
   left: 0;
   right: 0;
   z-index: 100;
@@ -77,13 +75,12 @@
 }
 
 .catalog-icons img {
-  width: 24px;   /* change to any size you want */
-  height: 24px;  /* keep equal for square icons */
+  width: 24px; /* change to any size you want */
+  height: 24px; /* keep equal for square icons */
   object-fit: contain; /* makes sure it scales without distortion */
   cursor: pointer;
   /* background-color: NONE; */
 }
-
 
 .catalog-icons .create-release {
   background: #1e40af;
@@ -104,43 +101,43 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
   position: fixed;
   left: 40px;
-  top: 180px;   /* was 160px → now pushed further below header */
+  top: 180px; /* was 160px → now pushed further below header */
   bottom: 40px;
   overflow-y: auto;
   z-index: 50;
 }
 
 /* background */
-.catalog-page{
+.catalog-page {
   background: #fff;
 }
 .catalog-content {
   position: fixed;
   left: 412px; /* 332px sidebar + 40px gap + 40px padding */
   right: 40px;
-  top: 180px;   /* was 160px → keep in sync with sidebar */
+  top: 180px; /* was 160px → keep in sync with sidebar */
   bottom: 40px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.btn-img{
+.btn-img {
   height: 45px;
   width: 45px;
   border-style: none;
   cursor: pointer;
 }
 
-.round{
-  border-radius:50%;
+.round {
+  border-radius: 50%;
   padding-top: 2px;
 }
 
@@ -163,7 +160,7 @@
   background: #f8f9fa;
   padding: 16px 0;
   height: calc(100vh - 250px); /* Fixed height to ensure vertical scrolling */
-  
+
   /* Enhanced scrollbar styles */
   scrollbar-width: thin;
   scrollbar-color: #a0aec0 #f1f5f9;
@@ -366,7 +363,7 @@
   bottom: 0;
   z-index: 5;
   margin-top: auto;
-  
+
   flex-direction: row;
 }
 
@@ -405,7 +402,7 @@
 }
 
 .pagination-btn.active {
-  background: linear-gradient(90.61deg, #1278BB 4.69%, #13A89E 103.09%);
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
   border-color: #3b82f6;
   color: white;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
@@ -431,16 +428,16 @@
   .catalog-page {
     padding: 20px;
   }
-  
+
   .catalog-header {
     padding: 15px 20px;
   }
-  
+
   .catalog-sidebar {
     left: 20px;
     width: 300px;
   }
-  
+
   .catalog-content {
     left: 340px;
     right: 20px;
@@ -451,7 +448,7 @@
   .catalog-sidebar {
     width: 280px;
   }
-  
+
   .catalog-content {
     left: 320px;
   }
@@ -464,14 +461,14 @@
     height: auto;
     padding: 10px;
   }
-  
+
   .catalog-header {
     position: relative;
     top: auto;
     margin-bottom: 10px;
     padding: 10px;
   }
-  
+
   .catalog-sidebar {
     position: relative;
     left: auto;
@@ -481,7 +478,7 @@
     height: 200px;
     margin-bottom: 10px;
   }
-  
+
   .catalog-content {
     position: relative;
     left: auto;
@@ -509,7 +506,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
   /* min-width: 200px;  */
-  width:max-content
+  width: max-content;
 }
 
 .download-menu button {

@@ -1,4 +1,3 @@
-
 /* .create-release-page {
   padding: 40px 80px;
   font-family: "Poppins", sans-serif;
@@ -10,11 +9,10 @@
   font-size: 28px;
   font-weight: 600;
   margin-top: 80px;
-  text-align: start; 
+  text-align: start;
   margin-bottom: 20px;
-  background-color: transparent!important;
+  background-color: transparent !important;
 }
-
 
 .support-message {
   font-size: 16px;
@@ -22,8 +20,6 @@
   margin-bottom: 30px;
   line-height: 1.6;
 }
-
-
 
 .input-group {
   margin-bottom: 20px;
@@ -64,7 +60,7 @@
   width: 600px;
   height: 400px;
   text-align: center;
-  
+
   min-height: 220px;
   align-items: center;
   color: #555;
@@ -78,16 +74,15 @@
   border-color: #2563eb;
 }
 
-.text{
+.text {
   padding-top: 30%;
 }
-.could-img{
-  height:26px;
-  width:40px;
+.could-img {
+  height: 26px;
+  width: 40px;
   padding-right: 10px;
-
 }
-.tips-box p{
+.tips-box p {
   font-size: 15px;
   font-weight: 400;
   font-family: "poppins";
@@ -104,12 +99,12 @@
 .tips-box {
   background: #f9fafb;
   padding: 25px;
-  border-left: 5px solid #1278BB;
+  border-left: 5px solid #1278bb;
   border-radius: 6px;
   font-size: 14px;
   padding-right: 30px;
   color: #444;
-  background-color: #EFF6FF;
+  background-color: #eff6ff;
 }
 
 .tips-box h4 {
@@ -125,9 +120,9 @@
 
 .tips-box li {
   margin-bottom: 10px;
-  font-size:15px;
+  font-size: 15px;
   list-style: none;
-  gap:20px;
+  gap: 20px;
 }
 .tips-box li img {
   padding-right: 10px;
@@ -165,8 +160,6 @@
   margin-top: 30px;
 }
 
-
-
 .file-types {
   font-size: 13px;
   color: #888;
@@ -174,18 +167,18 @@
 }
 
 @media (max-width: 768px) {
-  .form-grid, .contributors-buttons, .genres-grid {
+  .form-grid,
+  .contributors-buttons,
+  .genres-grid {
     flex-direction: column;
     gap: 15px;
   }
 }
 
-
-
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -193,10 +186,10 @@
 }
 
 .modal-content {
-  width: 650px;       /* Keep horizontal stretch */
-  min-height: auto;   /* Remove fixed minimum height */
-  max-height: 90vh;   /* Prevent the popup from growing too large vertically */
-  overflow-y: auto;   /* Enable scroll if content exceeds max-height */
+  width: 650px; /* Keep horizontal stretch */
+  min-height: auto; /* Remove fixed minimum height */
+  max-height: 90vh; /* Prevent the popup from growing too large vertically */
+  overflow-y: auto; /* Enable scroll if content exceeds max-height */
   text-align: center;
   background: #fff;
   padding: 30px;
@@ -204,36 +197,35 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
 .artist-image-box {
-  width: 140px;               /* Reduced from 160px */
-  height: 140px;              /* Reduced from 160px */
-  background: #bfdbfe;        /* Light Blue background */
-  border-radius: 50%;          /* Perfect circle */
+  width: 140px; /* Reduced from 160px */
+  height: 140px; /* Reduced from 160px */
+  background: #bfdbfe; /* Light Blue background */
+  border-radius: 50%; /* Perfect circle */
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  margin: 0 auto 20px auto;   /* Center and spacing below */
+  margin: 0 auto 20px auto; /* Center and spacing below */
   transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Soft shadow for depth */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
 }
 
 .artist-image-box:hover {
-  background: #93c5fd;        /* Brighter blue on hover */
-  transform: scale(1.05);     /* Slight zoom effect */
-  box-shadow: 0 6px 15px rgba(0,0,0,0.15); /* Slightly stronger shadow */
+  background: #93c5fd; /* Brighter blue on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
 }
 
 .placeholder-icon {
-  font-size: 50px;            /* Slightly smaller + symbol */
-  color: #1e3a8a;             /* Deep Blue for contrast */
+  font-size: 50px; /* Slightly smaller + symbol */
+  color: #1e3a8a; /* Deep Blue for contrast */
   font-weight: bold;
 }
-
 
 .input-label {
   font-size: 14px;
@@ -242,14 +234,13 @@
   margin-bottom: 8px;
   display: block;
   text-transform: lowercase;
-  text-align: center;   /* Ensure left alignment */
+  text-align: center; /* Ensure left alignment */
 }
 
 .localize-btn {
-   background: #60a5fa;
+  background: #60a5fa;
   margin-bottom: 20px; /* Extra gap below Localize Your Release button */
 }
-
 
 .artist-image-preview {
   width: 140px;
@@ -278,7 +269,6 @@
   margin-bottom: 25px; /* Keep spacing below the group */
 }
 
-
 .profile-link-group {
   display: flex;
   flex-direction: column;
@@ -288,7 +278,7 @@
 .profile-link,
 .localize-btn {
   background: #f3f4f6; /* Light Gray Background */
-  color: #374151;      /* Dark Gray Text */
+  color: #374151; /* Dark Gray Text */
   border: 1px solid #d1d5db;
   padding: 12px 20px;
   border-radius: 6px;
@@ -305,7 +295,6 @@
 }
 
 .profile-link:active,
-
 .localize-btn:active {
   background: #d1d5db; /* Medium Gray when clicked */
   transform: scale(0.98);
@@ -351,7 +340,7 @@
   padding: 20px;
   border-radius: 16px;
   background: #ffffff;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   font-family: "Poppins", sans-serif;
 }
 
@@ -371,12 +360,12 @@
   color: #fff;
   font-weight: 600;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
 
 .music-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
 }
 
 .music-left {
@@ -391,7 +380,7 @@
 }
 
 .spotify {
-  background: linear-gradient(45deg, #1DB954, #1ed760);
+  background: linear-gradient(45deg, #1db954, #1ed760);
 }
 
 .apple {
@@ -402,7 +391,7 @@
   padding: 6px 12px;
   border: none;
   border-radius: 20px;
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
   color: #fff;
   font-size: 14px;
   font-weight: 500;
@@ -410,7 +399,7 @@
 }
 
 .link-btn:hover {
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.4);
 }
 .profile-buttons-box {
   width: 90%; /* stretches container across the page */
@@ -419,7 +408,7 @@
   padding: 25px 30px;
   border-radius: 16px;
   background: #f0f4f8;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -433,13 +422,13 @@
   padding: 15px 25px;
   border-radius: 12px;
   background: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .profile-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-button i {
@@ -463,13 +452,11 @@
   background: #0056b3;
 }
 
-
-
 /* ArtistProfileLinkPopup.css */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -485,7 +472,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* h2 {
@@ -534,7 +521,6 @@ label {
   margin-top: 20px;
 }
 
-
 .apply-btn {
   background: #2563eb; /* Bright blue for Apply */
   color: #fff;
@@ -543,8 +529,6 @@ label {
   border-radius: 6px;
   cursor: pointer;
 }
-
-
 
 /* Scrollbar base size */
 ::-webkit-scrollbar {
@@ -558,18 +542,16 @@ label {
 
 /* Thumb with the gradient background */
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(90.61deg, #1278BB 4.69%, #13A89E 103.09%);
+  background: linear-gradient(90.61deg, #1278bb 4.69%, #13a89e 103.09%);
   border-radius: 4px;
   border: 2px solid #f1f1f1;
 }
-
-
 
 /* Add Performer Modal Styling */
 .add-performer-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -585,7 +567,7 @@ label {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .add-performer-modal h2 {
@@ -674,50 +656,42 @@ label {
   border-radius: 6px;
   cursor: pointer;
 }
-.line{
+.line {
   margin-top: 40px;
 }
-.box-i{
-  background-color: #EFF6FF;
+.box-i {
+  background-color: #eff6ff;
   margin-left: 3px;
-  border-radius:10px;
+  border-radius: 10px;
   padding-top: 10px;
   padding-bottom: 10px;
   padding-left: 20px;
-  
+
   display: flex;
   text-align: left;
 }
-.box-i img{
+.box-i img {
   padding-right: 10px;
   height: 40px;
   width: 40px;
 }
-.box-i-showdow{
-  background: #1278BB;
+.box-i-showdow {
+  background: #1278bb;
   border-radius: 10px;
   margin-left: 10px;
   margin-top: 20px;
 }
 
-.box-i p{
+.box-i p {
   font-size: 15px;
 }
-.radio-item{
+.radio-item {
   width: 250px;
   padding: 15px;
   border-radius: 10px;
   border: 1px solid black;
 }
 
-.label-name{
+.label-name {
   text-align: center;
-    
 }
-
-
-
-
-
-
-

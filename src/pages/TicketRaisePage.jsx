@@ -36,202 +36,203 @@ const TicketPage = () => {
 
   return (
     // <div className="ticket-page">
-      <div className="pages-layout-container">
+    <div className="pages-layout-container">
+      <h2 className="pages-main-title">Tickets</h2>
 
-        <h2 className="pages-main-title">Tickets</h2>
+      {/* Tabs */}
+      <div className="ticket-tabs">
+        <button
+          type="button"
+          className={activeTab === "raise" ? "active" : ""}
+          onClick={() => {
+            setActiveTab("raise");
+            setShowDetail(false);
+            setSelectedTicket(null);
+          }}
+        >
+          Raise Ticket
+        </button>
+        <button
+          type="button"
+          className={activeTab === "myTickets" ? "active" : ""}
+          onClick={() => {
+            setActiveTab("myTickets");
+            setShowDetail(false);
+            setSelectedTicket(null);
+          }}
+        >
+          My Tickets
+        </button>
+      </div>
 
-        {/* Tabs */}
-                    <div className="ticket-tabs">
-                                <button
-                                  type="button"
-                                  className={activeTab === "raise" ? "active" : ""}
-                                  onClick={() => {
-                                    setActiveTab("raise");
-                                    setShowDetail(false);
-                                    setSelectedTicket(null);
-                                  }}
-                                >
-                                  Raise Ticket
-                                </button>
-                                <button
-                                  type="button"
-                                  className={activeTab === "myTickets" ? "active" : ""}
-                                  onClick={() => {
-                                    setActiveTab("myTickets");
-                                    setShowDetail(false);
-                                    setSelectedTicket(null);
-                                  }}
-                                >
-                                  My Tickets
-                                </button>
-                              </div>
-
-
-        {/* Raise Ticket Form */}
-        {activeTab === "raise" && (
-          <form className="ticket-form" onSubmit={(e) => e.preventDefault()}>
-            <label className="section-container">
-                      <div>
-                        <span style={{display: "flex", flexDirection: "row"}}> <h5>Issue Type </h5> <span className="required">*</span>  </span>
-                       
-                        
-                      </div>
-              <select required>
-                <option value="" disabled>
-                  Select issue type
-                </option>
-                <option value="emergency">Emergency</option>
-                <option value="high">High Priority</option>
-                <option value="support">Support Request</option>
-                <option value="normal">Normal</option>
-              </select>
-            </label>
-
-            <label>
-              <div className="section-container" >
-
-                <span style={{display: "flex", flexDirection: "row"}}> <h5>Description</h5> <span className="required">*</span></span>
-                
-                 <textarea  placeholder="Enter your issue" required />
-
-              </div>
-             {/* style={{display: "flex", flexDirection: "row"}} */}
-              
-            </label>
-
-            <label className="section-container">
-              <h5>Upload File</h5>
-              <input type="file" />
-            </label>
-
-            <div className="popup-actions">
-                <button
-                  className="btn-cancel"
-                  onClick={() => navigate(-1)}
-                >
-                  cancel
-                </button>
-                <button
-                  className="btn-gradient" 
-                  onClick={() => setShowDetail(true)}
-                >
-                  Next
-                </button>
-              </div>
-          </form>
-        )}
-
-        {/* My Tickets Table */}
-        {activeTab === "myTickets" && !showDetail && (
-          <div className="tickets-list ">
-            {/* Search Bar */}
-            <div className="ticket-search">
-              <input
-                type="text"
-                placeholder="Search tickets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+      {/* Raise Ticket Form */}
+      {activeTab === "raise" && (
+        <form className="ticket-form" onSubmit={(e) => e.preventDefault()}>
+          <label className="section-container">
+            <div>
+              <span style={{ display: "flex", flexDirection: "row" }}>
+                {" "}
+                <h5>Issue Type </h5> <span className="required">*</span>{" "}
+              </span>
             </div>
+            <select required>
+              <option value="" disabled>
+                Select issue type
+              </option>
+              <option value="emergency">Emergency</option>
+              <option value="high">High Priority</option>
+              <option value="support">Support Request</option>
+              <option value="normal">Normal</option>
+            </select>
+          </label>
 
-            <table >
-              <thead>
-                <tr>
-                  <th>Ticket No</th>
-                  <th>Issue Type</th>
-                  <th>Description</th>
-                  <th>Status</th>
-                  <th>Date & Time</th>
-                  <th>Select</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTickets.length > 0 ? (
-                  filteredTickets.map((ticket, index) => (
-                    <tr key={index}>
-                      <td>{ticket.ticketNo}</td>
-                      <td>{ticket.issueType}</td>
-                      <td>{ticket.description.slice(0, 30)}...</td>
-                      <td>{ticket.status}</td>
-                      <td>{ticket.dateTime}</td>
-                      <td>
-                        <input
-                          type="radio"
-                          name="selectedTicket"
-                          onChange={() => setSelectedTicket(ticket)}
-                        />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
-                      No tickets found.
+          <label>
+            <div className="section-container">
+              <span style={{ display: "flex", flexDirection: "row" }}>
+                {" "}
+                <h5>Description</h5> <span className="required">*</span>
+              </span>
+
+              <textarea placeholder="Enter your issue" required />
+            </div>
+            {/* style={{display: "flex", flexDirection: "row"}} */}
+          </label>
+
+          <label className="section-container">
+            <h5>Upload File</h5>
+            <input type="file" />
+          </label>
+
+          <div className="popup-actions">
+            <button className="btn-cancel" onClick={() => navigate(-1)}>
+              cancel
+            </button>
+            <button
+              className="btn-gradient"
+              onClick={() => setShowDetail(true)}
+            >
+              Next
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* My Tickets Table */}
+      {activeTab === "myTickets" && !showDetail && (
+        <div className="tickets-list ">
+          {/* Search Bar */}
+          <div className="ticket-search">
+            <input
+              type="text"
+              placeholder="Search tickets..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket No</th>
+                <th>Issue Type</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Date & Time</th>
+                <th>Select</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTickets.length > 0 ? (
+                filteredTickets.map((ticket, index) => (
+                  <tr key={index}>
+                    <td>{ticket.ticketNo}</td>
+                    <td>{ticket.issueType}</td>
+                    <td>{ticket.description.slice(0, 30)}...</td>
+                    <td>{ticket.status}</td>
+                    <td>{ticket.dateTime}</td>
+                    <td>
+                      <input
+                        type="radio"
+                        name="selectedTicket"
+                        onChange={() => setSelectedTicket(ticket)}
+                      />
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    No tickets found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
 
-            {/* Next Button appears only when a ticket is selected */}
-            {selectedTicket && (
-              <div style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap:"10px" }}>
-                <button
-                  className="btn-cancel"
-                  onClick={() => navigate(-1)}
-                >
-                  cancel
-                </button>
-                <button
-                  className="btn-gradient" style={{ width:"100Px"  }}
-                  onClick={() => setShowDetail(true)}
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Ticket Detail View */}
-        {activeTab === "myTickets" && showDetail && selectedTicket && (
-          <div className="ticket-detail">
-            <h3>Ticket Detail</h3>
-            <div className="detail-row">
-              <span>Ticket No:</span>
-              <span>{selectedTicket.ticketNo}</span>
-            </div>
-            <div className="detail-row">
-              <span>Date & Time:</span>
-              <span>{selectedTicket.dateTime}</span>
-            </div>
-            <div className="detail-row">
-              <span>Issue Type:</span>
-              <span>{selectedTicket.issueType}</span>
-            </div>
-            <div className="detail-row">
-              <span>Description:</span>
-              <span>{selectedTicket.description}</span>
-            </div>
-            <div className="detail-row">
-              <span>Status:</span>
-              <span>{selectedTicket.status}</span>
-            </div>
-            <div className="btn-actions">
+          {/* Next Button appears only when a ticket is selected */}
+          {selectedTicket && (
+            <div
+              // style={{ display: "flex", justifyContent: "right", marginTop: "20px", gap:"10px" }}
+              className="btn-actions"
+            >
+              <button className="btn-cancel" onClick={() => navigate(-1)}>
+                cancel
+              </button>
               <button
-                className="btn-cancel" style={{ width:"100Px"  }}
-                onClick={() => {
-                  setShowDetail(false);
-                  setSelectedTicket(null);
-                  navigate("/") 
-                }}
+                className="btn-gradient"
+                style={{ width: "100Px" }}
+                onClick={() => setShowDetail(true)}
               >
-                Close
+                Next
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Ticket Detail View */}
+      {activeTab === "myTickets" && showDetail && selectedTicket && (
+        <div className="ticket-detail">
+          <h3>Ticket Detail</h3>
+          <div className="detail-row">
+            <span>Ticket No:</span>
+            <span>{selectedTicket.ticketNo}</span>
           </div>
-        )}
-      </div>
+          <div className="detail-row">
+            <span>Date & Time:</span>
+            <span>{selectedTicket.dateTime}</span>
+          </div>
+          <div className="detail-row">
+            <span>Issue Type:</span>
+            <span>{selectedTicket.issueType}</span>
+          </div>
+          <div className="detail-row">
+            <span>Description:</span>
+            <span>{selectedTicket.description}</span>
+          </div>
+          <div className="detail-row">
+            <span>Status:</span>
+            <span>{selectedTicket.status}</span>
+          </div>
+          <div className="btn-actions">
+            <button
+              className="btn-cancel"
+              style={{ width: "100Px" }}
+              onClick={() => {
+                setShowDetail(false);
+                setSelectedTicket(null);
+                navigate("/");
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
     // </div>
   );
 };

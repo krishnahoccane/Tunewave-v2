@@ -9,22 +9,23 @@ const ReleaseMetadataPage = () => {
   const [digitalDate, setDigitalDate] = useState("");
   const [originalDate, setOriginalDate] = useState("");
   //const [lyricsLanguage, setLyricsLanguage] = useState("English");
-  const [lyricsLanguageOption, setLyricsLanguageOption] = useState("Select Language");
+  const [lyricsLanguageOption, setLyricsLanguageOption] =
+    useState("Select Language");
   const [explicitStatus, setExplicitStatus] = useState(""); // Explicit / Not Explicit
   const [showPopup, setShowPopup] = useState(false);
   const [titleGradient, setTitleGradient] = useState(false);
   const [showMetadata, setShowMetadata] = useState(true);
 
-//   const handleNext = () => { navigate("/upload-tracks"), 
-//     console.log({
-//       language,
-//       digitalDate,
-//       originalDate,
-//       lyricsLanguageOption,
-//       lyricsLanguage,
-//       explicitStatus,
-//     });
-const handleNext = () => {
+  //   const handleNext = () => { navigate("/upload-tracks"),
+  //     console.log({
+  //       language,
+  //       digitalDate,
+  //       originalDate,
+  //       lyricsLanguageOption,
+  //       lyricsLanguage,
+  //       explicitStatus,
+  //     });
+  const handleNext = () => {
     navigate("/upload-tracks", {
       state: {
         language,
@@ -51,7 +52,6 @@ const handleNext = () => {
   };
 
   return (
-    
     <div className="release-metadata-container">
       <div className="release-metadata-card">
         {/* Just the cross symbol */}
@@ -183,7 +183,10 @@ const handleNext = () => {
             <div className="language-box">
               <div className="section-title">Explicit Content *</div>
 
-              <div className="radio-group" style={{ flexDirection: "column", gap: "12px" }}>
+              <div
+                className="radio-group"
+                style={{ flexDirection: "column", gap: "12px" }}
+              >
                 <label>
                   <input
                     type="radio"
@@ -195,8 +198,17 @@ const handleNext = () => {
                   Explicit
                 </label>
                 {explicitStatus === "Explicit" && (
-                  <p style={{ fontSize: "13px", color: "#555", marginLeft: "20px", marginTop: "4px" }}>
-                    The track lyrics or title include explicit language (such as drug references, sexual, violent or discriminatory language, swearing etc.) not suitable for children.
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "#555",
+                      marginLeft: "20px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    The track lyrics or title include explicit language (such as
+                    drug references, sexual, violent or discriminatory language,
+                    swearing etc.) not suitable for children.
                   </p>
                 )}
 
@@ -211,8 +223,16 @@ const handleNext = () => {
                   Not Explicit
                 </label>
                 {explicitStatus === "Not Explicit" && (
-                  <p style={{ fontSize: "13px", color: "#555", marginLeft: "20px", marginTop: "4px" }}>
-                    The track does NOT include any explicit language in lyrics or title.
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "#555",
+                      marginLeft: "20px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    The track does NOT include any explicit language in lyrics
+                    or title.
                   </p>
                 )}
               </div>
@@ -221,7 +241,9 @@ const handleNext = () => {
                 className="explicit-note"
                 style={{ marginTop: "12px", fontSize: "13px", color: "#555" }}
               >
-                If your track contains explicit content, you MUST mark it as “Explicit”. Otherwise, your release may be rejected when you attempt to distribute it.
+                If your track contains explicit content, you MUST mark it as
+                “Explicit”. Otherwise, your release may be rejected when you
+                attempt to distribute it.
               </p>
             </div>
           </div>

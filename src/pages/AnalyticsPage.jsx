@@ -72,9 +72,24 @@ const AnalyticsPage = () => {
             <YAxis />
             <Tooltip />
             <Legend verticalAlign="top" height={36} />
-            <Line type="monotone" dataKey="youtube" stroke="#FF0000" name="YouTube Music" />
-            <Line type="monotone" dataKey="spotify" stroke="#1DB954" name="Spotify Music" />
-            <Line type="monotone" dataKey="apple" stroke="#000000" name="Apple Music" />
+            <Line
+              type="monotone"
+              dataKey="youtube"
+              stroke="#FF0000"
+              name="YouTube Music"
+            />
+            <Line
+              type="monotone"
+              dataKey="spotify"
+              stroke="#1DB954"
+              name="Spotify Music"
+            />
+            <Line
+              type="monotone"
+              dataKey="apple"
+              stroke="#000000"
+              name="Apple Music"
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -191,29 +206,27 @@ const AnalyticsPage = () => {
           </tbody>
         </table>
       </div>
-{/* Statistics Section with Bar Chart */}
-<div className="chart-container">
-  <h3>Statistics</h3>
-  <h4>Weekly Comparison</h4>
-  <ResponsiveContainer width="100%" height={250}>
-    <BarChart
-      data={[
-        { period: "Last Day", revenue: 50000 },
-        { period: "Today", revenue: 250000 },
-      ]}
-      barGap={20}          // Gap between bars in the same group
-      barCategoryGap="40%" // Gap between categories
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="period" />
-      <YAxis />
-      <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-      <Bar dataKey="revenue" fill="#1278BB" />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
-
-
+      {/* Statistics Section with Bar Chart */}
+      <div className="chart-container">
+        <h3>Statistics</h3>
+        <h4>Weekly Comparison</h4>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart
+            data={[
+              { period: "Last Day", revenue: 50000 },
+              { period: "Today", revenue: 250000 },
+            ]}
+            barGap={20} // Gap between bars in the same group
+            barCategoryGap="40%" // Gap between categories
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="period" />
+            <YAxis />
+            <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+            <Bar dataKey="revenue" fill="#1278BB" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Exit Popup */}
       {showExitPopup && (

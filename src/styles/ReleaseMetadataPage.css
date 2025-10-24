@@ -13,8 +13,8 @@
 .release-metadata-card {
   background: #ffffff;
   border-radius: 12px;
-  padding: 30px;       /* reduced from 40px */
-  width: 650px;        /* reduced from 800px */
+  padding: 30px; /* reduced from 40px */
+  width: 650px; /* reduced from 800px */
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -29,7 +29,7 @@
 /* Page title */
 .page-title {
   text-align: center;
-  font-size: 22px;     /* slightly smaller */
+  font-size: 22px; /* slightly smaller */
   font-weight: 600;
   margin-bottom: 25px; /* reduced margin */
 }
@@ -47,7 +47,7 @@
   justify-content: space-between;
   align-items: center;
   background: #f3f4f6;
-  padding: 12px;       /* reduced padding */
+  padding: 12px; /* reduced padding */
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 14px;
@@ -81,7 +81,7 @@ input[disabled] {
 /* Radio button group */
 .radio-group {
   display: flex;
-  gap: 20px;           /* slightly smaller gap */
+  gap: 20px; /* slightly smaller gap */
   margin-bottom: 16px;
 }
 
@@ -100,7 +100,7 @@ input[disabled] {
 /* Close button (×) */
 .close-button {
   position: absolute;
-  top: 12px;            /* slightly closer */
+  top: 12px; /* slightly closer */
   right: 12px;
   font-size: 22px;
   cursor: pointer;
@@ -108,7 +108,11 @@ input[disabled] {
 
 /* Gradient Title when confirmed */
 .gradient-title {
-  background: linear-gradient(92.99deg, rgba(18, 120, 187, 0.8) 3.3%, rgba(19, 168, 158, 0.8) 100%);
+  background: linear-gradient(
+    92.99deg,
+    rgba(18, 120, 187, 0.8) 3.3%,
+    rgba(19, 168, 158, 0.8) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -120,7 +124,7 @@ input[disabled] {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -201,7 +205,11 @@ input[disabled] {
 
 /* When checked */
 .toggle-switch input:checked + .slider {
-  background: linear-gradient(92.99deg, rgba(18, 120, 187, 0.8) 3.3%, rgba(19, 168, 158, 0.8) 100%);
+  background: linear-gradient(
+    92.99deg,
+    rgba(18, 120, 187, 0.8) 3.3%,
+    rgba(19, 168, 158, 0.8) 100%
+  );
 }
 
 .toggle-switch input:checked + .slider::before {
@@ -212,14 +220,14 @@ input[disabled] {
 .date-container,
 .language-container {
   box-sizing: border-box;
-  width: 550px;        /* reduced from 600px */
-  margin: 15px auto;   /* less vertical spacing */
+  width: 550px; /* reduced from 600px */
+  margin: 15px auto; /* less vertical spacing */
   background: #ffffff;
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.08); /* slightly lighter shadow */
-  border-radius: 12px; 
-  padding: 12px;       /* smaller padding */
+  border-radius: 12px;
+  padding: 12px; /* smaller padding */
   display: flex;
-  gap: 12px;           
+  gap: 12px;
   justify-content: space-between;
 }
 
@@ -240,13 +248,12 @@ input[disabled] {
 .date-box input,
 .language-box select {
   width: 100%;
-  padding: 10px;       /* slightly smaller */
+  padding: 10px; /* slightly smaller */
   border-radius: 10px;
   border: 1px solid #cbd5e1;
   font-size: 13px;
   appearance: none;
 }
-
 
 .explicit-content-box {
   margin-top: 15px;
@@ -306,8 +313,7 @@ input[disabled] {
   border: none;
 }
 
-
-.next-btn{
+.next-btn {
   margin-left: 40%;
 }
 
