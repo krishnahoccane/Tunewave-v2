@@ -5,6 +5,8 @@ import "../styles/TrackDetails.css";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
+import ContributorsSection from "../components/ContributorsSection.jsx";
 const allLanguages = [
   "Ahirani",
   "Arabic",
@@ -315,7 +317,7 @@ const TrackDetails = () => {
       </div>
 
       {/* Contributors Section */}
-      <div className="section">
+      {/* <div className="section">
         <h3>Artists</h3>
         {showicons && (
           <div className="contributors-buttons">
@@ -326,8 +328,8 @@ const TrackDetails = () => {
             <button className="btn-cancel">+ Add Lyricist</button>
           </div>
         )}
-      </div>
-
+      </div> */}
+        <ContributorsSection />
       {/* Lyrics Language */}
       <div className="section-container section">
         <label className="section-title">Language of Lyrics</label>

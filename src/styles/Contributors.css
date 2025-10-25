@@ -1,0 +1,121 @@
+.contributors-section {
+  margin-top: 20px;
+}
+
+.contributors-section h3 {
+  margin-bottom: 10px;
+}
+
+.contributors-options-row {
+  display: flex;
+  gap: 50px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.pill-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.contributor-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #eee;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.contributor-pill button {
+  margin-left: 6px;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 420px;
+  padding: 20px;
+  border-radius: 12px;
+  overflow-x: hidden;
+  margin-top: 8vh;
+}
+
+.dropdown-select,
+.dropdown-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  margin-top: 15px;
+  border-radius: 6px;
+}
+
+.profile-box {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8f9fb;
+}
+
+.profile-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-label {
+  font-weight: 500;
+}
+
+.btn-link-profile {
+  align-self: flex-start;
+  background: #e7edff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 5px 12px;
+  font-size: 13px;
+}
+
+.btn-link-profile.linked {
+  background: #d4ffe0;
+  font-weight: 600;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+

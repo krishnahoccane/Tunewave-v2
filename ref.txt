@@ -1,0 +1,835 @@
+ <div className="section">
+        <h3>Contributors</h3>
+
+        {showicons && (
+          <div className="contributors-buttons">
+            <button
+              className="btn-cancel"
+              onClick={() => {
+                setShowArtistModal(true);
+                setArtistDropDownRole("");
+                setShowSecondDropdown(false);
+                setthirdDropDown(false);
+              }}
+            >
+              + Add Main Primary Artist
+            </button>
+
+            <button
+              className="btn-cancel"
+              onClick={() => {
+                setShowAddArtistModal(true);
+                setArtistDropDownRole("");
+                setShowSecondDropdown(false);
+                setthirdDropDown(false);
+              }}
+            >
+              + Add Producer
+            </button>
+
+            <button
+              className="btn-cancel"
+              onClick={() => {
+                setShowPerformer(true);
+                setperformerDropDownRole("");
+                setShowSecondDropdown(false);
+                setthirdDropDown(false);
+              }}
+            >
+              + Add Director
+            </button>
+
+            <button
+              className="btn-cancel"
+              onClick={() => {
+                setShowProducer(true);
+                setproducerDropDownRole("");
+                setShowSecondDropdown(false);
+                setthirdDropDown(false);
+              }}
+            >
+              + Add Composer
+            </button>
+
+            <button
+              className="btn-cancel"
+              onClick={() => {
+                setShowProducer(true);
+                setproducerDropDownRole("");
+                setShowSecondDropdown(false);
+                setthirdDropDown(false);
+              }}
+            >
+              + Add Lyricist
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Artist Modal new Popup */}
+
+      {showArtistModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Add Main Primary Artist</h3>
+
+            {/* Artist selection */}
+            <div className="second-dropdown">
+              <label className="input-label">
+                Artist Name <span style={{ color: "red" }}>*</span>
+              </label>
+              <select
+                className="input-field"
+                style={{ width: "100%" }}
+                id="DropDownArtistName"
+                required
+                value={artistdropDownName}
+                onChange={(e) => {
+                  setArtistdropDownName(e.target.value);
+                  setthirdDropDown(!!e.target.value);
+                }}
+              >
+                <option value="" disabled>
+                  Select Artist
+                </option>
+
+                <option value="Kavya">Kavya</option>
+                <option value="Venala">Venala</option>
+                <option value="Isha">Isha</option>
+                <option value="Krishna">Krishna</option>
+              </select>
+              <button
+                value={"new"}
+                type="button"
+                className="btn-gradient"
+                style={{ width: "100%", marginTop: "10px" }}
+                onClick={
+                  () => {
+                    setShowLinkProfileModal(true);
+                    setthirdDropDown("");
+                  } // open your modal
+                }
+              >
+                + Create New Artist
+              </button>
+            </div>
+
+            {showthirdDropdown && (
+              <div>
+                {/* Localization button */}
+                {/* <div style={{ marginTop: "30px", marginLeft: "35%" }}>
+                  <button
+                    className="btn-secondary localize-btn"
+                    onClick={() => {
+                      setShowLocalizeModal(true);
+                      setShowArtistModal(false);
+                    }}
+                  >
+                    Localize Your Release
+                  </button>
+                </div> */}
+
+                {/* Info section */}
+                <p className="field-tip">
+                  Select the services where the artist has previously
+                  distributed...
+                </p>
+                <div className="box-i-showdow">
+                  <div className="box-i">
+                    <img src={iIcon} />
+                    <p>
+                      In order for your release to appear on the updated
+                      profile, please redeliver
+                    </p>
+                  </div>
+                </div>
+
+                {/* Link profile buttons */}
+                <div className="profile-buttons-box">
+                  {["SoundCloud", "Spotify", "AppleMusic"].map((platform) => (
+                    <div key={platform} className="profile-button">
+                      <span>{platform}</span>
+                      <button
+                        className="link-btn"
+                        onClick={() => {
+                          const link = prompt(`Enter ${platform} profile URL`);
+                          if (link) {
+                            setLinkedProfiles((prev) => ({
+                              ...prev,
+                              [platform]: link,
+                            }));
+                          }
+                        }}
+                      >
+                        Link Profile
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Save contributor */}
+                <div style={{ marginTop: "20px", textAlign: "right" }}>
+                  <button
+                    className="btn-cancel"
+                    onClick={() => setShowArtistModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button className="btn-gradient" onClick={saveContributor}>
+                    Save Artist
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Artist Modal Popup */}
+      {artist && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Create a new Main Primary Artist</h3>
+
+            <div className="artist-image-box">
+              <input
+                type="file"
+                id="artistImageInput"
+                style={{ display: "none" }}
+                accept="image/png, image/jpeg, image/jpg, image/jfif"
+                onChange={(e) => setArtistImage(e.target.files[0])}
+              />
+
+              {artistImage ? (
+                <div
+                  style={{
+                    position: "relative",
+                    width: "140px",
+                    height: "140px",
+                  }}
+                >
+                  <img
+                    src={URL.createObjectURL(artistImage)}
+                    alt="Artist Preview"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-reselect-icon"
+                    onClick={() =>
+                      document.getElementById("artistImageInput").click()
+                    }
+                    style={{
+                      position: "absolute",
+                      bottom: "5px",
+                      right: "5px",
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      backgroundColor: "#2563eb",
+                      color: "#fff",
+                      border: "none",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="placeholder-icon"
+                  onClick={() =>
+                    document.getElementById("artistImageInput").click()
+                  }
+                  style={{
+                    width: "140px",
+                    height: "140px",
+                    borderRadius: "50%",
+                    backgroundColor: "#f3f4f6",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: "50px",
+                    color: "#2563eb",
+                    cursor: "pointer",
+                  }}
+                >
+                  +
+                </div>
+              )}
+            </div>
+
+            <p className="image-support-text">
+              We Support PNG, JFIF, JPEG, Or JPG Images.
+            </p>
+
+            <div className="input-group">
+              <label className="input-label">enter your name</label>
+              <input
+                type="text"
+                placeholder="Your Name Here"
+                className="input-field"
+              />
+            </div>
+
+            <div style={{ marginTop: "30px" }}>
+              {" "}
+              {/* Add spacing before button */}
+              <button className="btn-cancel ">Localize Your Release</button>
+            </div>
+
+            <p className="field-tip">
+              Enter the name exactly as you want it to appear on platforms like
+              Spotify, Apple Music, etc.
+            </p>
+
+            <div className="profile-buttons-box">
+              <div className="profile-button">
+                <i className="fab fa-soundcloud"></i>
+                <span>SoundCloud</span>
+                <button
+                  className="link-btn"
+                  onClick={() => openLinkProfileModal("SoundCloud")}
+                >
+                  Link Profile
+                </button>
+              </div>
+
+              <div className="profile-button">
+                <i className="fab fa-spotify"></i>
+                <span>Spotify</span>
+                <button
+                  className="link-btn"
+                  onClick={() => openLinkProfileModal("Spotify")}
+                >
+                  Link Profile
+                </button>
+              </div>
+
+              <div className="profile-button">
+                <i className="fab fa-apple"></i>
+                <span>Apple Music</span>
+                <button
+                  className="link-btn"
+                  onClick={() => openLinkProfileModal("Apple Music")}
+                >
+                  Link Profile
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowArtistModal(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button className="btn-gradient">Create</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* show add artist model */}
+      {showAddArtistModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Add Key Artist</h3>
+            <label className="input-label">
+              Role<span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              name="myDropdown"
+              className="input-field"
+              style={{ width: "100%" }}
+              id="myDropdown"
+              required
+              value={artistDropDownRole}
+              onChange={(e) => {
+                setArtistDropDownRole(e.target.value);
+                setShowSecondDropdown(!!e.target.value); // Show if any value is selected
+              }}
+            >
+              <option value="" disabled>
+                Select Artist
+              </option>
+              <option value="option1">Featuring</option>
+              <option value="option2">Primary Artist</option>
+              <option value="option3">Remixer</option>
+              <option value="option4">With</option>
+            </select>
+            <button
+              type="button"
+              className="btn-gradient"
+              style={{ width: "100%", marginTop: "10px" }}
+              onClick={() => setShowLinkProfileModal(true)} // open your modal
+            >
+              + Create New Artist
+            </button>
+
+            {showSecondDropdown && (
+              <div className="second-dropdown">
+                <label className="input-label">
+                  Artist Name <span style={{ color: "red" }}>*</span>{" "}
+                </label>
+                <select
+                  className="input-field"
+                  style={{ width: "100%" }}
+                  id="DropDownArtistName"
+                  required
+                  value={artistdropDownName}
+                  onChange={(e) => {
+                    setArtistdropDownName(e.target.value);
+                    setthirdDropDown(!!e.target.value); // Show if any value is selected
+                  }}
+                >
+                  <option value="" disabled>
+                    Select Artist
+                  </option>
+                  <option value="a">kavya</option>
+                  <option value="b">venala</option>
+                  <option value="c">isha</option>
+                  <option value="d">krishna</option>
+                </select>
+              </div>
+            )}
+
+            {showthirdDropdown && (
+              <div>
+                <div style={{ marginTop: "30px", marginLeft: "35%" }}>
+                  {" "}
+                  {/* Add spacing before button */}
+                  <button
+                    className="btn-cancel localize-btn"
+                    onClick={() => {
+                      setShowLocalizeModal(true);
+                      setShowAddArtistModal(false);
+                    }}
+                  >
+                    Localize Your Release
+                  </button>
+                </div>
+
+                <p className="field-tip">
+                  Select the services where the artist has previously
+                  distributed and link their artist profiles. If no profile
+                  exists, new profiles will automatically be created for Spotify
+                  and Apple Music upon their first release.
+                </p>
+                <div className="box-i-showdow">
+                  <div className="box-i">
+                    <img src={iIcon} />
+                    <p>
+                      In order for your release to appear on the updated
+                      profile, please redeliver
+                    </p>
+                  </div>
+                </div>
+
+                <div className="profile-buttons-box">
+                  <div className="profile-button">
+                    <i className="fab fa-soundcloud"></i>
+                    <span>SoundCloud</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("SoundCloud")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+
+                  <div className="profile-button">
+                    <i className="fab fa-spotify"></i>
+                    <span>Spotify</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("Spotify")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+
+                  <div className="profile-button">
+                    <i className="fab fa-apple"></i>
+                    <span>Apple Music</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("Apple Music")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <hr className="line" />
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowAddArtistModal(false);
+                  setArtistDropDownRole("");
+                  setArtistdropDownName("");
+                  setShowSecondDropdown(false);
+                  setthirdDropDown(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button className="btn-gradient">Add Artist</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* performer popup */}
+      {showPerformer && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Add Performer</h3>
+            <label className="input-label">
+              Role<span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              name="myDropdown"
+              className="input-field"
+              style={{ width: "100%" }}
+              id="myPerformerDropdown"
+              required
+              value={performerDropDownRole}
+              onChange={(e) => {
+                setperformerDropDownRole(e.target.value);
+                setShowSecondDropdown(!!e.target.value); // Show if any value is selected
+              }}
+            >
+              <option value="" disabled>
+                Select Role
+              </option>
+              <option value="option1">Acccordion</option>
+              <option value="option2">Acoustic Baritone Guitar</option>
+              <option value="option3">Acoustic Bass Guiter</option>
+              <option value="option4">Acoustic Fretless Guiter</option>
+              <option value="option5"> Acoustic Fretless Guiter</option>
+              <option value="option6"> Acoustic Guitar</option>
+              <option value="option7"> Actor</option>
+            </select>
+
+            {showSecondDropdown && (
+              <div className="second-dropdown">
+                <label className="input-label">
+                  Artist Name <span style={{ color: "red" }}>*</span>{" "}
+                </label>
+                <select
+                  className="input-field"
+                  style={{ width: "100%" }}
+                  id="DropDownperformerName"
+                  required
+                  value={artistdropDownName}
+                  onChange={(e) => {
+                    setArtistdropDownName(e.target.value);
+                    setthirdDropDown(!!e.target.value); // Show if any value is selected
+                  }}
+                >
+                  <option value="" disabled>
+                    Select Artist
+                  </option>
+                  <option value="a">kavya</option>
+                  <option value="b">venala</option>
+                  <option value="c">isha</option>
+                  <option value="d">krishna</option>
+                </select>
+              </div>
+            )}
+
+            {showthirdDropdown && (
+              <div>
+                <div style={{ marginTop: "30px", marginLeft: "35%" }}>
+                  {" "}
+                  {/* Add spacing before button */}
+                  <button
+                    className="btn-cancel localize-btn"
+                    onClick={() => {
+                      setShowLocalizeModal(true);
+                      setShowPerformer(false);
+                    }}
+                  >
+                    Localize Your Release
+                  </button>
+                </div>
+
+                <p className="field-tip">
+                  Select the services where the artist has previously
+                  distributed and link their artist profiles. If no profile
+                  exists, new profiles will automatically be created for Spotify
+                  and Apple Music upon their first release.
+                </p>
+                <div className="box-i-showdow">
+                  <div className="box-i">
+                    <img src={iIcon} />
+                    <p>
+                      In order for your release to appear on the updated
+                      profile, please redeliver
+                    </p>
+                  </div>
+                </div>
+
+                <div className="profile-buttons-box">
+                  <div className="profile-button">
+                    <i className="fab fa-soundcloud"></i>
+                    <span>SoundCloud</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("SoundCloud")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+
+                  <div className="profile-button">
+                    <i className="fab fa-spotify"></i>
+                    <span>Spotify</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("Spotify")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+
+                  <div className="profile-button">
+                    <i className="fab fa-apple"></i>
+                    <span>Apple Music</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("Apple Music")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <hr className="line" />
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowPerformer(false),
+                    setArtistDropDownRole(""),
+                    setArtistdropDownName(""),
+                    showSecondDropdown(false),
+                    showthirdDropdown(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button className="btn-gradient">Add Artist</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* producer popup */}
+      {showProducer && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Add Producer & Engineer Credits</h3>
+            <label className="input-label">
+              Role<span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              name="myDropdown"
+              className="input-field"
+              style={{ width: "100%" }}
+              id="myProducerDropdown"
+              required
+              value={producerDropDownRole}
+              onChange={(e) => {
+                setproducerDropDownRole(e.target.value);
+                setShowSecondDropdown(!!e.target.value); // Show if any value is selected
+              }}
+            >
+              <option value="" disabled de>
+                Select Artist
+              </option>
+              <option value="option1">Art Director</option>
+              <option value="option2">Producer</option>
+              <option value="option3">Art Work</option>
+              <option value="option4">Acoustic Fretless Guiter</option>
+              <option value="option5"> Acoustic Fretless Guiter</option>
+              <option value="option6"> Acoustic Guitar</option>
+              <option value="option7"> Actor</option>
+            </select>
+
+            {showSecondDropdown && (
+              <div className="second-dropdown">
+                <label className="input-label">
+                  Artist Name <span style={{ color: "red" }}>*</span>{" "}
+                </label>
+                <select
+                  className="input-field"
+                  style={{ width: "100%" }}
+                  id="DropDownArtistName"
+                  required
+                  value={artistdropDownName}
+                  onChange={(e) => {
+                    setArtistdropDownName(e.target.value);
+                    setthirdDropDown(!!e.target.value); // Show if any value is selected
+                  }}
+                >
+                  <option value="" disabled>
+                    Select Artist
+                  </option>
+                  <option value="a">kavya</option>
+                  <option value="b">venala</option>
+                  <option value="c">isha</option>
+                  <option value="d">krishna</option>
+                  <option> create new </option>
+                </select>
+              </div>
+            )}
+
+            {showthirdDropdown && (
+              <div>
+                <div style={{ marginTop: "30px", marginLeft: "35%" }}>
+                  {" "}
+                  {/* Add spacing before button */}
+                  <button
+                    className="btn-cancel localize-btn"
+                    onClick={() => {
+                      setShowLocalizeModal(true);
+                      setShowProducer(false);
+                    }}
+                  >
+                    Localize Your Release
+                  </button>
+                </div>
+
+                <p className="field-tip">
+                  Select the services where the artist has previously
+                  distributed and link their artist profiles. If no profile
+                  exists, new profiles will automatically be created for Spotify
+                  and Apple Music upon their first release.
+                </p>
+                <div className="box-i-showdow">
+                  <div className="box-i">
+                    <img src={iIcon} />
+                    <p>
+                      In order for your release to appear on the updated
+                      profile, please redeliver
+                    </p>
+                  </div>
+                </div>
+
+                <div className="profile-buttons-box">
+                  <div className="profile-button">
+                    <i className="fab fa-soundcloud"></i>
+                    <span>SoundCloud</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("SoundCloud")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+
+                  <div className="profile-button">
+                    <i className="fab fa-spotify"></i>
+                    <span>Spotify</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("Spotify")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+
+                  <div className="profile-button">
+                    <i className="fab fa-apple"></i>
+                    <span>Apple Music</span>
+                    <button
+                      className="link-btn"
+                      onClick={() => openLinkProfileModal("Apple Music")}
+                    >
+                      Link Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <hr className="line" />
+            <div className="popup-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowProducer(false);
+                  setproducerDropDownRole("");
+                  setShowSecondDropdown(false);
+                  setthirdDropDown(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button className="btn-gradient">Add Artist</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Link Profile Modal Popup */}
+      {showLinkProfileModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <h2>Link your Artist Profile - {selectedProfile}</h2>
+
+            <label>Artist {selectedProfile} ID *</label>
+            <input
+              type="text"
+              placeholder={`Enter your ${selectedProfile} ID`}
+              className="input-field"
+              value={artistProfileId}
+              onChange={(e) => setArtistProfileId(e.target.value)}
+            />
+
+            <p className="helper-text">
+              {selectedProfile === "Spotify" &&
+                "Open your artist page on Spotify and copy only the numeric/ID part of the URL (e.g., 22bE4uQ6baNwSHPVcDxLCe)."}
+              {selectedProfile === "Apple Music" &&
+                "Open your artist page on Apple Music and copy only the ID part of the URL (e.g., 552010757)."}
+              {selectedProfile === "SoundCloud" &&
+                "Enter your SoundCloud username from your profile URL. For example, if your URL is https://soundcloud.com/artistname123, enter only artistname123 (not the full link).\n\nNote: SoundCloud maps each ISRC to a single profile, so only the Main Primary Artist’s profile URL will be sent."}
+            </p>
+
+            <div className="pop-up-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => setShowLinkProfileModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-gradient"
+                onClick={() => setShowLinkProfileModal(false)}
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
+
