@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "../styles/Contributors.css";
 import { FaSoundcloud, FaSpotify, FaMusic } from "react-icons/fa";
+import { FaXmark } from "react-icons/fa6";
 import { FcApproval } from "react-icons/fc";
 import { toast, ToastContainer, Slide } from "react-toastify";
-
 const initialOptions = {
   primaryArtist: ["Kavya", "Venala", "Isha", "Krishna"],
   producer: ["Producer1", "Producer2", "Producer3"],
@@ -84,8 +84,13 @@ const ContributorsSection = () => {
     }));
   };
 
+
+  const hasContributors = Object.values(contributors).some(
+  (list) => list.length > 0
+);
+
   return (
-    <div className="contributors-section section" > 
+    <div className="contributors-section section">
       <h3>Contributors</h3>
 
       <div className="contributors-options-row">
@@ -293,7 +298,12 @@ const ContributorsSection = () => {
       )}
 
       {/* Display Selected Contributors */}
-      <div>
+      {hasContributors && (
+      <div 
+      // style={{border: "1px solid black"}}
+      
+      className="selected-contributors"
+      >
         {Object.keys(contributors).map(
           (cat) =>
             contributors[cat].length > 0 && (
@@ -307,16 +317,21 @@ const ContributorsSection = () => {
                     marginBottom: "10px",
                   }}
                 >
-                  <strong>{cat} :</strong>
+                  <strong>
+                    {/* {cat} : */}
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)} :
+                    </strong>
                   <div className="pill-container">
                     {contributors[cat].map((c) => (
                       <span key={c.name} className="contributor-pill">
-                        {c.name}
+                        {/* {c.name} */}
+                        {c.name.charAt(0).toUpperCase() + c.name.slice(1)}
                         <button
                           onClick={() => removeContributor(cat, c.name)}
                           className="required"
+                          // style={{justifyContent: "center", alignItems: "center"}}
                         >
-                          ×
+                          <FaXmark />
                         </button>
                       </span>
                     ))}
@@ -326,6 +341,7 @@ const ContributorsSection = () => {
             )
         )}
       </div>
+      )}
 
       <ToastContainer position="bottom-center" autoClose={3000} />
     </div>
