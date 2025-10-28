@@ -332,7 +332,7 @@ const TrackDetails = () => {
         <ContributorsSection />
       {/* Lyrics Language */}
       <div className="section-container section">
-        <label className="section-title">Language of Lyrics</label>
+        <label className="section-title">Language of Lyrics <span className="required">*</span></label>
         <div className="radio-group">
           <label>
             <input
@@ -391,7 +391,7 @@ const TrackDetails = () => {
 
       {lyricsLanguageOption === "Select Language" && lyricsLanguage && (
         <div className="section-container section">
-          <label className="section-title">Explicit Content</label>
+          <label className="section-title">Explicit Content <span className="required">*</span></label>
           <div className="radio-group" style={{ flexDirection: "column" }}>
             {["Explicit", "Not Explicit", "Cleaned"].map((label, idx) => (
               <div key={idx} style={{ marginBottom: "10px" }}>

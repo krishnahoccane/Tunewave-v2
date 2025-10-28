@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 
 // css
-import "../styles/UploadTracks.css";
+// import "../styles/UploadTracks.css";
 import "react-toastify/dist/ReactToastify.css";
 
 // assets

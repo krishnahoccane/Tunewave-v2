@@ -8,7 +8,7 @@ import axios from "axios";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import "../styles/CreateRelease.css";
+// import "../styles/CreateRelease.css";
 import "../styles/styled.css";
 
 import ContributorsSection from "../components/ContributorsSection.jsx";

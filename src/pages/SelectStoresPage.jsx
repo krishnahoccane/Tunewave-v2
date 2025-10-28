@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/SelectStoresPage.css";
+
+
+// import "../styles/SelectStoresPage.css";
 
 import youtubeIcon from "../assets/stores/youtube.svg";
 import allStoresIcon from "../assets/stores/allStores.svg";
@@ -11,9 +13,6 @@ import {
   ToastContainer,
   toast,
   Slide,
-  Zoom,
-  Flip,
-  Bounce,
 } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

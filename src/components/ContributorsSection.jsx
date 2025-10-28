@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../styles/Contributors.css";
+import "../styles/s.css";
 import { FaSoundcloud, FaSpotify, FaMusic } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import { FcApproval } from "react-icons/fc";
@@ -84,14 +84,13 @@ const ContributorsSection = () => {
     }));
   };
 
-
   const hasContributors = Object.values(contributors).some(
-  (list) => list.length > 0
-);
+    (list) => list.length > 0
+  );
 
   return (
     <div className="contributors-section section">
-      <h3>Contributors</h3>
+      <h3>Contributors <span className="required">*</span></h3>
 
       <div className="contributors-options-row">
         {["primaryArtist", "producer", "director", "composer", "lyricist"].map(
@@ -108,8 +107,8 @@ const ContributorsSection = () => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="contributors-modal-overlay">
+          <div className="contributors-modal-content">
             <h3>Add {currentCategory}</h3>
 
             {/* Existing Dropdown */}
@@ -131,7 +130,7 @@ const ContributorsSection = () => {
 
             {/* Add New */}
             <button
-              className="btn-gradient"
+              className="btn-gradient" style={{ marginTop: "2vh", marginLeft: "auto"}}
               onClick={() => {
                 setIsNew(true);
                 setSelectedName("");
@@ -205,7 +204,7 @@ const ContributorsSection = () => {
                           </div>
 
                           <button
-                            className={`btn-link-profile ${
+                            className={`contributors-btn-link-profile ${
                               isLinked ? "linked" : ""
                             }`}
                             onClick={() => setPlatformBeingEdited(name)}
@@ -266,7 +265,7 @@ const ContributorsSection = () => {
                               style={{
                                 fontSize: "12px",
                                 fontWeight: 500,
-                                padding: "4px 8px",
+                                padding: "3px 4px",
                                 minWidth: "60px",
                                 // height: "28px",
                               }}
@@ -299,48 +298,48 @@ const ContributorsSection = () => {
 
       {/* Display Selected Contributors */}
       {hasContributors && (
-      <div 
-      // style={{border: "1px solid black"}}
-      
-      className="selected-contributors"
-      >
-        {Object.keys(contributors).map(
-          (cat) =>
-            contributors[cat].length > 0 && (
-              <div key={cat}>
-                <span
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    gap: "10px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <strong>
-                    {/* {cat} : */}
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)} :
+        <div
+          // style={{border: "1px solid black"}}
+
+          className="selected-contributors"
+        >
+          {Object.keys(contributors).map(
+            (cat) =>
+              contributors[cat].length > 0 && (
+                <div key={cat}>
+                  <span
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      gap: "10px",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <strong>
+                      {/* {cat} : */}
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)} :
                     </strong>
-                  <div className="pill-container">
-                    {contributors[cat].map((c) => (
-                      <span key={c.name} className="contributor-pill">
-                        {/* {c.name} */}
-                        {c.name.charAt(0).toUpperCase() + c.name.slice(1)}
-                        <button
-                          onClick={() => removeContributor(cat, c.name)}
-                          className="required"
-                          // style={{justifyContent: "center", alignItems: "center"}}
-                        >
-                          <FaXmark />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </span>
-              </div>
-            )
-        )}
-      </div>
+                    <div className="pill-container">
+                      {contributors[cat].map((c) => (
+                        <span key={c.name} className="contributor-pill">
+                          {/* {c.name} */}
+                          {c.name.charAt(0).toUpperCase() + c.name.slice(1)}
+                          <button
+                            onClick={() => removeContributor(cat, c.name)}
+                            className="required"
+                            // style={{justifyContent: "center", alignItems: "center"}}
+                          >
+                            <FaXmark />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </span>
+                </div>
+              )
+          )}
+        </div>
       )}
 
       <ToastContainer position="bottom-center" autoClose={3000} />

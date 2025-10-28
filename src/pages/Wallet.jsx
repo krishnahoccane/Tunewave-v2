@@ -17,14 +17,14 @@ function Wallet() {
 
   const transactions = [
     {
-      date: "15-09-2025",
+      date: "15/09/2025",
       id: "#123456",
       type: "Withdrawal",
       amount: "$1000",
       status: "Completed",
     },
     {
-      date: "10-09-2025",
+      date: "10/09/2025",
       id: "#123457",
       type: "Earnings",
       amount: "$500",

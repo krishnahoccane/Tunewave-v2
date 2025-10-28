@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/PreviewDistributePage.css";
+// import "../styles/PreviewDistributePage.css";
 import previewImg from "../assets/lsi.jpeg";
 import "../styles/styled.css";
 export default function PreviewDistributePage() {
@@ -170,7 +170,7 @@ export default function PreviewDistributePage() {
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup-content">
-            <h3>Confirm Final Submission</h3>
+            <h4>Confirm Submission</h4>
             <p>
               Are you sure? you want to submit your release for distribution?
             </p>

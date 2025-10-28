@@ -259,7 +259,7 @@ const YTServicesPage = () => {
         </div>
       )}
       <div className="btn-actions">
-        <button className="btn-cancel" onClick={() => navigate("dashboard")}>
+        <button className="btn-cancel" onClick={() => navigate("/dashboard")}>
           Cancel
         </button>
       </div>

@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, Edit2, X, XCircle } from "lucide-react";
-import "../styles/Settings.css";
+// import "../styles/Settings.css";
+// import "../styles/styled.css";
+import {
+  ToastContainer,
+  toast,
+  Slide,
+} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { useNavigate } from "react-router-dom";
 
@@ -54,10 +61,12 @@ const Settings = ({ user, setUser }) => {
     let newErrors = {};
     if (!formData.firstName.trim())
       newErrors.firstName = "Please fill in first name";
+    // toast.dark("Please fill in first name");
     if (!formData.lastName.trim())
       newErrors.lastName = "Please fill in last name";
+    // toast.dark("Please fill in last name");
     if (!formData.email.trim()) newErrors.email = "Please fill in email";
-
+    // toast.dark("Please fill in email");
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -121,21 +130,8 @@ const Settings = ({ user, setUser }) => {
 
   return (
     <div className="pages-layout-container">
-      {/* Header */}
-      {/* <div className="settings-header">
-        <h1 className="settings-title">
-          Welcome, {formData.firstName} {formData.lastName}
-        </h1>
-        <button className="close-btn">
-          <X size={20} />
-        </button>
-      </div> */}
+     
       <h2 className="pages-main-title">Settings</h2>
-      {/* User Info Card */}
-      {/* <div className="user-info-card"> */}
-      {/* <div className="card-header">
-                  <h2>User Info</h2> 
-                </div> */}
 
       <div className="user-profile-section">
         <div className="profile-image-container">
@@ -290,6 +286,13 @@ const Settings = ({ user, setUser }) => {
         </div>
       </div>
       {/* </div> */}
+
+       <ToastContainer
+                position="bottom-center"
+                limit={1}
+                autoClose={3000}
+                hideProgressBar={false}
+              />
     </div>
   );
 };
