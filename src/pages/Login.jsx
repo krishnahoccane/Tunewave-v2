@@ -51,7 +51,7 @@ export default function Login({ onLogin }) {
     setLoading(true);
     setError("");
     setSuccessMessage("");
-    setEmailVerified(true);
+    // setEmailVerified(true);
     try {
       const res = await fetch(
         `https://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
@@ -76,49 +76,49 @@ export default function Login({ onLogin }) {
   // --------------------------
   // Step 2: Login
   // --------------------------
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   if (!emailVerified) return setError("Please verify your email first.");
-  //   setLoading(true);
-  //   setError("");
-
-  //   try {
-  //     const res = await fetch(
-  //       "https://spacestation.tunewave.in/wp-json/jwt-auth/v1/token",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ username: email, password }),
-  //       }
-  //     );
-
-  //     const data = await res.json();
-  //     if (res.ok && data.data?.token) {
-  //       localStorage.setItem("jwtToken", data.data.token);
-  //       localStorage.setItem("isLoggedIn", "true");
-  //       localStorage.setItem(
-  //         "displayName",
-  //         data.data.displayName || data.data.user_nicename || email
-  //       );
-  //       onLogin();
-  //       navigate("/dashboard");
-  //       startAutoRefresh();
-  //     } else setError(data.message || "Login failed.");
-  //   } catch {
-  //     setError("Network error.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    localStorage.setItem("jwtToken", "dummy-token");
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("displayName", displayName);
-    onLogin();
-    navigate("/dashboard");
+    if (!emailVerified) return setError("Please verify your email first.");
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        "https://spacestation.tunewave.in/wp-json/jwt-auth/v1/token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: email, password }),
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok && data.data?.token) {
+        localStorage.setItem("jwtToken", data.data.token);
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem(
+          "displayName",
+          data.data.displayName || data.data.user_nicename || email
+        );
+        onLogin();
+        navigate("/dashboard");
+        startAutoRefresh();
+      } else setError(data.message || "Login failed.");
+    } catch {
+      setError("Network error.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // const handleLogin = (e) => {
+  //   e.preventDefault();
+  //   localStorage.setItem("jwtToken", "dummy-token");
+  //   localStorage.setItem("isLoggedIn", "true");
+  //   localStorage.setItem("displayName", displayName);
+  //   onLogin();
+  //   navigate("/dashboard");
+  // };
   // --------------------------
   // Step 2.1: SNot you
   // --------------------------
