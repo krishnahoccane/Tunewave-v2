@@ -1036,18 +1036,20 @@ label {
 
 /* Flex container for preview + upload side by side */
 .upload-layout {
-  display: flex; /* enables side-by-side layout */
-  flex-direction: row; /* row ensures side by side */
-  justify-content: center; /* center horizontally */
-  align-items: flex-start; /* align top of both boxes */
-  gap: 2rem; /* space between preview and upload */
-  width: 100%;
-  max-width: 1200px; /* max row width */
+  display: flex; 
+  flex-direction: row; 
+  justify-content: center;
+  align-items: flex-start; 
+  gap: 2rem; 
+  /* width: 100vw;
+  max-width: 1200px;   */
+  flex: 0 0 35%; 
+
 }
 
 /* LEFT — Preview Section */
 .preview-section {
-  flex: 0 0 35%; /* take 45% of row */
+  flex: 0 0 35%; 
   background: #f9fbff;
   border: 1px solid #dce3f0;
   border-radius: 12px;
