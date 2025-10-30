@@ -215,6 +215,28 @@ function DataTable({
     return buttons;
   };
 
+
+
+
+  // add near other useState hooks
+const [dropdownPosition, setDropdownPosition] = useState(null);
+
+// new handler for dots click
+const handleDotsClick = (e, id) => {
+  e.stopPropagation();
+  const rect = e.currentTarget.getBoundingClientRect();
+  const top = rect.bottom + window.scrollY; // below the button
+  const left = rect.right + window.scrollX -  (/* width of dropdown if you want align right */ 140);
+  // toggle
+  if (openRow === id) {
+    setOpenRow(null);
+    setDropdownPosition(null);
+  } else {
+    setOpenRow(id);
+    setDropdownPosition({ top, left });
+  }
+};
+
   return (
     <div className="data-table-container">
       <div className="table-wrapper">
@@ -250,7 +272,7 @@ function DataTable({
                   <td key={col.key}>{col.render ? col.render(item) : item[col.key]}</td>
                 ))}
                 <td className="row-actions">
-                  <div className="action-menu" onMouseEnter={(e) => e.stopPropagation()}>
+                  {/* <div className="action-menu" onMouseEnter={(e) => e.stopPropagation()}>
                     <button className="dots-btn" onClick={(e) => { e.stopPropagation(); setOpenRow(openRow === item.id ? null : item.id); }}>⋮</button>
                     {openRow === item.id && (
                       <div className="dropdown" onMouseEnter={(e) => e.stopPropagation()}>
@@ -258,7 +280,11 @@ function DataTable({
                         <button className="dropdown-download" onClick={(e) => { e.stopPropagation(); handleRowDownload(item, "xls"); setOpenRow(null); }}>Download XLS</button>
                       </div>
                     )}
-                  </div>
+                  </div> */}
+                  <div className="action-menu" onMouseEnter={(e) => e.stopPropagation()}>
+  <button className="dots-btn" onClick={(e) => handleDotsClick(e, item.id)}>⋮</button>
+</div>
+
                 </td>
               </tr>
             ))}
@@ -274,6 +300,43 @@ function DataTable({
           <div className="pagination-buttons">{renderPaginationButtons()}</div>
         </div>
       )}
+
+      {openRow && dropdownPosition && (
+  <div
+    className="dropdown"
+    style={{
+      position: "fixed",            // important: escape scroll clipping
+      top: dropdownPosition.top + "px",
+      left: Math.max(8, dropdownPosition.left) + "px",
+      zIndex: 99999,
+    }}
+    onClick={(e) => e.stopPropagation()}
+  >
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        const selected = tableData.find((r) => r.id === openRow);
+        handleRowDownload(selected, "csv");
+        setOpenRow(null);
+        setDropdownPosition(null);
+      }}
+    >
+      Download CSV
+    </button>
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        const selected = tableData.find((r) => r.id === openRow);
+        handleRowDownload(selected, "xls");
+        setOpenRow(null);
+        setDropdownPosition(null);
+      }}
+    >
+      Download XLS
+    </button>
+  </div>
+)}
+
     </div>
   );
 }

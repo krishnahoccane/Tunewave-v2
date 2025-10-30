@@ -83,6 +83,8 @@ function CatalogPage() {
         return publishersData;
       case "producers":
         return producersData;
+      case "videos":
+        return tracksData;
       default:
         return [];
     }
@@ -193,6 +195,15 @@ function CatalogPage() {
       case "labels":
         return (
           <LabelsTab
+            searchTerm={searchTerm}
+            showMode={showMode}
+            setTableData={setLabelsData}
+            onSelectionChange={setSelectedRows}
+          />
+        );
+        case "videos":
+        return (
+          <TracksTab
             searchTerm={searchTerm}
             showMode={showMode}
             setTableData={setLabelsData}
