@@ -190,11 +190,11 @@ import PreviewDistributePage from "./pages/PreviewDistributePage.jsx";
 import TrackDetails from "./pages/TrackDetails.jsx";
 import TicketRaisePage from "./pages/TicketRaisePage.jsx";
 import SelectStoresPage from "./pages/SelectStoresPage.jsx";
-
+import { useRole } from "./context/RoleContext";
 // change name later
 import "./styles/styled.css";
+import EnterpriseCatalogPage from "./pages/EnterpriseCatalogPage.jsx";
 
-// ✅ Wrapper to use useLocation inside Router
 function AppWrapper() {
   return (
     <Router>
@@ -204,6 +204,7 @@ function AppWrapper() {
 }
 
 function App() {
+  const { role } = useRole();
   const location = useLocation(); // ✅ React Router location
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
@@ -240,7 +241,6 @@ function App() {
 
   return (
     <>
-      {/* ✅ Navbar now updates instantly on route or logout */}
       {isLoggedIn && location.pathname !== "/login" && (
         <Navbar onLogout={handleLogout} />
       )}
@@ -331,6 +331,13 @@ function App() {
         <Route
           path="/yt-services"
           element={isLoggedIn ? <YTServicesPage /> : <Navigate to="/login" />}
+        />
+
+        <Route
+          path="/enterprise-catalog/"
+          element={
+            isLoggedIn ? <EnterpriseCatalogPage /> : <Navigate to="/login" />
+          }
         />
       </Routes>
     </>

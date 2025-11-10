@@ -148,6 +148,13 @@ function DataTable({
     }
   };
 
+  const clearAllSelection = () => {
+    setSelectedItems(new Set());
+    if (onSelectionChange) {
+      onSelectionChange([]);
+    }
+  };
+
   const escapeCSV = (val) => {
     if (val === null || val === undefined) return '""';
     return `"${String(val).replace(/"/g, '""')}"`;
@@ -245,7 +252,23 @@ const handleDotsClick = (e, id) => {
             <tr>
               {showCheckboxes && (
                 <th>
-                  <input type="checkbox" ref={topCheckboxRef} checked={isAllSelected} onChange={handleSelectToggle} />
+                  {selectedItems.size > 0 && !isAllSelected ? (
+                    <button
+                      className="header-clear-select"
+                      title="Clear selection"
+                      aria-label="Clear selection"
+                      onClick={clearAllSelection}
+                    >
+                      ×
+                    </button>
+                  ) : (
+                    <input
+                      type="checkbox"
+                      ref={topCheckboxRef}
+                      checked={isAllSelected}
+                      onChange={handleSelectToggle}
+                    />
+                  )}
                 </th>
               )}
               {tableColumns.map((column) => (
@@ -268,9 +291,45 @@ const handleDotsClick = (e, id) => {
                     <input type="checkbox" checked={selectedItems.has(item.id)}  />
                   </td>
                 )}
-                {tableColumns.map((col) => (
-                  <td key={col.key}>{col.render ? col.render(item) : item[col.key]}</td>
-                ))}
+                {tableColumns.map((col) => {
+                  const value = col.render ? col.render(item) : item[col.key];
+                  const rawText =
+                    typeof value === "string"
+                      ? value
+                      : typeof item[col.key] === "string"
+                      ? item[col.key]
+                      : "";
+                  const keyLower = String(col.key || "").toLowerCase();
+                  const textLower = String(rawText || "").toLowerCase();
+
+                  const looksLikeStatus =
+                    keyLower.includes("status") ||
+                    ["active", "inactive", "completed", "complete", "success", "failed", "rejected", "pending", "in-progress", "in progress"].includes(
+                      textLower
+                    );
+
+                  const getStatusClass = (t) => {
+                    const s = String(t || "").toLowerCase();
+                    if (["active", "completed", "complete", "success", "approved"].includes(s)) return "status-green";
+                    if (["inactive", "failed", "rejected", "error"].includes(s)) return "status-red";
+                    if (["pending", "in-progress", "in progress", "processing"].includes(s)) return "status-yellow";
+                    if (["reverted"].includes(s)) return "status-orange";
+                    if (["drafts", "draft"].includes(s)) return "status-blue";
+                    if (["metadata issue", "artwork issue", "audio issue"].includes(s)) return "status-purple";
+                    if (["copyright conflict"].includes(s)) return "status-orange";
+                    return "status-gray";
+                  };
+
+                  return (
+                    <td key={col.key}>
+                      {looksLikeStatus && rawText ? (
+                        <span className={`status-pill ${getStatusClass(rawText)}`}>{rawText}</span>
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  );
+                })}
                 <td className="row-actions">
                   {/* <div className="action-menu" onMouseEnter={(e) => e.stopPropagation()}>
                     <button className="dots-btn" onClick={(e) => { e.stopPropagation(); setOpenRow(openRow === item.id ? null : item.id); }}>⋮</button>

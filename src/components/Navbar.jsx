@@ -1,10 +1,10 @@
+
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";  // ✅ useNavigate added
+import { Link, useLocation, useNavigate } from "react-router-dom"; // ✅ useNavigate added
 import "../styles/Navbar.css";
 import Tunewavelogo from "../assets/Tunewave Media Logo Final-01 1.png";
-import TunewaveLogoutImage from "../assets/tunewave.in.png";
 import { MdAccountBalanceWallet } from "react-icons/md";
-import { FaHandHoldingUsd, FaYoutube } from "react-icons/fa";
+import { FaYoutube } from "react-icons/fa";
 import NavProfile from "../assets/NavProfile.png";
 import SearchIcon from "../assets/Vector.png";
 import DownArrow from "../assets/DownArrow.png";
@@ -21,8 +21,15 @@ import supportIcon from "../assets/support.png";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { useContext } from "react";
+// import { RoleContext } from "../context/RoleContext";
+import { useRole } from "../context/RoleContext";
 const Navbar = () => {
+  // Temporarily hardcode role to "normal" for testing conditional render
+  // const role = "normal";
+  // const { role, setRole } = useContext(RoleContext);
+  const { role } = useRole();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -30,15 +37,16 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
 
+  ////////////////////////////////////////    Role           /////////////////////////////////////////////////////////////
+  // Role-based navbar
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
   const location = useLocation();
   const isActive = (path) => location.pathname.startsWith(path);
   const navigate = useNavigate();
 
-
-  const [showThemeModal, setShowThemeModal] = useState(false);
-const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-
-  // ✅ Logout handler
+  //  Logout handler
   const handleLogout = () => {
     localStorage.removeItem("jwtToken");
     localStorage.removeItem("isLoggedIn");
@@ -48,57 +56,55 @@ const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
     navigate("/login");
   };
 
-
-  // Search Box in navbar 
+  // Search Box in navbar
   const handleSearch = (e) => {
-  if (e.key === "Enter") {
-    const query = e.target.value.toLowerCase().trim();
+    if (e.key === "Enter") {
+      const query = e.target.value.toLowerCase().trim();
 
-    // Map search terms to routes
-    const searchRoutes = {
-      dashboard: "/dashboard",
-      catalog: "/catalog",
-      releases: "/catalog?tab=releases",
-      tracks: "/catalog?tab=tracks",
-      artists: "/catalog?tab=artists",
-      analytics: "/analytics",
-      wallet: "/wallet",
-      tools: "/tools",
-      "yt services": "/yt-services",
-      "support ticket": "/ticket-raise",
-      settings: "/settings",
-    };
+      // Map search terms to routes
+      const searchRoutes = {
+        dashboard: "/dashboard",
+        catalog: "/catalog",
+        releases: "/catalog?tab=releases",
+        tracks: "/catalog?tab=tracks",
+        artists: "/catalog?tab=artists",
+        analytics: "/analytics",
+        wallet: "/wallet",
+        tools: "/tools",
+        "yt services": "/yt-services",
+        "support ticket": "/ticket-raise",
+        settings: "/settings",
+      };
 
-    if (searchRoutes[query]) {
-      navigate(searchRoutes[query]);
-      e.target.value = ""; // clear search box
-      setMenuOpen(false);
-      setCatalogOpen(false);
-      setWalletOpen(false);
-      setToolsOpen(false);
-      setProfileOpen(false);
-    } else {
-      toast.error("No page found for this search term!");
-    }
-  }
-};
-React.useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (!e.target.closest(".navbar")) {
-      setCatalogOpen(false);
-      setWalletOpen(false);
-      setToolsOpen(false);
-      setProfileOpen(false);
+      if (searchRoutes[query]) {
+        navigate(searchRoutes[query]);
+        e.target.value = ""; // clear search box
+        setMenuOpen(false);
+        setCatalogOpen(false);
+        setWalletOpen(false);
+        setToolsOpen(false);
+        setProfileOpen(false);
+      } else {
+        toast.error("No page found for this search term!");
+      }
     }
   };
 
-  document.addEventListener("click", handleClickOutside);
-  return () => document.removeEventListener("click", handleClickOutside);
-}, []);
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".navbar")) {
+        setCatalogOpen(false);
+        setWalletOpen(false);
+        setToolsOpen(false);
+        setProfileOpen(false);
+      }
+    };
 
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
-
-const currWallet = 100.01;
+  const currWallet = 100.01;
 
   return (
     <div className="navbar">
@@ -115,13 +121,12 @@ const currWallet = 100.01;
       {/* Search */}
       <div className="search-box">
         <img src={SearchIcon} alt="search" className="search-icon" />
-                {/* <input type="text" className="input-box" placeholder="Search for..." /> */}
-                <input
-                    type="text"
-                    className="input-box"
-                    placeholder="Search for..."
-                    onKeyDown={handleSearch}
-                />
+        <input
+          type="text"
+          className="input-box"
+          placeholder="Search for..."
+          onKeyDown={handleSearch}
+        />
       </div>
 
       {/* Hamburger menu */}
@@ -133,265 +138,332 @@ const currWallet = 100.01;
 
       {/* Main Menu */}
       <ul className={`menu ${menuOpen ? "active" : ""}`}>
-        {/* Dashboard */}
-        <li className="nav-item">
-          <Link
-            to="/dashboard"
-            className={isActive("/dashboard") ? "active" : ""}
-            onClick={() => {
-              setMenuOpen(false);
-              setCatalogOpen(false);
-            }}
-          >
-            Dashboard
-          </Link>
-        </li>
+        {role === "normal" ? (
+          <>
+            {/* Dashboard */}
+            <li className="nav-item">
+              <Link
+                to="/dashboard"
+                className={isActive("/dashboard") ? "active" : ""}
+                onClick={() => {
+                  setMenuOpen(false);
+                  setCatalogOpen(false);
+                }}
+              >
+                Dashboard
+              </Link>
+            </li>
 
-        {/* Catalog Dropdown */}
-        <li className="dropdown-parent nav-item">
-          <button
-            className={`dropdown-toggle ${
-              isActive("/catalog") ? "active" : ""
-            }`}
-            onClick={(e) => {
-                    e.stopPropagation();
-                    setCatalogOpen(!catalogOpen);
-                    setWalletOpen(false);
-                    setToolsOpen(false);
-                    setProfileOpen(false);
-                  }}
+            {/* Catalog Dropdown */}
+            <li className="dropdown-parent nav-item">
+              <button
+                className={`dropdown-toggle ${
+                  isActive("/catalog") ? "active" : ""
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCatalogOpen(!catalogOpen);
+                  setWalletOpen(false);
+                  setToolsOpen(false);
+                  setProfileOpen(false);
+                }}
+              >
+                Catalog
+                <img
+                  src={catalogOpen ? UpArrow : DownArrow}
+                  alt="arrow"
+                  className="arrow-icon"
+                />
+              </button>
+              {catalogOpen && (
+                <ul className="dropdown-menu">
+                  <li>
+                    <Link
+                      to="/catalog?tab=releases"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setCatalogOpen(false);
+                      }}
+                      className="catalog-link"
+                      onMouseEnter={() => setHovered("releases")}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      <img
+                        src={
+                          hovered === "releases" ||
+                          location.search.includes("releases")
+                            ? ReleasesIconFill
+                            : ReleasesIcon
+                        }
+                        alt="releases"
+                        className="menu-icon"
+                      />
+                      Releases
+                    </Link>
+                  </li>
 
-          >
-            Catalog
-            <img
-              src={catalogOpen ? UpArrow : DownArrow}
-              alt="arrow"
-              className="arrow-icon"
-            />
-          </button>
-          {catalogOpen && (
-            <ul className="dropdown-menu">
-              <li>
-                <Link
-                  to="/catalog?tab=releases"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setCatalogOpen(false);
-                  }}
-                  className="catalog-link"
-                  onMouseEnter={() => setHovered("releases")}
-                  onMouseLeave={() => setHovered(null)}
-                >
-                  <img
-                    src={
-                      hovered === "releases" ||
-                      location.search.includes("releases")
-                        ? ReleasesIconFill
-                        : ReleasesIcon
-                    }
-                    alt="releases"
-                    className="menu-icon"
-                  />
-                  Releases
-                </Link>
-              </li>
+                  <li>
+                    <Link
+                      to="/catalog?tab=tracks"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setCatalogOpen(false);
+                      }}
+                      className="catalog-link"
+                      onMouseEnter={() => setHovered("tracks")}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      <img
+                        src={
+                          hovered === "tracks" ||
+                          location.search.includes("tracks")
+                            ? TracksIconFill
+                            : TracksIcon
+                        }
+                        alt="tracks"
+                        className="menu-icon"
+                      />
+                      Tracks
+                    </Link>
+                  </li>
 
-              <li>
-                <Link
-                  to="/catalog?tab=tracks"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setCatalogOpen(false);
-                  }}
-                  className="catalog-link"
-                  onMouseEnter={() => setHovered("tracks")}
-                  onMouseLeave={() => setHovered(null)}
-                >
-                  <img
-                    src={
-                      hovered === "tracks" || location.search.includes("tracks")
-                        ? TracksIconFill
-                        : TracksIcon
-                    }
-                    alt="tracks"
-                    className="menu-icon"
-                  />
-                  Tracks
-                </Link>
-              </li>
+                  <li>
+                    <Link
+                      to="/catalog?tab=artists"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setCatalogOpen(false);
+                      }}
+                      className="catalog-link"
+                      onMouseEnter={() => setHovered("artists")}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      <img
+                        src={
+                          hovered === "artists" ||
+                          location.search.includes("artists")
+                            ? ArtistsIconFill
+                            : ArtistsIcon
+                        }
+                        alt="artists"
+                        className="menu-icon"
+                      />
+                      Artists
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
 
-              <li>
-                <Link
-                  to="/catalog?tab=artists"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setCatalogOpen(false);
-                  }}
-                  className="catalog-link"
-                  onMouseEnter={() => setHovered("artists")}
-                  onMouseLeave={() => setHovered(null)}
-                >
-                  <img
-                    src={
-                      hovered === "artists" ||
-                      location.search.includes("artists")
-                        ? ArtistsIconFill
-                        : ArtistsIcon
-                    }
-                    alt="artists"
-                    className="menu-icon"
-                  />
-                  Artists
-                </Link>
-              </li>
-            </ul>
-          )}
-        </li>
+            {/* Analytics */}
+            <li className="nav-item">
+              <Link
+                to="/analytics"
+                className={isActive("/analytics") ? "active" : ""}
+                onClick={() => setMenuOpen(false)}
+              >
+                Analytics
+              </Link>
+            </li>
 
-        {/* Analytics */}
-        <li className="nav-item">
-          <Link
-            to="/analytics"
-            className={isActive("/analytics") ? "active" : ""}
-            onClick={() => setMenuOpen(false)}
-          >
-            Analytics
-          </Link>
-        </li>
-
-        
-
-        {/* Tools Dropdown */}
-        <li className="dropdown-parent nav-item">
-          <button
-            className={`dropdown-toggle ${isActive("/tools") ? "active" : ""}`}
-            onClick={(e) => {
+            {/* Tools Dropdown */}
+            <li className="dropdown-parent nav-item">
+              <button
+                className={`dropdown-toggle ${
+                  isActive("/tools") ? "active" : ""
+                }`}
+                onClick={(e) => {
                   e.stopPropagation();
                   setToolsOpen(!toolsOpen);
                   setCatalogOpen(false);
                   setWalletOpen(false);
                   setProfileOpen(false);
                 }}
+              >
+                Tools
+                <img
+                  src={toolsOpen ? UpArrow : DownArrow}
+                  alt="arrow"
+                  className="arrow-icon"
+                />
+              </button>
+              {toolsOpen && (
+                <ul className="dropdown-menu">
+                  <li>
+                    <Link
+                      to="/yt-services"
+                      className="nav-link flex items-center gap-2"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setToolsOpen(false);
+                      }}
+                    >
+                      <FaYoutube style={{ color: "red", fontSize: "20px" }} />
+                      YT Services
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/ticket-raise"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        setMenuOpen(false);
+                        setToolsOpen(false);
+                      }}
+                    >
+                      <img src={supportIcon} alt="" />
+                      Support Ticket
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
 
-          >
-            Tools
-            <img
-              src={toolsOpen ? UpArrow : DownArrow}
-              alt="arrow"
-              className="arrow-icon"
-            />
-          </button>
-          {toolsOpen && (
-            <ul className="dropdown-menu">
-              <li>
-                <Link
-                  to="/yt-services"
-                  className="nav-link flex items-center gap-2"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setToolsOpen(false);
-                  }}
-                >
-                  <FaYoutube style={{ color: "red", fontSize: "20px" }} />
-                  YT Services
-                </Link>
-              </li>
-              <li>
-                <Link to="/ticket-raise" onClick={() => {setProfileOpen(false); setMenuOpen(false);
-                    setToolsOpen(false);
-                    }}> <img src={supportIcon} alt="" />
-                  Support Ticket
-                </Link>
-              </li>
-            </ul>
-          )}
-        </li>
+            {/* Wallet */}
+            <li className="dropdown-parent nav-item menu">
+              <Link
+                to="/wallet"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCatalogOpen(false);
+                  setToolsOpen(false);
+                  setProfileOpen(false);
+                }}
+              >
+                <MdAccountBalanceWallet className="menu-icon" /> ${currWallet}
+              </Link>
+            </li>
+          </>
+        ) : (
+          <>
+            {/* ---- ENTERPRISE MENU ---- */}
+            <li className="nav-item">
+              <Link
+                to="/dashboard"
+                className={isActive("/dashboard") ? "active" : ""}
+                onClick={() => {
+                  setMenuOpen(false);
+                  setCatalogOpen(false);
+                }}
+              >
+                Dashboard
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/enterprise-catalog?tab=enterprise"
+                onClick={() => setMenuOpen(false)}
+              >
+                Enterprises
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/enterprise-catalog?tab=qc"
+                onClick={() => setMenuOpen(false)}
+              >
+                QC
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/enterprise-catalog?tab=billing"
+                onClick={() => setMenuOpen(false)}
+              >
+                Billing
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link to="/analytics" onClick={() => setMenuOpen(false)}>
+                Analytics
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/enterprise-catalog?tab=tickets"
+                onClick={() => setMenuOpen(false)}
+              >
+                Tickets
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/enterprise-catalog?tab=users"
+                onClick={() => setMenuOpen(false)}
+              >
+                Users
+              </Link>
+            </li>
 
+            {/* System Config Dropdown */}
+            <li className="dropdown-parent nav-item">
+              <button
+                className="dropdown-toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setToolsOpen(!toolsOpen);
+                }}
+              >
+                Syst Config
+                <img
+                  src={toolsOpen ? UpArrow : DownArrow}
+                  alt="arrow"
+                  className="arrow-icon"
+                />
+              </button>
 
-        {/* Wallet */}
-        <li className="dropdown-parent nav-item menu">
-          <Link
-            to="/wallet"
-           onClick={(e) => {
-                      e.stopPropagation();
-                      // setWalletOpen(!walletOpen);
-                      setCatalogOpen(false);
-                      setToolsOpen(false);
-                      setProfileOpen(false);
-                    }}
-
-          >
-            <MdAccountBalanceWallet className="menu-icon" /> ${currWallet}
-          </Link>
-          {/* {walletOpen && (
-            <ul className="dropdown-menu">
-              <li>
-                <Link
-                  to="/wallet/withdraw"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setWalletOpen(false);
-                  }}
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <FaHandHoldingUsd className="menu-icon" /> Withdraw
-                </Link>
-              </li>
-            </ul>
-          )} */}
-        </li>
+              {toolsOpen && (
+                <ul className="dropdown-menu">
+                  <li>
+                    <Link
+                      to="/enterprise-catalog?tab=system-config/dsp"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setToolsOpen(false);
+                      }}
+                    >
+                      DSP
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
+          </>
+        )}
       </ul>
 
-      
-
       {/* Profile Dropdown */}
-<div
-  className="profile-section"
-  onClick={(e) => {
+      <div
+        className="profile-section"
+        onClick={(e) => {
           e.stopPropagation();
           setProfileOpen(!profileOpen);
           setCatalogOpen(false);
           setWalletOpen(false);
           setToolsOpen(false);
         }}
-
->
-  <img src={NavProfile} alt="profile" className="profile-icon" />
-  {profileOpen && (
-    <ul className="profile-menu">
- 
-
-
-      <li>
-        <Link to="/settings" onClick={() => setProfileOpen(false)}>
-          Settings
-        </Link>
-      </li>
-
-  
-        {/* ✅ Updated Logout */}
-        <li
-          onClick={() =>handleLogout()}
-          style={{
-          //   display: "flex",
-          //   alignItems: "center",
-          //   gap: "5px",
-          //   background: "none",
-          //   border: "none",
-            cursor: "pointer",
-            color: "red",
-          //   width: "100%",
-          //   textAlign: "left",
-          //   padding: "8px 12px",
-          }}
-        >
-          Logout
-      
-      </li>
-    </ul>
-  )}
-</div>
-
+      >
+        <img src={NavProfile} alt="profile" className="profile-icon" />
+        {profileOpen && (
+          <ul className="profile-menu">
+            <li>
+              <Link to="/settings" onClick={() => setProfileOpen(false)}>
+                Settings
+              </Link>
+            </li>
+            {/* ✅ Updated Logout */}
+            <li
+              onClick={() => handleLogout()}
+              style={{
+                cursor: "pointer",
+                color: "red",
+              }}
+            >
+              Logout
+            </li>
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

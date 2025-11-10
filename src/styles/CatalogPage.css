@@ -39,6 +39,23 @@
   color: rgba(18, 120, 187, 1);
 }
 
+/* Prevent search box shifting when title length changes */
+.catalog-header .catalog-title {
+  flex: 0 0 220px; /* reserve fixed space for varying titles */
+}
+
+/* Make search box fixed width and not flex with free space */
+.catalog-header .search-box {
+  flex: 1 1 auto; /* allow it to grow/shrink within center */
+  max-width: 520px; /* cap width so it stays neat */
+  margin: 0 auto; /* center within available middle space */
+}
+
+/* Keep icons pinned to the right */
+.catalog-header .catalog-icons {
+  margin-left: auto;
+}
+
 /* Search Bar */
 .catalog-search {
   flex: 1;
@@ -96,7 +113,7 @@
 }
 
 .catalog-sidebar {
-  width: 332px;
+  width: clamp(260px, 22vw, 332px);
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -109,6 +126,9 @@
   bottom: 40px;
   overflow-y: auto;
   z-index: 50;
+  max-width: calc(100vw - 80px); /* keep within viewport even when devtools open */
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* background */
@@ -117,7 +137,7 @@
 }
 .catalog-content {
   position: fixed;
-  left: 412px; /* 332px sidebar + 40px gap + 40px padding */
+  left: calc(40px + clamp(260px, 22vw, 332px) + 40px); /* sidebar + gaps */
   right: 40px;
   top: 180px; /* was 160px → keep in sync with sidebar */
   bottom: 40px;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff, Edit2, X, XCircle } from "lucide-react";
+import { Eye, EyeOff, Edit2 } from "lucide-react";
 // import "../styles/Settings.css";
 // import "../styles/styled.css";
 import {

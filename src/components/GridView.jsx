@@ -1,7 +1,7 @@
 
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import "../styles/GridView.css";
+// import "../styles/GridView.css";
 
 function renderItemDetails(item, type) {
   switch (type) {

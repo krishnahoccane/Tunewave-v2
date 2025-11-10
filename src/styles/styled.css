@@ -1831,3 +1831,92 @@ label {
 
 
 
+.enterprise-sidebar {
+  width: 240px;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  padding: 1rem;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #334155;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  margin-bottom: 6px;
+}
+
+.sidebar-label {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+  color: #475569;
+}
+
+.sidebar-label:hover {
+  background: #e2e8f0;
+}
+
+.sidebar-label.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.submenu {
+  list-style: none;
+  margin: 6px 0 0 12px;
+  padding-left: 8px;
+  border-left: 2px solid #e2e8f0;
+}
+
+.submenu-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.submenu-item:hover {
+  background: #e2e8f0;
+}
+
+.submenu-item.active {
+  background: #3b82f6;
+  color: white;
+  font-weight: 500;
+}
+.enterprise-dashboard {
+  display: flex;
+  height: 100vh;
+  background: #fff;
+}
+
+.enterprise-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.content-box {
+  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f9fafb;
+  font-size: 1.1rem;
+  color: #334155;
+}

@@ -54,6 +54,7 @@
   z-index: 4;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
   width: 40px;
+  border-right: 1px solid #e5e7eb; /* ensure visible divider */
 }
 
 /* Sticky Second Column (Title) */
@@ -82,7 +83,7 @@
 }
 
 .data-table tbody tr:hover td {
-  background-color: rgba(95, 149, 186, 0.15);
+  /* background-color: rgba(95, 149, 186, 0.15); */
   cursor: pointer;
   transition: background-color 0.2s ease;
 }

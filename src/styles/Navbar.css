@@ -67,7 +67,7 @@
   list-style: none;
   display: flex;
   gap: 20px;
-  width: 555px;
+  /* width: 555px; */
   justify-content: space-between;
 }
 

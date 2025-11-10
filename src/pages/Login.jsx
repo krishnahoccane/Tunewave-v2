@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
-import lsiImage from "../assets/lsi.jpeg"; // import the image at the top
+import lsiImage from "../assets/lsi.jpeg";
 import axios from "axios";
 import thunderbolt from "../assets/thunderbolt.png";
+import { useRole } from "../context/RoleContext";
+
+
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -30,7 +33,7 @@ export default function Login({ onLogin }) {
   const [refreshIntervalId, setRefreshIntervalId] = useState(null);
 
   const [displayName, setDisplayName] = useState("");
-
+const { setRole } = useRole(); 
   // Dynamic Image
   const [cardImage, setCardImage] = useState(lsiImage); // default fallback
 
@@ -111,14 +114,87 @@ export default function Login({ onLogin }) {
   //   }
   // };
 
-  const handleLogin = (e) => {
+  // const handleLogin = (e) => {
+  //   e.preventDefault();
+  //   localStorage.setItem("jwtToken", "dummy-token");
+  //   localStorage.setItem("isLoggedIn", "true");
+  //   localStorage.setItem("displayName", displayName);
+  //   // Set role from user info (for integration, fetch from API)
+  //   localStorage.setItem("role", "normal"); 
+  //   const userRole = res.data.role; 
+  //     setRole(userRole);
+  //   onLogin();
+  //   navigate("/dashboard");
+  // };
+// const res = {"user":"s", "userRole":"normal"};
+//   const handleLogin = async (e) => {
+//     e.preventDefault();
+//    localStorage.setItem("jwtToken", "dummy-token");
+//     localStorage.setItem("isLoggedIn", "true");
+//     localStorage.setItem("displayName", displayName);
+
+//       const userRole = res.data.role; // "normal" or "enterprise"
+//       setRole(userRole); // set globally
+
+//       // Save to localStorage (optional)
+//       localStorage.setItem("role", userRole);
+//   onLogin();
+//       // Redirect
+//       navigate("/dashboard");
+//     // } catch (err) {
+//     //   alert("Login failed");
+//     // }
+  // };
+
+  //  const handleLogin = async (e) => {
+  //   e.preventDefault();
+
+  //   // Simulating login response
+  //   const res = { user: "s", userRole: "normal" }; 
+
+  //   try {
+  //     localStorage.setItem("jwtToken", "dummy-token");
+  //     localStorage.setItem("isLoggedIn", "true");
+  //     localStorage.setItem("displayName", displayName);
+
+  //     //  Correctly access role and set in context + localStorage
+  //     const userRole = res.userRole; // "normal" or "enterprise"
+  //     setRole(userRole);
+  //     localStorage.setItem("role", userRole);
+
+  //     // Proceed after login
+  //     onLogin();
+  //     navigate("/dashboard");
+  //   } catch (err) {
+  //     console.error("Login error:", err);
+  //     alert("Login failed");
+  //   }
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    localStorage.setItem("jwtToken", "dummy-token");
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("displayName", displayName);
-    onLogin();
-    navigate("/dashboard");
+
+    // Simulate API login (you can replace with actual fetch/axios later)
+    // const res = { user: "sid", userRole: "normal" }; 
+    const res = { user: "sid", userRole: "enterprise" }; // or "enterprise"
+    try {
+      localStorage.setItem("jwtToken", "dummy-token");
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("displayName", displayName);
+
+      //  Save role globally and persist
+      const userRole = res.userRole;
+      setRole(userRole);
+      localStorage.setItem("role", userRole);
+
+      // Continue flow
+      onLogin();
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Login failed");
+    }
   };
+
   // --------------------------
   // Step 2.1: SNot you
   // --------------------------
@@ -256,8 +332,7 @@ export default function Login({ onLogin }) {
 
       if (data.success) {
         setSuccessMessage(
-          data.message ||
-            "✅ Password changed successfully! You can now log in."
+          data.message || " Password changed successfully! You can now log in."
         );
         setForgotStage("none");
         setOtpCode("");
@@ -368,6 +443,7 @@ export default function Login({ onLogin }) {
 
   // UI Rendering
   // --------------------------
+
   return (
     <div className="connected-container">
       {/* Left Section */}
