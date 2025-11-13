@@ -90,7 +90,9 @@ function BillingTab({ searchTerm, showMode, setTableData, onSelectionChange, sel
       filtered.length === 0 &&
       selectedFilter &&
       selectedFilter.toLowerCase() !== "all" &&
-      selectedFilter.toLowerCase() !== "all-invoices"
+      selectedFilter.toLowerCase() !== "all-invoices" &&
+      selectedFilter.toLowerCase() !== "all-enterprises"
+
     ) {
       toast.dark(`No records found under "${selectedFilter}"`, {
         position: "bottom-center",

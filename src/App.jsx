@@ -339,6 +339,12 @@ function App() {
             isLoggedIn ? <EnterpriseCatalogPage /> : <Navigate to="/login" />
           }
         />
+        <Route
+          path="/enterprise-catalog/create-enterprise"
+          element={
+            isLoggedIn ? <EnterpriseCatalogPage /> : <Navigate to="/login" />
+          }
+        />
       </Routes>
     </>
   );

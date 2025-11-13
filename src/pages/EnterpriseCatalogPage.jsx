@@ -32,7 +32,7 @@ function EnterpriseCatalogPage() {
   const queryParams = new URLSearchParams(location.search);
   const tab = queryParams.get("tab") || "qc";
   
-  // ✅ Get default section for each tab (first option in sidebar)
+  // Get default section for each tab (first option in sidebar)
   const getDefaultSection = (tabName) => {
     const defaults = {
       enterprise: "all-enterprises",
@@ -49,15 +49,15 @@ function EnterpriseCatalogPage() {
   
   const section = queryParams.get("section") || getDefaultSection(tab);
   
-  // ✅ Initialize activeTab from URL section param
+  // Initialize activeTab from URL section param
   const [activeTab, setActiveTab] = useState(section);
 
-  // ✅ Sync activeTab with URL section param when it changes
+  // Sync activeTab with URL section param when it changes
   useEffect(() => {
     setActiveTab(section);
   }, [section]);
 
-  // ✅ Compute section name
+  // Compute section name
   const currentSection = useMemo(() => {
     const mapping = {
       enterprise: "Enterprises",
@@ -72,7 +72,7 @@ function EnterpriseCatalogPage() {
     return mapping[tab] || "Enterprise Catalog";
   }, [tab]);
   
-  // ✅ Update URL when tab changes to include default section if no section is provided
+  // Update URL when tab changes to include default section if no section is provided
   useEffect(() => {
     const currentSectionParam = new URLSearchParams(location.search).get("section");
     if (!currentSectionParam) {
@@ -166,7 +166,11 @@ function EnterpriseCatalogPage() {
                 </button>
               </div>
             )}
+            
           </div>
+          {/* <button className="btn-gradient">Create Enterprise</button> */}
+          {currentSection === "Enterprises" && 
+        <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-enterprise")}>Create Enterprise</button>}
         </div>
       </div>
 

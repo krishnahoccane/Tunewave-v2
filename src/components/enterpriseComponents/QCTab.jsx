@@ -49,7 +49,9 @@ function QCTab({ searchTerm, showMode, setTableData, onSelectionChange, selected
     setTableData(filtered);
 
     // ✅ Toast + redirect if no results
-    if (filtered.length === 0 && selectedFilter && selectedFilter.toLowerCase() !== "all") {
+    if (filtered.length === 0 && selectedFilter && selectedFilter.toLowerCase() !== "all" &&
+      selectedFilter.toLowerCase() !== "all-invoices" &&
+      selectedFilter.toLowerCase() !== "all-enterprises") {
       toast.dark(`No records found under "${selectedFilter}"`, {
         position: "bottom-center",
         autoClose: 2500,

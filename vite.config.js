@@ -5,19 +5,18 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": {
-        target: "https://webhook.site",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ""), // removes '/api' prefix
-      },
+      // "/api": {
+      //   target: "https://webhook.site",
+      //   changeOrigin: true,
+      //   secure: false,
+      //   rewrite: (path) => path.replace(/^\/api/, ""), // removes '/api' prefix
+      // },
       "/main": {
         target: "https://spacestation.tunewave.in",
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/main/, ""),
       },
-      
     },
   },
 });

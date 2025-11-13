@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // ✅ useNavigate added
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
 import Tunewavelogo from "../assets/Tunewave Media Logo Final-01 1.png";
 import { MdAccountBalanceWallet } from "react-icons/md";
@@ -25,9 +25,6 @@ import { useContext } from "react";
 // import { RoleContext } from "../context/RoleContext";
 import { useRole } from "../context/RoleContext";
 const Navbar = () => {
-  // Temporarily hardcode role to "normal" for testing conditional render
-  // const role = "normal";
-  // const { role, setRole } = useContext(RoleContext);
   const { role } = useRole();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -37,7 +34,7 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
 
-  ////////////////////////////////////////    Role           /////////////////////////////////////////////////////////////
+  ////////////////////////////////////////    Role    /////////////////////////////////////////////////////////////
   // Role-based navbar
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +75,7 @@ const Navbar = () => {
 
       if (searchRoutes[query]) {
         navigate(searchRoutes[query]);
-        e.target.value = ""; // clear search box
+        e.target.value = "";
         setMenuOpen(false);
         setCatalogOpen(false);
         setWalletOpen(false);
@@ -451,7 +448,7 @@ const Navbar = () => {
                 Settings
               </Link>
             </li>
-            {/* ✅ Updated Logout */}
+            {/*  Logout */}
             <li
               onClick={() => handleLogout()}
               style={{

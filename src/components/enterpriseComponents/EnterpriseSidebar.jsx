@@ -12,6 +12,7 @@ function EnterpriseSidebar({ activeTab, setActiveTab, currentSection, tab }) {
       { id: "all-enterprises", label: "All Enterprises" },
       { id: "active-enterprises", label: "Active Enterprises" },
       { id: "inactive-enterprises", label: "Inactive Enterprises" },
+      { id: "suspended-enterprises", label: "Suspended Enterprises" },
     ],
     QC: [
       { id: "all", label: "All" },

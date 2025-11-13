@@ -2,8 +2,8 @@
 .catalog-page {
   display: flex;
   justify-content: space-evenly;
-  height: calc(100vh - 100px); /* Adjust based on your navbar height */
-  margin-top: 100px;
+  /* height: calc(100vh - 100px); */
+  /* margin-top: 100px; */
   background: #f9fafb;
   font-family: "Poppins", sans-serif;
   position: fixed;

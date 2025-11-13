@@ -6,8 +6,6 @@ import axios from "axios";
 import thunderbolt from "../assets/thunderbolt.png";
 import { useRole } from "../context/RoleContext";
 
-
-
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
 
@@ -33,7 +31,7 @@ export default function Login({ onLogin }) {
   const [refreshIntervalId, setRefreshIntervalId] = useState(null);
 
   const [displayName, setDisplayName] = useState("");
-const { setRole } = useRole(); 
+  const { setRole } = useRole();
   // Dynamic Image
   const [cardImage, setCardImage] = useState(lsiImage); // default fallback
 
@@ -42,6 +40,25 @@ const { setRole } = useRole();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
+
+  useEffect(() => {
+    const checkEmail = async () => {
+      try {
+        const res = await axios.get(
+          `http://spacestation.tunewave.in/api/Auth/check-email?email=admin@tunewave.com`,
+          {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+        console.log(res.data, "Hey am using useeffect");
+      } catch (error) {
+        console.error("Error checking email:", error);
+      }
+    };
+    checkEmail();
+  }, []);
 
   // --------------------------
   // Step 1: Verify Email
@@ -54,11 +71,22 @@ const { setRole } = useRole();
     setLoading(true);
     setError("");
     setSuccessMessage("");
-    setEmailVerified(true);
+    // setEmailVerified(true);
     try {
-      const res = await fetch(
-        `https://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
+      alert("hey am here");
+      const res = await axios.get(
+        // `http://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
+        // `/main/api/Auth/check-email?email=${email}`
+        `http://spacestation.tunewave.in/api/Auth/check-email?email=admin@tunewave.com`,
+        {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+        // `https://spacestation.in/api/Auth/check-email?email=${email}`
       );
+      console.log(res);
+
       const data = await res.json();
 
       console.log("🛰️ Response status:", data.status);
@@ -79,40 +107,40 @@ const { setRole } = useRole();
   // --------------------------
   // Step 2: Login
   // --------------------------
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   if (!emailVerified) return setError("Please verify your email first.");
-  //   setLoading(true);
-  //   setError("");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!emailVerified) return setError("Please verify your email first.");
+    setLoading(true);
+    setError("");
 
-  //   try {
-  //     const res = await fetch(
-  //       "https://spacestation.tunewave.in/wp-json/jwt-auth/v1/token",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ username: email, password }),
-  //       }
-  //     );
+    try {
+      const res = await fetch(
+        "http://spacestation.tunewave.in/wp-json/jwt-auth/v1/token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: email, password }),
+        }
+      );
 
-  //     const data = await res.json();
-  //     if (res.ok && data.data?.token) {
-  //       localStorage.setItem("jwtToken", data.data.token);
-  //       localStorage.setItem("isLoggedIn", "true");
-  //       localStorage.setItem(
-  //         "displayName",
-  //         data.data.displayName || data.data.user_nicename || email
-  //       );
-  //       onLogin();
-  //       navigate("/dashboard");
-  //       startAutoRefresh();
-  //     } else setError(data.message || "Login failed.");
-  //   } catch {
-  //     setError("Network error.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+      const data = await res.json();
+      if (res.ok && data.data?.token) {
+        localStorage.setItem("jwtToken", data.data.token);
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem(
+          "displayName",
+          data.data.displayName || data.data.user_nicename || email
+        );
+        onLogin();
+        navigate("/dashboard");
+        startAutoRefresh();
+      } else setError(data.message || "Login failed.");
+    } catch {
+      setError("Network error.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // const handleLogin = (e) => {
   //   e.preventDefault();
@@ -120,37 +148,37 @@ const { setRole } = useRole();
   //   localStorage.setItem("isLoggedIn", "true");
   //   localStorage.setItem("displayName", displayName);
   //   // Set role from user info (for integration, fetch from API)
-  //   localStorage.setItem("role", "normal"); 
-  //   const userRole = res.data.role; 
+  //   localStorage.setItem("role", "normal");
+  //   const userRole = res.data.role;
   //     setRole(userRole);
   //   onLogin();
   //   navigate("/dashboard");
   // };
-// const res = {"user":"s", "userRole":"normal"};
-//   const handleLogin = async (e) => {
-//     e.preventDefault();
-//    localStorage.setItem("jwtToken", "dummy-token");
-//     localStorage.setItem("isLoggedIn", "true");
-//     localStorage.setItem("displayName", displayName);
+  // const res = {"user":"s", "userRole":"normal"};
+  //   const handleLogin = async (e) => {
+  //     e.preventDefault();
+  //    localStorage.setItem("jwtToken", "dummy-token");
+  //     localStorage.setItem("isLoggedIn", "true");
+  //     localStorage.setItem("displayName", displayName);
 
-//       const userRole = res.data.role; // "normal" or "enterprise"
-//       setRole(userRole); // set globally
+  //       const userRole = res.data.role; // "normal" or "enterprise"
+  //       setRole(userRole); // set globally
 
-//       // Save to localStorage (optional)
-//       localStorage.setItem("role", userRole);
-//   onLogin();
-//       // Redirect
-//       navigate("/dashboard");
-//     // } catch (err) {
-//     //   alert("Login failed");
-//     // }
+  //       // Save to localStorage (optional)
+  //       localStorage.setItem("role", userRole);
+  //   onLogin();
+  //       // Redirect
+  //       navigate("/dashboard");
+  //     // } catch (err) {
+  //     //   alert("Login failed");
+  //     // }
   // };
 
   //  const handleLogin = async (e) => {
   //   e.preventDefault();
 
   //   // Simulating login response
-  //   const res = { user: "s", userRole: "normal" }; 
+  //   const res = { user: "s", userRole: "normal" };
 
   //   try {
   //     localStorage.setItem("jwtToken", "dummy-token");
@@ -170,30 +198,30 @@ const { setRole } = useRole();
   //     alert("Login failed");
   //   }
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
 
-    // Simulate API login (you can replace with actual fetch/axios later)
-    // const res = { user: "sid", userRole: "normal" }; 
-    const res = { user: "sid", userRole: "enterprise" }; // or "enterprise"
-    try {
-      localStorage.setItem("jwtToken", "dummy-token");
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("displayName", displayName);
+  //   // Simulate API login (you can replace with actual fetch/axios later)
+  //   // const res = { user: "sid", userRole: "normal" };
+  //   // const res = { user: "sid", userRole: "enterprise" };
+  //   try {
+  //     localStorage.setItem("jwtToken", "dummy-token");
+  //     localStorage.setItem("isLoggedIn", "true");
+  //     localStorage.setItem("displayName", displayName);
 
-      //  Save role globally and persist
-      const userRole = res.userRole;
-      setRole(userRole);
-      localStorage.setItem("role", userRole);
+  //     //  Save role globally and persist
+  //     const userRole = res.userRole;
+  //     setRole(userRole);
+  //     localStorage.setItem("role", userRole);
 
-      // Continue flow
-      onLogin();
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Login failed");
-    }
-  };
+  //     // Continue flow
+  //     onLogin();
+  //     navigate("/dashboard");
+  //   } catch (err) {
+  //     console.error("Login error:", err);
+  //     alert("Login failed");
+  //   }
+  // };
 
   // --------------------------
   // Step 2.1: SNot you
@@ -219,7 +247,7 @@ const { setRole } = useRole();
 
     try {
       const res = await fetch(
-        `https://spacestation.tunewave.in/wp-json/users/v2/forgetpassword?user=${email}`,
+        `http://spacestation.tunewave.in/wp-json/users/v2/forgetpassword?user=${email}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -263,7 +291,7 @@ const { setRole } = useRole();
 
     try {
       const res = await fetch(
-        `https://spacestation.tunewave.in/wp-json/users/v2/codevalidate?user=${email}&code=${otpCode}&key=${resetKey}`,
+        `http://spacestation.tunewave.in/wp-json/users/v2/codevalidate?user=${email}&code=${otpCode}&key=${resetKey}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -325,7 +353,7 @@ const { setRole } = useRole();
 
     try {
       const res = await fetch(
-        `https://spacestation.tunewave.in/wp-json/users/v2/password?user=${email}&newpassword=${newPassword}&confirmpassword=${confirmPassword}&key=${resetKey}`,
+        `http://spacestation.tunewave.in/wp-json/users/v2/password?user=${email}&newpassword=${newPassword}&confirmpassword=${confirmPassword}&key=${resetKey}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -360,7 +388,7 @@ const { setRole } = useRole();
 
     try {
       const res = await fetch(
-        `https://spacestation.tunewave.in/wp-json/users/v2/resendcode?user=${email}&key=${resetKey}`,
+        `http://spacestation.tunewave.in/wp-json/users/v2/resendcode?user=${email}&key=${resetKey}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -401,7 +429,7 @@ const { setRole } = useRole();
       if (!token) return;
       try {
         const res = await fetch(
-          "https://spacestation.tunewave.in/wp-json/jwt-auth/v1/token/refresh",
+          "http://spacestation.tunewave.in/wp-json/jwt-auth/v1/token/refresh",
           { method: "POST", headers: { Authorization: `Bearer ${token}` } }
         );
         const data = await res.json();
@@ -430,7 +458,7 @@ const { setRole } = useRole();
     const fetchCardImage = async () => {
       try {
         const res = await axios.get(
-          "https://spacestation.tunewave.in/wp-json/frontend/v2/artwork"
+          "http://spacestation.tunewave.in/wp-json/frontend/v2/artwork"
         );
         if (res.data.image) setCardImage(res.data.image);
       } catch (err) {

@@ -20,6 +20,8 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
       { id: 3, enterpriseid: "ENT-003", enterprise: "Ram Solutions", status: "Active" },
       { id: 4, enterpriseid: "ENT-004", enterprise: "Priya Enterprises", status: "Active" },
       { id: 5, enterpriseid: "ENT-005", enterprise: "Venn Labs", status: "Inactive" },
+      { id: 6, enterpriseid: "ENT-006", enterprise: "gp Enterprises", status: "Suspended" },
+      { id: 7, enterpriseid: "ENT-007", enterprise: "xyz Labs", status: "Suspended" },
     ],
     []
   );
@@ -37,6 +39,8 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
         filtered = filtered.filter((item) => item.status.toLowerCase() === "active");
       } else if (selectedFilter.toLowerCase() === "inactive-enterprises") {
         filtered = filtered.filter((item) => item.status.toLowerCase() === "inactive");
+      } else if(selectedFilter.toLowerCase() === "suspended-enterprises"){
+        filtered = filtered.filter((item) => item.status.toLowerCase() === "suspended");
       }
     }
 
