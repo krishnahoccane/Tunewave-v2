@@ -194,7 +194,7 @@ import { useRole } from "./context/RoleContext";
 // change name later
 import "./styles/styled.css";
 import EnterpriseCatalogPage from "./pages/EnterpriseCatalogPage.jsx";
-
+import CreateEnterprise from "./pages/CreateEnterprise.jsx";
 function AppWrapper() {
   return (
     <Router>
@@ -342,7 +342,7 @@ function App() {
         <Route
           path="/enterprise-catalog/create-enterprise"
           element={
-            isLoggedIn ? <EnterpriseCatalogPage /> : <Navigate to="/login" />
+            isLoggedIn ? <CreateEnterprise /> : <Navigate to="/login" />
           }
         />
       </Routes>
