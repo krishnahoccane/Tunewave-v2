@@ -86,12 +86,12 @@ export default function Login({ onLogin }) {
 
       const data = await res.json();
 
-      console.log("🛰️ Response status:", data);
-      console.log("🛰️ Response status:", data.exists);
+      // console.log("🛰️ Response status:", data);
+      // console.log("🛰️ Response status:", data.exists);
       if (data.exists) {
         setEmailVerified(true);
         setSuccessMessage(`Please enter your password.`);
-        setDisplayName(data.display_name || "User");
+        setDisplayName(data.display_name || "noUserName");
       } else {
         setError("Email does not exist. Please check your email.");
       }
@@ -105,40 +105,85 @@ export default function Login({ onLogin }) {
   // --------------------------
   // Step 2: Login
   // --------------------------
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!emailVerified) return setError("Please verify your email first.");
-    setLoading(true);
-    setError("");
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   if (!emailVerified) return setError("Please verify your email first.");
+  //   setLoading(true);
+  //   setError("");
 
-    try {
-      const res = await fetch(
-        "http://spacestation.tunewave.in/wp-json/jwt-auth/v1/token",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: email, password }),
-        }
-      );
+  //   try {
+  //     const res = await fetch(
+  //       "http://spacestation.tunewave.in/api/Auth/login",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ email: email, password }),
+  //       }
+  //     );
 
-      const data = await res.json();
-      if (res.ok && data.data?.token) {
-        localStorage.setItem("jwtToken", data.data.token);
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem(
-          "displayName",
-          data.data.displayName || data.data.user_nicename || email
-        );
-        onLogin();
-        navigate("/dashboard");
-        startAutoRefresh();
-      } else setError(data.message || "Login failed.");
-    } catch {
-      setError("Network error.");
-    } finally {
-      setLoading(false);
+  //     const data = await res.json();
+  //     if (res.ok && data.data?.token) {
+  //       localStorage.setItem("jwtToken", data.data.token);
+  //       localStorage.setItem("isLoggedIn", "true");
+  //       localStorage.setItem(
+  //         "displayName",
+  //         data.data.displayName || data.data.user_nicename || email
+  //       );
+  //       onLogin();
+  //       navigate("/dashboard");
+  //       startAutoRefresh();
+  //     } else setError(data.message || "Login failed.");
+  //   } catch {
+  //     setError("Network error.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const handleLogin = async (e) => {
+  e.preventDefault();
+
+  if (!emailVerified) {
+    return setError("Please verify your email first.");
+  }
+
+  setLoading(true);
+  setError("");
+
+  const payload = { email, password };
+  console.log("🔐 Login Payload:", payload);
+
+  try {
+    const res = await fetch("https://spacestation.tunewave.in/api/Auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    console.log("Login Response:", data);
+
+    // Use data.token instead of data.data?.token
+    if (res.ok && data.token) {
+      localStorage.setItem("jwtToken", data.token);
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("displayName", data.fullName || payload.email);
+      localStorage.setItem("role", data.role || "normal");
+
+        if (setRole) setRole(data.role); 
+        
+      if (onLogin) onLogin();  // optional callback
+      navigate("/dashboard");   // now navigation will work
+      startAutoRefresh();
+    } else {
+      setError(data.message || "Login failed.");
     }
-  };
+  } catch (err) {
+    console.error("Login Error:", err);
+    setError("Network error.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // const handleLogin = (e) => {
   //   e.preventDefault();
