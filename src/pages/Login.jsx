@@ -41,24 +41,24 @@ export default function Login({ onLogin }) {
     return emailRegex.test(email);
   };
 
-  useEffect(() => {
-    const checkEmail = async () => {
-      try {
-        const res = await axios.get(
-          `http://spacestation.tunewave.in/api/Auth/check-email?email=admin@tunewave.com`,
-          {
-            headers: {
-              "Access-Control-Allow-Origin": "*",
-            },
-          }
-        );
-        console.log(res.data, "Hey am using useeffect");
-      } catch (error) {
-        console.error("Error checking email:", error);
-      }
-    };
-    checkEmail();
-  }, []);
+  // useEffect(() => {
+  //   const checkEmail = async () => {
+  //     try {
+  //       const res = await axios.get(
+  //         `https://spacestation.tunewave.in/api/Auth/check-email?email=admin@tunewave.com`,
+  //         {
+  //           headers: {
+  //             "Access-Control-Allow-Origin": "*",
+  //           },
+  //         }
+  //       );
+  //       console.log(res.data, "Hey am using useeffect");
+  //     } catch (error) {
+  //       console.error("Error checking email:", error);
+  //     }
+  //   };
+  //   checkEmail();
+  // }, []);
 
   // --------------------------
   // Step 1: Verify Email
@@ -73,23 +73,21 @@ export default function Login({ onLogin }) {
     setSuccessMessage("");
     // setEmailVerified(true);
     try {
-      alert("hey am here");
-      const res = await axios.get(
-        // `http://spacestation.tunewave.in/wp-json/user-info/v2/check-user?data=${email}`
-        // `/main/api/Auth/check-email?email=${email}`
-        `http://spacestation.tunewave.in/api/Auth/check-email?email=admin@tunewave.com`,
-        {
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-        // `https://spacestation.in/api/Auth/check-email?email=${email}`
+      // alert("hey am here");
+      const res = await fetch(
+        `https://spacestation.tunewave.in/api/Auth/check-email?email=${email}`,
+        // {
+        //   headers: {
+        //     "Access-Control-Allow-Origin": "*",
+        //   },
+        // }
       );
-      console.log(res);
+      console.log("Raw Response:",res);
 
       const data = await res.json();
 
-      console.log("🛰️ Response status:", data.status);
+      console.log("🛰️ Response status:", data);
+      console.log("🛰️ Response status:", data.exists);
       if (data.exists) {
         setEmailVerified(true);
         setSuccessMessage(`Please enter your password.`);
@@ -230,7 +228,7 @@ export default function Login({ onLogin }) {
   const handleResetEmail = () => {
     setEmail("");
     setPassword("");
-    setEmailVerified(true);
+    setEmailVerified(false);
     setError("");
     setSuccessMessage("");
     setForgotStage("none");
