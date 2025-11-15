@@ -7,12 +7,12 @@ import "../styles/styled.css";
 function CreateEnterprise() {
   const navigate = useNavigate();
 
-  const [enterpriseId, setEnterpriseId] = useState("");
   const [enterpriseName, setEnterpriseName] = useState("");
+  const [email, setEmail] = useState("");
   const [domain, setDomain] = useState("");
-  const [revenueShare, setRevenueShare] = useState("");
+  const [revenueShare, setRevenueShare] = useState("10");
+  const [isRevenueShareEditable, setIsRevenueShareEditable] = useState(false);
   const [qcRequired, setQcRequired] = useState("");
-
   // Helper function to get userId from localStorage (might be base64 encoded)
   const getUserId = () => {
     const storedUserId = localStorage.getItem("userId");
@@ -34,20 +34,22 @@ function CreateEnterprise() {
     e.preventDefault();
 
     // Validate all required fields
-    if (!enterpriseId.trim()) {
-      toast.dark("Please enter Enterprise ID.", { transition: Slide });
-      return;
-    }
     if (!enterpriseName.trim()) {
       toast.dark("Please enter Enterprise Name.", { transition: Slide });
       return;
     }
-    if (!domain.trim()) {
-      toast.dark("Please enter Domain.", { transition: Slide });
+    if (!email.trim()) {
+      toast.dark("Please enter Email.", { transition: Slide });
       return;
     }
-    if (!revenueShare.trim()) {
-      toast.dark("Please enter Revenue Share.", { transition: Slide });
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.dark("Please enter a valid email address.", { transition: Slide });
+      return;
+    }
+    if (!domain.trim()) {
+      toast.dark("Please enter Domain.", { transition: Slide });
       return;
     }
     if (!qcRequired) {
@@ -55,8 +57,9 @@ function CreateEnterprise() {
       return;
     }
 
-    // Parse revenueShare: remove % and convert to number
-    const revenueShareValue = parseFloat(revenueShare.replace(/%/g, "").trim());
+    // Parse revenueShare: remove % and convert to number, default to 10 if empty
+    const revenueShareToParse = revenueShare.trim() || "10";
+    const revenueShareValue = parseFloat(revenueShareToParse.replace(/%/g, "").trim());
     if (isNaN(revenueShareValue)) {
       toast.dark("Please enter a valid Revenue Share number.", { transition: Slide });
       return;
@@ -70,17 +73,19 @@ function CreateEnterprise() {
 
     // Prepare form data according to API schema
     const formData = {
-      enterpriseID: 0, // API expects number, set to 0 for new entries
       enterpriseName: enterpriseName.trim(),
+      email: email.trim(),
       domain: domain.trim(),
       revenueShare: revenueShareValue,
       qcRequired: qcRequiredBool,
-      createdBy: createdBy,
+    //   createdBy: createdBy,
     };
 
     const token = localStorage.getItem("jwtToken");
     
     try {
+      console.log("Submitting form data:", formData);
+      
       const response = await fetch("https://spacestation.tunewave.in/api/Enterprise/add", {
         method: "POST",
         headers: {
@@ -90,7 +95,20 @@ function CreateEnterprise() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
+      // Check if response has content before parsing JSON
+      const contentType = response.headers.get("content-type");
+      let data;
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.log("Non-JSON response:", text);
+        data = { message: text || "Unexpected response format" };
+      }
       
       if (response.ok) {
         toast.success("Enterprise created successfully!");
@@ -101,12 +119,22 @@ function CreateEnterprise() {
           navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises");
         }, 1500);
       } else {
-        toast.dark(data.message || "Error creating enterprise. Please try again.");
+        const errorMessage = data.message || data.error || `Error ${response.status}: ${response.statusText}` || "Error creating enterprise. Please try again.";
+        toast.dark(errorMessage);
         console.error("Error response:", data);
+        console.error("Response status:", response.status);
       }
     } catch (error) {
-      toast.dark("Network error. Please check your connection and try again.");
-      console.error("Error submitting:", error);
+      console.error("Fetch error details:", error);
+      
+      // More specific error messages
+      if (error.name === "TypeError" && error.message === "Failed to fetch") {
+        toast.dark("Network error: Unable to reach the server. Please check your internet connection or try again later.");
+      } else if (error.name === "SyntaxError") {
+        toast.dark("Error parsing server response. Please try again.");
+      } else {
+        toast.dark(`Error: ${error.message || "Network error. Please check your connection and try again."}`);
+      }
     }
   };
 
@@ -119,73 +147,93 @@ function CreateEnterprise() {
         <h3>Enter Enterprise Details</h3>
 
         <div className="input-group">
-          <label htmlFor="enterpriseId">
-            Enterprise ID <span style={{ color: "red" }}>*</span>
-          </label>
-          <input
-            type="text"
-            id="enterpriseId"
-            placeholder="e.g., ENT001"
-            className="input-field"
-            onChange={(e) => setEnterpriseId(e.target.value)}
-            value={enterpriseId}
-            style={{ width: "50%" }}
-          />
-        </div>
-
-        <div className="input-group">
           <label htmlFor="enterpriseName">
-            Enterprise Name <span style={{ color: "red" }}>*</span>
+            Enterprise Name <span className="required-asterisk">*</span>
           </label>
           <input
             type="text"
             id="enterpriseName"
             placeholder="e.g., Acme Corporation"
-            className="input-field"
+            className="input-field input-field-half-width"
             onChange={(e) => setEnterpriseName(e.target.value)}
             value={enterpriseName}
-            style={{ width: "50%" }}
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="email">
+            Email <span className="required-asterisk">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            placeholder="e.g., contact@acme.com"
+            className="input-field input-field-half-width"
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
           />
         </div>
 
         <div className="input-group">
           <label htmlFor="domain">
-            Domain <span style={{ color: "red" }}>*</span>
+            Domain <span className="required-asterisk">*</span>
           </label>
           <input
             type="text"
             id="domain"
             placeholder="e.g., acme.com"
-            className="input-field"
+            className="input-field input-field-half-width"
             onChange={(e) => setDomain(e.target.value)}
             value={domain}
-            style={{ width: "50%" }}
           />
         </div>
 
         <div className="input-group">
           <label htmlFor="revenueShare">
-            Revenue Share <span style={{ color: "red" }}>*</span>
+            Revenue Share <span className="required-asterisk">*</span>
           </label>
-          <input
-            type="text"
-            id="revenueShare"
-            placeholder="e.g., 70%"
-            className="input-field"
-            onChange={(e) => setRevenueShare(e.target.value)}
-            value={revenueShare}
-            style={{ width: "50%" }}
-          />
+          <div className="revenue-share-wrapper">
+            <input
+              type="text"
+              id="revenueShare"
+              placeholder="10"
+              className={`input-field revenue-share-input ${isRevenueShareEditable ? "editable" : "readonly"}`}
+              onChange={(e) => setRevenueShare(e.target.value)}
+              value={revenueShare}
+              readOnly={!isRevenueShareEditable}
+            />
+            {!isRevenueShareEditable ? (
+              <button
+                type="button"
+                onClick={() => setIsRevenueShareEditable(true)}
+                className="btn-gradient revenue-share-btn"
+              >
+                Edit
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRevenueShareEditable(false);
+                  // Reset to default if empty
+                  if (!revenueShare.trim()) {
+                    setRevenueShare("10");
+                  }
+                }}
+                className="btn-gradient revenue-share-btn"
+              >
+                Save
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="input-group">
           <label htmlFor="qcRequired">
-            QC Required <span style={{ color: "red" }}>*</span>
+            QC Required <span className="required-asterisk">*</span>
           </label>
-          <div style={{ display: "flex", gap: "30px", marginTop: "8px" }}>
-            <label
-              style={{ display: "flex", alignItems: "center", gap: "6px" }}
-            >
+          <div className="radio-group-container">
+            <label className="radio-label">
               <input
                 type="radio"
                 name="qcRequired"
@@ -195,9 +243,7 @@ function CreateEnterprise() {
               />
               <span>Required</span>
             </label>
-            <label
-              style={{ display: "flex", alignItems: "center", gap: "6px" }}
-            >
+            <label className="radio-label">
               <input
                 type="radio"
                 name="qcRequired"

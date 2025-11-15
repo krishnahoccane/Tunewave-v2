@@ -105,7 +105,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
   //           enterpriseid: `ENT-${String(enterprise.enterpriseID || index + 1).padStart(3, '0')}`,
   //           enterprise: enterprise.enterpriseName || "",
   //           domain: enterprise.domain || "",
-  //           revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "0%",
+  //           revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "10%",
   //           qcRequired: enterprise.qcRequired ? "Required" : "Not required",
   //           status: enterprise.status || "Active",
   //           createdBy: enterprise.createdBy || 0,

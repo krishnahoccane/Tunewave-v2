@@ -1920,3 +1920,67 @@ label {
   font-size: 1.1rem;
   color: #334155;
 }
+
+/* =======================
+   Create Enterprise Page Styles
+======================= */
+
+/* Required field asterisk */
+.required-asterisk {
+  color: red;
+}
+
+/* Input field width */
+.input-field-half-width {
+  width: 50%;
+}
+
+/* Revenue Share Input Wrapper */
+.revenue-share-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 50%;
+}
+
+/* Revenue Share Input */
+.revenue-share-input {
+  flex: 1;
+}
+
+.revenue-share-input.readonly {
+  cursor: not-allowed;
+  background-color: #f3f4f6;
+}
+
+.revenue-share-input.editable {
+  cursor: text;
+  background-color: #fff;
+}
+
+/* Edit/Done Button adjacent to input */
+.revenue-share-btn {
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Radio Group */
+.radio-group-container {
+  display: flex;
+  gap: 30px;
+  margin-top: 8px;
+  width: 50%;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.radio-label span {
+  white-space: nowrap;
+}
