@@ -1897,9 +1897,58 @@ label {
 
 .submenu-item.active {
   background: #3b82f6;
-  color: white;
-  font-weight: 500;
 }
+
+/* Status Dropdown */
+.status-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.status-dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  background: transparent;
+}
+
+.status-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  min-width: 160px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.status-dropdown-option:hover {
+  background-color: #f3f4f6;
+}
+
+.status-dropdown-option.selected {
+  background-color: #eff6ff;
+}
+
 .enterprise-dashboard {
   display: flex;
   height: 100vh;

@@ -1,36 +1,61 @@
-// // context/RoleContext.jsx
-// import { createContext, useState, useEffect, useContext } from "react";
-
-// const RoleContext = createContext();
-
-// export const RoleProvider = ({ children }) => {
-//   const [role, setRole] = useState(null);
-
-//   useEffect(() => {
-//     const savedRole = localStorage.getItem("role");
-//     if (savedRole) setRole(savedRole);
-//   }, []);
-
-//   return (
-//     <RoleContext.Provider value={{ role, setRole }}>
-//       {children}
-//     </RoleContext.Provider>
-//   );
-// };
-
-// export const useRole = () => useContext(RoleContext);
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const RoleContext = createContext();
 
 export const RoleProvider = ({ children }) => {
-  const storedRole = localStorage.getItem("role");
+  // Use state to track role so it updates when localStorage changes
+  const [storedRole, setStoredRole] = useState(() => {
+    return localStorage.getItem("role") || "normal";
+  });
+
+  // Listen for localStorage changes (from same tab or other tabs)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "role") {
+        setStoredRole(e.newValue || "normal");
+      }
+    };
+
+    // Listen for storage events (changes from other tabs)
+    window.addEventListener("storage", handleStorageChange);
+
+    // Listen for custom role change events (changes from same tab)
+    const handleRoleChange = () => {
+      const newRole = localStorage.getItem("role") || "normal";
+      setStoredRole(newRole);
+    };
+    window.addEventListener("roleChanged", handleRoleChange);
+
+    // Check localStorage periodically as fallback
+    const checkRole = () => {
+      const currentRole = localStorage.getItem("role") || "normal";
+      setStoredRole((prevRole) => {
+        if (currentRole !== prevRole) {
+          return currentRole;
+        }
+        return prevRole;
+      });
+    };
+    
+    // Set up interval to check for changes (fallback - checks every 500ms)
+    const interval = setInterval(checkRole, 500);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("roleChanged", handleRoleChange);
+      clearInterval(interval);
+    };
+  }, []); // Empty dependency array - only run on mount/unmount
 
   // Map server role → frontend role
-  const role = storedRole === "SuperAdmin" ? "enterprise" : "normal";
+  // SuperAdmin and EnterpriseAdmin both get "enterprise" role
+  const role = (storedRole === "SuperAdmin" || storedRole === "EnterpriseAdmin") ? "enterprise" : "normal";
+  
+  // Expose actual role for role-specific checks
+  const actualRole = storedRole || "normal";
 
   return (
-    <RoleContext.Provider value={{ role }}>
+    <RoleContext.Provider value={{ role, actualRole }}>
       {children}
     </RoleContext.Provider>
   );

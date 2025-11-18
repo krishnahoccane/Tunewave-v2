@@ -7,12 +7,17 @@ function EnterpriseSidebar({ activeTab, setActiveTab, currentSection, tab }) {
 
   // Section-wise sidebar menus
   const enterpriseSections = {
-
-     Enterprises: [
+    Enterprises: [
       { id: "all-enterprises", label: "All Enterprises" },
       { id: "active-enterprises", label: "Active Enterprises" },
-      { id: "inactive-enterprises", label: "Inactive Enterprises" },
       { id: "suspended-enterprises", label: "Suspended Enterprises" },
+      { id: "disabled-enterprises", label: "Disabled Enterprises" },
+    ],
+    Labels: [
+      { id: "all-labels", label: "All Labels" },
+      { id: "active-labels", label: "Active Labels" },
+      { id: "suspended-labels", label: "Suspended Labels" },
+      { id: "disabled-labels", label: "Disabled Labels" },
     ],
     QC: [
       { id: "all", label: "All" },

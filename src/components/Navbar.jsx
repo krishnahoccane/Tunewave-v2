@@ -25,7 +25,7 @@ import { useContext } from "react";
 // import { RoleContext } from "../context/RoleContext";
 import { useRole } from "../context/RoleContext";
 const Navbar = () => {
-  const { role } = useRole();
+  const { role, actualRole } = useRole();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -47,8 +47,12 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("jwtToken");
     localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("role");
+    localStorage.removeItem("displayName");
     document.cookie =
       "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    // Dispatch custom event to notify RoleContext of role change
+    window.dispatchEvent(new Event("roleChanged"));
     setProfileOpen(false);
     navigate("/login");
   };
@@ -347,12 +351,21 @@ const Navbar = () => {
               </Link>
             </li>
             <li className="nav-item">
-              <Link
-                to="/enterprise-catalog?tab=enterprise"
-                onClick={() => setMenuOpen(false)}
-              >
-                Enterprises
-              </Link>
+              {actualRole === "SuperAdmin" ? (
+                <Link
+                  to="/enterprise-catalog?tab=enterprises&section=all-enterprises"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Enterprises
+                </Link>
+              ) : (
+                <Link
+                  to="/enterprise-catalog?tab=labels&section=all-labels"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Labels
+                </Link>
+              )}
             </li>
             <li className="nav-item">
               <Link

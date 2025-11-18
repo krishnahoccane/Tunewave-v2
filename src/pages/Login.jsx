@@ -71,23 +71,12 @@ export default function Login({ onLogin }) {
     setLoading(true);
     setError("");
     setSuccessMessage("");
-    // setEmailVerified(true);
+    
     try {
-      // alert("hey am here");
-      const res = await fetch(
-        `https://spacestation.tunewave.in/api/Auth/check-email?email=${email}`,
-        // {
-        //   headers: {
-        //     "Access-Control-Allow-Origin": "*",
-        //   },
-        // }
-      );
-      console.log("Raw Response:",res);
+      const response = await axios.get(`/api/Auth/check-email?email=${email}`);
+      const data = response.data;
+      console.log("Email check response:", data);
 
-      const data = await res.json();
-
-      // console.log("🛰️ Response status:", data);
-      // console.log("🛰️ Response status:", data.exists);
       if (data.exists) {
         setEmailVerified(true);
         setSuccessMessage(`Please enter your password.`);
@@ -95,8 +84,13 @@ export default function Login({ onLogin }) {
       } else {
         setError("Email does not exist. Please check your email.");
       }
-    } catch {
-      setError("Network error. Try again.");
+    } catch (error) {
+      console.error("Email check error:", error);
+      if (error.response) {
+        setError(error.response.data?.message || "Failed to verify email. Please try again.");
+      } else {
+        setError("Network error. Try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -153,23 +147,23 @@ const handleLogin = async (e) => {
   console.log("🔐 Login Payload:", payload);
 
   try {
-    const res = await fetch("https://spacestation.tunewave.in/api/Auth/login", {
-      method: "POST",
+    const response = await axios.post("/api/Auth/login", payload, {
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const data = response.data;
     console.log("Login Response:", data);
 
     // Use data.token instead of data.data?.token
-    if (res.ok && data.token) {
+    if (data.token) {
       localStorage.setItem("jwtToken", data.token);
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("displayName", data.fullName || payload.email);
-      localStorage.setItem("role", data.role || "normal");
+      const newRole = data.role || "normal";
+      localStorage.setItem("role", newRole);
 
-        if (setRole) setRole(data.role); 
+      // Dispatch custom event to notify RoleContext of role change
+      window.dispatchEvent(new Event("roleChanged"));
         
       if (onLogin) onLogin();  // optional callback
       navigate("/dashboard");   // now navigation will work
@@ -179,7 +173,11 @@ const handleLogin = async (e) => {
     }
   } catch (err) {
     console.error("Login Error:", err);
-    setError("Network error.");
+    if (err.response) {
+      setError(err.response.data?.message || "Login failed.");
+    } else {
+      setError("Network error.");
+    }
   } finally {
     setLoading(false);
   }
@@ -283,26 +281,43 @@ const handleLogin = async (e) => {
   // Step 3: Send OTP
   // --------------------------
   const handleSendOTP = async () => {
-    if (!emailVerified) return setError("Email not verified.");
+    if (!email) {
+      setError("Please enter your email first.");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    
     setForgotPasswordLoading(true);
     setError("");
     setSuccessMessage("");
 
     try {
-      const res = await fetch(
-        `http://spacestation.tunewave.in/wp-json/users/v2/forgetpassword?user=${email}`,
-        { method: "POST" }
-      );
-      const data = await res.json();
+      console.log("Sending forgot password request for email:", email);
+      
+      const response = await axios.post("/api/Auth/forgetpassword", { email }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (data.success) {
+      const data = response.data;
+      console.log("Forgot password response data:", data);
+
+      // Check if successful - API returns { key, success, message, next_resend_wait_seconds }
+      if (data.success && data.key) {
         setResetKey(data.key);
         setForgotStage("otp");
-        setSuccessMessage(data.message || "OTP sent successfully.");
+        setSuccessMessage(data.message || "OTP sent successfully to registered email & WhatsApp.");
+        setError("");
 
-        if (data.attempt) {
+        // Handle resend cooldown timer
+        const waitSeconds = data.next_resend_wait_seconds || 60;
+        if (waitSeconds > 0) {
           setResendDisabled(true);
-          setResendTimer(data.attempt * 30); // Example: cooldown
+          setResendTimer(waitSeconds);
           const timerInterval = setInterval(() => {
             setResendTimer((prev) => {
               if (prev <= 1) {
@@ -315,10 +330,29 @@ const handleLogin = async (e) => {
           }, 1000);
         }
       } else {
-        setError(data.error || "Failed to send OTP.");
+        // Backend error - show detailed error message
+        const errorMessage = 
+          data.error || 
+          data.message || 
+          "Failed to send OTP. Please try again.";
+        
+        setError(errorMessage);
+        console.error("Forgot password error response:", data);
       }
-    } catch {
-      setError("Network error.");
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      
+      if (error.response) {
+        const errorMessage = 
+          error.response.data?.error || 
+          error.response.data?.message || 
+          `Server Error (${error.response.status})`;
+        setError(errorMessage);
+      } else if (error.request) {
+        setError("Network error: Unable to reach the server. Please check your internet connection.");
+      } else {
+        setError(`Error: ${error.message || "Network error. Please check your connection and try again."}`);
+      }
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -329,25 +363,39 @@ const handleLogin = async (e) => {
   // --------------------------
   const handleValidateOTP = async () => {
     if (!otpCode) return setError("Enter your OTP code.");
+    if (!resetKey) return setError("Reset session expired. Please start again.");
     setForgotPasswordLoading(true);
     setError("");
 
     try {
-      const res = await fetch(
-        `http://spacestation.tunewave.in/wp-json/users/v2/codevalidate?user=${email}&code=${otpCode}&key=${resetKey}`,
-        { method: "POST" }
-      );
-      const data = await res.json();
-      console.log("OTP validation response:", data.otp);
+      const response = await axios.post("/api/Auth/forgetpassword/codevalidate", {
+        email: email,
+        code: otpCode,
+        key: resetKey,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = response.data;
+      console.log("OTP validation response:", data);
+      
       if (data.success) {
         setResetKey(data.key || resetKey);
         setForgotStage("reset");
         setSuccessMessage(data.message || "OTP validated successfully.");
+        setError("");
       } else {
-        setError(data.error || "Invalid OTP.");
+        setError(data.error || data.message || "Invalid or expired OTP.");
       }
-    } catch {
-      setError("Network error.");
+    } catch (error) {
+      console.error("OTP validation error:", error);
+      if (error.response) {
+        setError(error.response.data?.error || error.response.data?.message || "Invalid or expired OTP.");
+      } else {
+        setError("Network error. Please try again.");
+      }
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -390,31 +438,46 @@ const handleLogin = async (e) => {
       return setError("Enter both password fields.");
     if (newPassword !== confirmPassword)
       return setError("Passwords do not match.");
+    if (!resetKey) return setError("Reset session expired. Please start again.");
 
     setForgotPasswordLoading(true);
     setError("");
 
     try {
-      const res = await fetch(
-        `http://spacestation.tunewave.in/wp-json/users/v2/password?user=${email}&newpassword=${newPassword}&confirmpassword=${confirmPassword}&key=${resetKey}`,
-        { method: "POST" }
-      );
-      const data = await res.json();
+      const response = await axios.post("/api/Auth/forgetpassword/password", {
+        email: email,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+        key: resetKey,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = response.data;
+      console.log("Reset password response:", data);
 
       if (data.success) {
         setSuccessMessage(
-          data.message || " Password changed successfully! You can now log in."
+          data.message || "Password updated successfully and confirmation sent via Email & WhatsApp. You can now log in."
         );
         setForgotStage("none");
         setOtpCode("");
         setNewPassword("");
         setConfirmPassword("");
         setResetKey("");
+        setError("");
       } else {
-        setError(data.error || "Password reset failed. Please try again.");
+        setError(data.error || data.message || "Password reset failed. Please try again.");
       }
-    } catch {
-      setError("Network error.");
+    } catch (error) {
+      console.error("Reset password error:", error);
+      if (error.response) {
+        setError(error.response.data?.error || error.response.data?.message || "Password reset failed. Please try again.");
+      } else {
+        setError("Network error. Please try again.");
+      }
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -425,22 +488,52 @@ const handleLogin = async (e) => {
   // --------------------------
   const handleResendOTP = async () => {
     if (resendDisabled) return;
+    if (!resetKey) {
+      setError("Reset session expired. Please start again.");
+      return;
+    }
     setForgotPasswordLoading(true);
     setError("");
     setSuccessMessage("");
 
     try {
-      const res = await fetch(
-        `http://spacestation.tunewave.in/wp-json/users/v2/resendcode?user=${email}&key=${resetKey}`,
-        { method: "POST" }
-      );
-      const data = await res.json();
+      const response = await axios.post("/api/Auth/forgetpassword/resendcode", {
+        email: email,
+        key: resetKey,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (data.success) {
-        setSuccessMessage(data.message || "OTP resent successfully.");
-        if (data.attempt) {
+      const data = response.data;
+      console.log("Resend OTP response:", data);
+
+      // Handle 429 rate limit response
+      if (response.status === 429) {
+        const waitSeconds = data.remaining_seconds || 60;
+        setError(data.error || "Please wait before requesting again.");
+        setResendDisabled(true);
+        setResendTimer(waitSeconds);
+        const timerInterval = setInterval(() => {
+          setResendTimer((prev) => {
+            if (prev <= 1) {
+              clearInterval(timerInterval);
+              setResendDisabled(false);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else if (data.success) {
+        setResetKey(data.key || resetKey);
+        setSuccessMessage(data.message || "OTP resent successfully to registered email & WhatsApp.");
+        
+        // Handle progressive resend delays
+        const waitSeconds = data.next_resend_wait_seconds || 60;
+        if (waitSeconds > 0) {
           setResendDisabled(true);
-          setResendTimer(data.attempt * 30);
+          setResendTimer(waitSeconds);
           const timerInterval = setInterval(() => {
             setResendTimer((prev) => {
               if (prev <= 1) {
@@ -453,38 +546,87 @@ const handleLogin = async (e) => {
           }, 1000);
         }
       } else {
-        setError(data.error || "Failed to resend OTP.");
+        setError(data.error || data.message || "Failed to resend OTP.");
       }
-    } catch {
-      setError("Network error.");
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      if (error.response) {
+        // Handle 429 rate limit response
+        if (error.response.status === 429) {
+          const waitSeconds = error.response.data?.remaining_seconds || 60;
+          setError(error.response.data?.error || "Please wait before requesting again.");
+          setResendDisabled(true);
+          setResendTimer(waitSeconds);
+          const timerInterval = setInterval(() => {
+            setResendTimer((prev) => {
+              if (prev <= 1) {
+                clearInterval(timerInterval);
+                setResendDisabled(false);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        } else {
+          setError(error.response.data?.error || error.response.data?.message || "Failed to resend OTP.");
+        }
+      } else {
+        setError("Network error. Please try again.");
+      }
     } finally {
       setForgotPasswordLoading(false);
     }
   };
 
   // --------------------------
-  // JWT auto refresh
+  // JWT auto refresh / Token verification
   // --------------------------
   const startAutoRefresh = () => {
     if (refreshIntervalId) clearInterval(refreshIntervalId);
+    // Verify token every 50 minutes (tokens expire after 60 minutes)
     const id = setInterval(async () => {
       const token = localStorage.getItem("jwtToken");
-      if (!token) return;
+      if (!token) {
+        clearInterval(id);
+        return;
+      }
       try {
-        const res = await fetch(
-          "http://spacestation.tunewave.in/wp-json/jwt-auth/v1/token/refresh",
-          { method: "POST", headers: { Authorization: `Bearer ${token}` } }
-        );
-        const data = await res.json();
-        if (res.ok && data.token) localStorage.setItem("jwtToken", data.token);
-        else {
+        const response = await axios.get("/api/Auth/verify", {
+          headers: { 
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        const data = response.data;
+
+        if (data.message && data.user) {
+          // Token is valid, update user info if needed
+          console.log("Token verified successfully");
+        } else {
+          // Token invalid or expired
           clearInterval(id);
           localStorage.removeItem("jwtToken");
           localStorage.removeItem("isLoggedIn");
+          localStorage.removeItem("displayName");
+          localStorage.removeItem("role");
           navigate("/login");
         }
-      } catch {}
-    }, 60 * 1000);
+      } catch (error) {
+        console.error("Token verification error:", error);
+        // On network error, don't clear session immediately
+        // Will retry on next interval
+        if (error.response && error.response.status === 401) {
+          // Token invalid or expired
+          clearInterval(id);
+          localStorage.removeItem("jwtToken");
+          localStorage.removeItem("isLoggedIn");
+          localStorage.removeItem("displayName");
+          localStorage.removeItem("role");
+          navigate("/login");
+        }
+      }
+    }, 50 * 60 * 1000); // Check every 50 minutes
     setRefreshIntervalId(id);
   };
 
@@ -501,7 +643,7 @@ const handleLogin = async (e) => {
     const fetchCardImage = async () => {
       try {
         const res = await axios.get(
-          "http://spacestation.tunewave.in/wp-json/frontend/v2/artwork"
+          "https://img.abyssale.com/34j39c5e-31fa-4jdb-b6d4-0c97445fb9b3?text_title=Welcome&text_title.color=#FFFFFF&text_title.background_color=#FF00000&company_logo=https%3A%2F%2Fuploads-ssl.webflow.com%2F6214efb2d4b5d94158f2ff03%2F6218f45ff39a58c8dbf7eb2c_abyssale-logo.svg"
         );
         if (res.data.image) setCardImage(res.data.image);
       } catch (err) {
@@ -528,6 +670,11 @@ const handleLogin = async (e) => {
           </>
         )}
 
+
+
+        <h4 className="login-title">Remove In Production</h4>
+        <p className="login-subtitle">  Use as SuperAdmin email :   admin@tunewave.com     password: SuperAdmin@123</p>
+        <p className="login-subtitle">  Use as Enterprise email :   shiva@gmail.com      password:sh123</p>
         <form className="login-form" onSubmit={handleLogin}>
           {/* <h2>Login to Label</h2> */}
           {error && <p className="error">{error}</p>}
@@ -557,6 +704,12 @@ const handleLogin = async (e) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault(); // prevent form from auto-submitting
+                      handleVerifyEmail();
+                    }
+                  }}
                 />
               </label>
               <button
@@ -590,10 +743,7 @@ const handleLogin = async (e) => {
               </label>
               <div className="forget-login">
                 <p
-                  className="login-forgot-password"
-                  style={{
-                    cursor: forgotPasswordLoading ? "not-allowed" : "pointer",
-                  }}
+                  className={`login-forgot-password ${forgotPasswordLoading ? "disabled" : ""}`}
                   onClick={() => !forgotPasswordLoading && handleSendOTP()}
                 >
                   Forgot Password?
@@ -631,8 +781,7 @@ const handleLogin = async (e) => {
 
               <div className="resend-validate-otp">
                 <p
-                  className="login-forgot-password"
-                  style={{ cursor: resendDisabled ? "not-allowed" : "pointer" }}
+                  className={`login-forgot-password ${resendDisabled ? "disabled" : ""}`}
                   onClick={handleResendOTP}
                 >
                   {resendDisabled
@@ -661,17 +810,9 @@ const handleLogin = async (e) => {
           {/* Reset Password */}
           {forgotStage === "reset" && (
             <>
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "#555",
-                  marginTop: "4px",
-                  lineHeight: "1.4",
-                  textAlign: "left",
-                }}
-              >
+              <div className="password-note">
                 Note: Your password must meet the following criteria:
-                <ul style={{ paddingLeft: "20px", margin: "4px 0" }}>
+                <ul className="password-note-list">
                   <li>Minimum length: 8 characters</li>
                   <li>At least one uppercase letter (A-Z)</li>
                   <li>At least one lowercase letter (a-z)</li>

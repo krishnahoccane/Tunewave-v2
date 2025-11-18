@@ -7,9 +7,11 @@ import QCTab from "../components/enterpriseComponents/QCTab";
 import BillingTab from "../components/enterpriseComponents/BillingTab";
 import SystemConfigTab from "../components/enterpriseComponents/SystemConfigTab";
 import Enterprises from "../components/enterpriseComponents/Enterprises";
+import Labels from "../components/enterpriseComponents/Labels";
 import TicketsTab from "../components/enterpriseComponents/TicketsTab";
 import UsersTab from "../components/enterpriseComponents/UsersTab";
 import DSPConfigTab from "../components/enterpriseComponents/DSPConfigTab";
+import { useRole } from "../context/RoleContext";
 
 import "../styles/CatalogPage.css";
 import SearchIcon from "../assets/Vector.png";
@@ -26,17 +28,19 @@ function EnterpriseCatalogPage() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const { actualRole } = useRole();
   
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const tab = queryParams.get("tab") || "qc";
+  const tab = queryParams.get("tab") || (actualRole === "SuperAdmin" ? "enterprises" : "labels");
   
   // Get default section for each tab (first option in sidebar)
   const getDefaultSection = (tabName) => {
     const defaults = {
       enterprise: "all-enterprises",
       enterprises: "all-enterprises",
+      labels: "all-labels",
       qc: "all",
       billing: "all-invoices",
       "system-config": "settings",
@@ -62,6 +66,7 @@ function EnterpriseCatalogPage() {
     const mapping = {
       enterprise: "Enterprises",
       enterprises: "Enterprises",
+      labels: "Labels",
       qc: "QC",
       billing: "Billing",
       "system-config": "System Config",
@@ -169,8 +174,10 @@ function EnterpriseCatalogPage() {
             
           </div>
           {/* <button className="btn-gradient">Create Enterprise</button> */}
-          {currentSection === "Enterprises" && 
+          {currentSection === "Enterprises" && actualRole === "SuperAdmin" && 
         <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-enterprise")}>Create Enterprise</button>}
+          {currentSection === "Labels" && actualRole !== "SuperAdmin" && 
+        <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-label")}>Create Label</button>}
         </div>
       </div>
 
@@ -185,8 +192,17 @@ function EnterpriseCatalogPage() {
 
       {/* MAIN CONTENT */}
       <div className="catalog-content">
-        {(tab === "enterprise" || tab === "enterprises") && (
+        {(tab === "enterprise" || tab === "enterprises") && actualRole === "SuperAdmin" && (
           <Enterprises
+            searchItem={searchTerm}
+            showMode={showMode}
+            setTable={setTableData}
+            onSelectionChange={setSelectedRows}
+            selectedFilter={activeTab}
+          />
+        )}
+        {tab === "labels" && actualRole !== "SuperAdmin" && (
+          <Labels
             searchItem={searchTerm}
             showMode={showMode}
             setTable={setTableData}

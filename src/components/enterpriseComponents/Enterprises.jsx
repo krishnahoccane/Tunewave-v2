@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import { useRole } from "../../context/RoleContext";
 
 import DataTable from "../DataTable";
 import GridView from "../GridView";
@@ -10,139 +12,195 @@ import "../../styles/TableShared.css";
 
 function Enterprises({ searchItem, showMode, setTable, onSelectionChange, selectedFilter }) {
   const [filteredData, setFilteredData] = useState([]);
+  const [enterprisesData, setEnterprisesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [openStatusDropdown, setOpenStatusDropdown] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const toastShownRef = useRef(false);
+  const lastFilterRef = useRef("");
+  const { actualRole } = useRole();
 
-  // ✅ Mock enterprise data (matching API structure)
-  const enterprisesData = useMemo(
-    () => [
-      { 
-        id: 1, 
-        enterpriseid: "ENT-001", 
-        enterprise: "Shiva Pvt Ltd", 
-        domain: "shiva.com",
-        revenueShare: "70%",
-        qcRequired: "Required",
-        status: "Active" 
-      },
-      { 
-        id: 2, 
-        enterpriseid: "ENT-002", 
-        enterprise: "Deepu Industries", 
-        domain: "deepu.com",
-        revenueShare: "65%",
-        qcRequired: "Not required",
-        status: "Inactive" 
-      },
-      { 
-        id: 3, 
-        enterpriseid: "ENT-003", 
-        enterprise: "Ram Solutions", 
-        domain: "ram.com",
-        revenueShare: "75%",
-        qcRequired: "Required",
-        status: "Active" 
-      },
-      { 
-        id: 4, 
-        enterpriseid: "ENT-004", 
-        enterprise: "Priya Enterprises", 
-        domain: "priya.com",
-        revenueShare: "80%",
-        qcRequired: "Required",
-        status: "Active" 
-      },
-      { 
-        id: 5, 
-        enterpriseid: "ENT-005", 
-        enterprise: "Venn Labs", 
-        domain: "venn.com",
-        revenueShare: "60%",
-        qcRequired: "Not required",
-        status: "Inactive" 
-      },
-      { 
-        id: 6, 
-        enterpriseid: "ENT-006", 
-        enterprise: "gp Enterprises", 
-        domain: "gp.com",
-        revenueShare: "55%",
-        qcRequired: "Required",
-        status: "Suspended" 
-      },
-      { 
-        id: 7, 
-        enterpriseid: "ENT-007", 
-        enterprise: "xyz Labs", 
-        domain: "xyz.com",
-        revenueShare: "50%",
-        qcRequired: "Not required",
-        status: "Suspended" 
-      },
-    ],
-    []
-  );
 
-  // TODO: Uncomment below to fetch from API instead of using mock data
-  // useEffect(() => {
-  //   const fetchEnterprises = async () => {
-  //     const token = localStorage.getItem("jwtToken");
-  //     
-  //     try {
-  //       const response = await fetch("https://spacestation.tunewave.in/api/Enterprise", {
-  //         method: "GET",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           ...(token && { Authorization: `Bearer ${token}` }),
-  //         },
-  //       });
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (openStatusDropdown && !e.target.closest('.status-dropdown-wrapper')) {
+        setOpenStatusDropdown(null);
+      }
+    };
+    
+    if (openStatusDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openStatusDropdown]);
 
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         
-  //         // Map API response to component format
-  //         const mappedData = Array.isArray(data) ? data.map((enterprise, index) => ({
-  //           id: enterprise.enterpriseID || index + 1,
-  //           enterpriseid: `ENT-${String(enterprise.enterpriseID || index + 1).padStart(3, '0')}`,
-  //           enterprise: enterprise.enterpriseName || "",
-  //           domain: enterprise.domain || "",
-  //           revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "10%",
-  //           qcRequired: enterprise.qcRequired ? "Required" : "Not required",
-  //           status: enterprise.status || "Active",
-  //           createdBy: enterprise.createdBy || 0,
-  //           createdAt: enterprise.createdAt || "",
-  //           updatedAt: enterprise.updatedAt || "",
-  //         })) : [];
-  //         
-  //         setEnterprisesData(mappedData);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching enterprises:", error);
-  //     }
-  //   };
+  // Reset toast flag when filter changes
+  useEffect(() => {
+    const currentFilter = selectedFilter?.toLowerCase() || "";
+    if (lastFilterRef.current !== currentFilter) {
+      toastShownRef.current = false;
+      lastFilterRef.current = currentFilter;
+    }
+  }, [selectedFilter]);
 
-  //   fetchEnterprises();
-  // }, []);
+  // Fetch enterprises from API
+  useEffect(() => {
+    const fetchEnterprises = async () => {
+      const token = localStorage.getItem("jwtToken");
+      
+      if (!token) {
+        console.warn("No JWT token found");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Build query parameters for filters
+        const params = new URLSearchParams();
+        
+        // Add status filter if selected (using API status values)
+        if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-enterprises") {
+          if (selectedFilter.toLowerCase() === "active-enterprises") {
+            params.append("status", "active");
+          } else if (selectedFilter.toLowerCase() === "suspended-enterprises") {
+            params.append("status", "suspend");
+          } else if (selectedFilter.toLowerCase() === "disabled-enterprises") {
+            params.append("status", "disable");
+          }
+        }
+        
+        // Add search filter if provided
+        if (searchItem?.trim()) {
+          params.append("search", searchItem.trim());
+        }
+
+        // Try lowercase endpoint first (per API docs: GET /api/enterprises)
+        let url = `/api/enterprises${params.toString() ? `?${params.toString()}` : ""}`;
+        
+        let response;
+        try {
+          response = await axios.get(url, {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+        } catch (firstError) {
+          // If 404, try capitalized endpoint as fallback
+          if (firstError.response?.status === 404) {
+            url = `/api/Enterprise${params.toString() ? `?${params.toString()}` : ""}`;
+            response = await axios.get(url, {
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              },
+            });
+          } else {
+            throw firstError;
+          }
+        }
+
+        if (response.data && Array.isArray(response.data)) {
+          // Map API status to display format
+          const statusDisplayMap = {
+            "active": "Active",
+            "suspend": "Suspended",
+            "disable": "Disabled",
+            "Active": "Active",
+            "Suspended": "Suspended",
+            "Disabled": "Disabled",
+          };
+          
+          // Map API response to component format
+          const mappedData = response.data.map((enterprise) => {
+            const apiStatus = enterprise.status || "active";
+            const displayStatus = statusDisplayMap[apiStatus] || "Active";
+            
+            return {
+              id: enterprise.enterpriseId || 0,
+              enterpriseid: `ENT-${String(enterprise.enterpriseId || 0).padStart(3, '0')}`,
+              enterprise: enterprise.enterpriseName || "",
+              domain: enterprise.domain || "",
+              revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "10%",
+              qcRequired: enterprise.qcRequired ? "Required" : "Not required",
+              status: displayStatus,
+              owner: enterprise.owner || null,
+              createdBy: enterprise.createdBy || "",
+              createdAt: enterprise.createdAt || "",
+            };
+          });
+          
+          setEnterprisesData(mappedData);
+        } else {
+          console.warn("Unexpected API response format:", response.data);
+          setEnterprisesData([]);
+        }
+      } catch (error) {
+        // Only log error details in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching enterprises:", error);
+        }
+        
+        if (error.response) {
+          // Server responded with error status
+          const status = error.response.status;
+          const errorData = error.response.data;
+          
+          let errorMessage = "Failed to fetch enterprises.";
+          
+          if (status === 404) {
+            errorMessage = "Enterprises endpoint not found. Please contact support.";
+          } else if (status === 401 || status === 403) {
+            errorMessage = "Unauthorized. Please login again.";
+            // Optionally redirect to login
+            setTimeout(() => {
+              localStorage.removeItem("jwtToken");
+              navigate("/login");
+            }, 2000);
+          } else if (status >= 500) {
+            errorMessage = "Server error. Please try again later.";
+          } else {
+            errorMessage = errorData?.message || 
+                          errorData?.error || 
+                          error.response.statusText || 
+                          `Failed to fetch enterprises (${status})`;
+          }
+          
+          toast.dark(errorMessage, {
+            transition: Slide,
+            autoClose: status === 404 || status >= 500 ? 5000 : 3000,
+          });
+        } else if (error.request) {
+          // Request made but no response
+          toast.dark("Network error: Unable to reach the server. Please check your connection.", {
+            transition: Slide,
+          });
+        } else {
+          // Something else happened
+          toast.dark(`Error: ${error.message || "Failed to fetch enterprises. Please try again."}`, {
+            transition: Slide,
+          });
+        }
+        setEnterprisesData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnterprises();
+  }, [selectedFilter, searchItem, location.key]); // Refetch when filter, search changes, or on navigation
 
   useEffect(() => {
+    // Since API handles filtering, we just use the data directly
+    // But we can still apply client-side filtering if needed for additional logic
     let filtered = enterprisesData;
 
-    // ✅ Sidebar filter handling
-    if (
-      selectedFilter &&
-      selectedFilter.toLowerCase() !== "all" &&
-      selectedFilter.toLowerCase() !== "all-enterprises"
-    ) {
-      if (selectedFilter.toLowerCase() === "active-enterprises") {
-        filtered = filtered.filter((item) => item.status.toLowerCase() === "active");
-      } else if (selectedFilter.toLowerCase() === "inactive-enterprises") {
-        filtered = filtered.filter((item) => item.status.toLowerCase() === "inactive");
-      } else if(selectedFilter.toLowerCase() === "suspended-enterprises"){
-        filtered = filtered.filter((item) => item.status.toLowerCase() === "suspended");
-      }
-    }
-
-    // ✅ Apply search filter
-    if (searchItem?.trim()) {
+    // Apply client-side search filter if API doesn't handle it
+    // (API should handle search via ?search= parameter, but keeping as fallback)
+    if (searchItem?.trim() && !searchItem.includes("?")) {
       filtered = filtered.filter((item) =>
         item.enterprise.toLowerCase().includes(searchItem.toLowerCase()) ||
         item.enterpriseid.toLowerCase().includes(searchItem.toLowerCase()) ||
@@ -153,23 +211,179 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     setFilteredData(filtered);
     setTable(filtered);
 
-    // ✅ Toast + redirect if no results
+    // ✅ Toast + redirect if no results (only show once per filter)
+    const currentFilter = selectedFilter?.toLowerCase() || "";
+    
     if (
+      !loading &&
       filtered.length === 0 &&
       selectedFilter &&
-      selectedFilter.toLowerCase() !== "all" &&
-      selectedFilter.toLowerCase() !== "all-enterprises"
+      currentFilter !== "all" &&
+      currentFilter !== "all-enterprises" &&
+      !toastShownRef.current
     ) {
-      toast.dark(`No records found under "${selectedFilter}"`, {
-        position: "bottom-center",
+      toastShownRef.current = true;
+      
+      // Map filter IDs to display labels
+      const filterLabelMap = {
+        "active-enterprises": "Active Enterprises",
+        "suspended-enterprises": "Suspended Enterprises",
+        "disabled-enterprises": "Disabled Enterprises",
+      };
+      const displayLabel = filterLabelMap[currentFilter] || selectedFilter;
+      toast.dark(`No records found under "${displayLabel}"`, {
         autoClose: 2500,
+        transition: Slide,
       });
 
       setTimeout(() => {
-        navigate("/enterprise-catalog?tab=enterprise&section=all-enterprises");
+        navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises");
       }, 2600);
     }
-  }, [searchItem, selectedFilter, enterprisesData, setTable, navigate]);
+  }, [searchItem, selectedFilter, enterprisesData, setTable, navigate, loading]);
+
+  // Handle status update from dropdown
+  const handleStatusUpdate = async (enterpriseId, newDisplayStatus) => {
+    if (!enterpriseId || !newDisplayStatus) return;
+
+    const statusMap = {
+      "Active": "active",
+      "Suspended": "suspend",
+      "Disabled": "disable",
+    };
+    
+    const apiStatus = statusMap[newDisplayStatus] || "active";
+
+    setUpdatingStatus(enterpriseId);
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      const response = await axios.post(
+        `/api/Enterprise/status?id=${enterpriseId}&status=${apiStatus}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Handle response - API might return empty body or different structure
+      const responseData = response.data || {};
+      const isSuccess = response.status >= 200 && response.status < 300;
+      
+      if (isSuccess) {
+        // Map API status back to display format if provided
+        const statusDisplayMap = {
+          "active": "Active",
+          "suspend": "Suspended",
+          "disable": "Disabled",
+        };
+        
+        // If response has status, use it; otherwise use the status we sent
+        const apiStatusValue = responseData.status || apiStatus;
+        const displayStatus = statusDisplayMap[apiStatusValue] || statusDisplayMap[apiStatus] || selectedStatus;
+        
+        // Update local state
+        setEnterprisesData((prev) =>
+          prev.map((ent) =>
+            ent.id === enterpriseId
+              ? { ...ent, status: displayStatus }
+              : ent
+          )
+        );
+
+        toast.dark(responseData.message || "Enterprise status updated successfully", {
+          transition: Slide,
+        });
+
+        // Close dropdown
+        setOpenStatusDropdown(null);
+
+        // Refetch to ensure data is in sync
+        setTimeout(() => {
+          const fetchEnterprises = async () => {
+            try {
+              const params = new URLSearchParams();
+              if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-enterprises") {
+                if (selectedFilter.toLowerCase() === "active-enterprises") {
+                  params.append("status", "active");
+                } else if (selectedFilter.toLowerCase() === "suspended-enterprises") {
+                  params.append("status", "suspend");
+                } else if (selectedFilter.toLowerCase() === "disabled-enterprises") {
+                  params.append("status", "disable");
+                }
+              }
+              if (searchItem?.trim()) {
+                params.append("search", searchItem.trim());
+              }
+              const url = `/api/enterprises${params.toString() ? `?${params.toString()}` : ""}`;
+              const res = await axios.get(url, {
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`,
+                },
+              });
+              if (res.data && Array.isArray(res.data)) {
+                const statusDisplayMap = {
+                  "active": "Active",
+                  "suspend": "Suspended",
+                  "disable": "Disabled",
+                  "Active": "Active",
+                  "Suspended": "Suspended",
+                  "Disabled": "Disabled",
+                };
+                
+                const mappedData = res.data.map((enterprise) => {
+                  const apiStatus = enterprise.status || "active";
+                  const displayStatus = statusDisplayMap[apiStatus] || "Active";
+                  
+                  return {
+                    id: enterprise.enterpriseId || 0,
+                    enterpriseid: `ENT-${String(enterprise.enterpriseId || 0).padStart(3, '0')}`,
+                    enterprise: enterprise.enterpriseName || "",
+                    domain: enterprise.domain || "",
+                    revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "10%",
+                    qcRequired: enterprise.qcRequired ? "Required" : "Not required",
+                    status: displayStatus,
+                    owner: enterprise.owner || null,
+                    createdBy: enterprise.createdBy || "",
+                    createdAt: enterprise.createdAt || "",
+                  };
+                });
+                setEnterprisesData(mappedData);
+              }
+            } catch (error) {
+              console.error("Error refetching enterprises:", error);
+            }
+          };
+          fetchEnterprises();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      if (error.response) {
+        toast.dark(
+          error.response.data?.message || `Failed to update status: ${error.response.statusText}`,
+          { transition: Slide }
+        );
+      } else {
+        toast.dark("Network error. Please try again.", { transition: Slide });
+      }
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  // Get status pill class based on status
+  const getStatusPillClass = (status) => {
+    const statusLower = (status || "Active").toLowerCase();
+    if (statusLower === "active") return "status-green";
+    if (statusLower === "suspended") return "status-yellow";
+    if (statusLower === "disabled") return "status-red";
+    return "status-gray";
+  };
 
   const columns = [
     { key: "enterpriseid", label: "Enterprise ID" },
@@ -177,22 +391,119 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     { key: "domain", label: "Domain" },
     { key: "revenueShare", label: "Revenue Share" },
     { key: "qcRequired", label: "QC Required" },
-    { key: "status", label: "Status" },
+    {
+      key: "status",
+      label: "Status",
+      render: (item) => {
+        const currentStatus = item.status || "Active";
+        const pillClass = getStatusPillClass(currentStatus);
+        
+        if (actualRole === "SuperAdmin") {
+          const statusOptions = ["Active", "Suspended", "Disabled"];
+          const isOpen = openStatusDropdown === item.id;
+          
+          return (
+            <div className="status-dropdown-wrapper" style={{ position: "relative" }}>
+              <div
+                className={`status-pill ${pillClass}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenStatusDropdown(isOpen ? null : item.id);
+                }}
+                style={{
+                  cursor: updatingStatus === item.id ? "wait" : "pointer",
+                  opacity: updatingStatus === item.id ? 0.6 : 1,
+                  userSelect: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {currentStatus}
+                <span style={{ fontSize: "10px", marginLeft: "4px" }}>▼</span>
+              </div>
+              
+              {isOpen && (
+                <>
+                  <div
+                    className="status-dropdown-overlay"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenStatusDropdown(null);
+                    }}
+                  />
+                  <div className="status-dropdown-menu">
+                    {statusOptions.map((status) => {
+                      const optionPillClass = getStatusPillClass(status);
+                      const isSelected = status === currentStatus;
+                      
+                      return (
+                        <div
+                          key={status}
+                          className={`status-dropdown-option ${isSelected ? "selected" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (status !== currentStatus) {
+                              handleStatusUpdate(item.id, status);
+                            } else {
+                              setOpenStatusDropdown(null);
+                            }
+                          }}
+                          style={{
+                            cursor: updatingStatus === item.id ? "wait" : "pointer",
+                            opacity: updatingStatus === item.id ? 0.6 : 1,
+                          }}
+                        >
+                          <span className={`status-pill ${optionPillClass}`}>
+                            {status}
+                          </span>
+                          {isSelected && (
+                            <span style={{ marginLeft: "8px", color: "#1278bb" }}>✓</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        }
+        
+        return (
+          <span className={`status-pill ${pillClass}`}>
+            {currentStatus}
+          </span>
+        );
+      },
+    },
   ];
 
+  if (loading) {
+    return (
+      <div className="tab-content">
+        <div className="loading-container">Loading enterprises...</div>
+        <ToastContainer position="bottom-center" transition={Slide} />
+      </div>
+    );
+  }
+
   return (
-    <div className="tab-content">
-      {showMode === "grid" ? (
-        <GridView data={filteredData} />
-      ) : (
+    <>
+      <div className="tab-content">
+        {showMode === "grid" ? (
+          <GridView data={filteredData} />
+        ) : (
         <DataTable
           data={filteredData}
           columns={columns}
           onSelectionChange={onSelectionChange}
         />
-      )}
-      <ToastContainer />
-    </div>
+        )}
+        <ToastContainer position="bottom-center" transition={Slide} />
+      </div>
+      
+    </>
   );
 }
 

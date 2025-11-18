@@ -5,86 +5,54 @@ import "react-toastify/dist/ReactToastify.css";
 import "../styles/styled.css";
 import axios from "axios";
 
-function CreateEnterprise() {
+function CreateLabel() {
   const navigate = useNavigate();
 
-  const [enterpriseName, setEnterpriseName] = useState("");
-  const [email, setEmail] = useState("");
+  const [labelName, setLabelName] = useState("");
   const [domain, setDomain] = useState("");
+  const [planType, setPlanType] = useState("Growth");
   const [revenueShare, setRevenueShare] = useState("10");
+  const [qcRequired, setQcRequired] = useState(true);
   const [isRevenueShareEditable, setIsRevenueShareEditable] = useState(false);
-  const [qcRequired, setQcRequired] = useState("");
-  // Helper function to get userId from localStorage (might be base64 encoded)
-  const getUserId = () => {
-    const storedUserId = localStorage.getItem("userId");
-    if (!storedUserId) return 0;
-    
-    try {
-      // Try to decode base64 first
-      const decoded = atob(storedUserId);
-      const userId = parseInt(decoded, 10);
-      return isNaN(userId) ? 0 : userId;
-    } catch {
-      // If not base64, try parsing directly
-      const userId = parseInt(storedUserId, 10);
-      return isNaN(userId) ? 0 : userId;
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate all required fields
-    if (!enterpriseName.trim()) {
-      toast.dark("Please enter Enterprise Name.", { transition: Slide });
-      return;
-    }
-    if (!email.trim()) {
-      toast.dark("Please enter Email.", { transition: Slide });
-      return;
-    }
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      toast.dark("Please enter a valid email address.", { transition: Slide });
+    if (!labelName.trim()) {
+      toast.dark("Please enter Label Name.", { transition: Slide });
       return;
     }
     if (!domain.trim()) {
       toast.dark("Please enter Domain.", { transition: Slide });
       return;
     }
-    if (!qcRequired) {
-      toast.dark("Please select QC Required.", { transition: Slide });
+    if (!planType.trim()) {
+      toast.dark("Please select Plan Type.", { transition: Slide });
       return;
     }
-
-    // Parse revenueShare: remove % and convert to number, default to 10 if empty
+    
+    // Validate revenue share
     const revenueShareToParse = revenueShare.trim() || "10";
     const revenueShareValue = parseFloat(revenueShareToParse.replace(/%/g, "").trim());
-    if (isNaN(revenueShareValue)) {
-      toast.dark("Please enter a valid Revenue Share number.", { transition: Slide });
+    if (isNaN(revenueShareValue) || revenueShareValue < 0 || revenueShareValue > 100) {
+      toast.dark("Please enter a valid Revenue Share (0-100).", { transition: Slide });
       return;
     }
 
-    // Convert qcRequired to boolean
-    const qcRequiredBool = qcRequired === "Required";
-
-    // Get userId for createdBy
-    const createdBy = getUserId();
-
     // Prepare form data according to API schema
+    // Note: enterpriseId should be determined by backend based on logged-in user's enterprise
     const formData = {
-      enterpriseName: enterpriseName.trim(),
-      email: email.trim(),
+      labelName: labelName.trim(),
       domain: domain.trim(),
+      planType: planType.trim(),
+      qcRequired: qcRequired,
       revenueShare: revenueShareValue,
-      qcRequired: qcRequiredBool,
-    //   createdBy: createdBy,
+      // enterpriseId will be set by backend based on EnterpriseAdmin's enterprise
     };
 
     const token = localStorage.getItem("jwtToken");
     
-    // Diagnostic: Check if token exists
     if (!token) {
       toast.dark("Authentication required. Please login again.");
       console.warn("No JWT token found in localStorage");
@@ -93,41 +61,30 @@ function CreateEnterprise() {
     
     try {
       console.log("Submitting form data:", formData);
-      console.log("Token exists:", !!token);
       
-      const response = await axios.post("/api/Enterprise/", formData, {
+      const response = await axios.post("/api/labels", formData, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
       });
 
-      console.log("Response status:", response.status);
-      console.log("Response data:", response.data);
-
       const data = response.data;
       
-      // Check if data was created successfully despite error status
-      // Sometimes backend saves data but returns error status
-      const isSuccess = response.status >= 200 && response.status < 300 ||
-                       (response.status === 500 && (data.id || data.enterpriseID || data.enterpriseName)) ||
-                       (data.success === true) ||
-                       (data.message && data.message.toLowerCase().includes("success"));
+      // Check if data was created successfully (201 Created)
+      const isSuccess = response.status === 201 || 
+                       (response.status >= 200 && response.status < 300) ||
+                       (data.status === "success" && data.labelId);
       
       if (isSuccess) {
-        toast.success("Enterprise created successfully!");
-        console.log("Enterprise created:", data);
+        toast.dark(data.message || "Label created successfully!", { transition: Slide });
+        console.log("Label created:", data);
         
-        // Navigate back to enterprise catalog after a short delay
+        // Navigate back to labels catalog after a short delay
         setTimeout(() => {
-          navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises");
+          navigate("/enterprise-catalog?tab=labels&section=all-labels");
         }, 1500);
       } else {
-        // Backend error - show detailed error message
-        console.error("Backend Error Response:", data);
-        console.error("Response Status:", response.status);
-        
-        // Extract error message from various possible response formats
         const errorMessage = 
           data.message || 
           data.error || 
@@ -136,29 +93,25 @@ function CreateEnterprise() {
           (data.errors && JSON.stringify(data.errors)) ||
           `Server Error (${response.status})`;
         
-        toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000 });
+        toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000, transition: Slide });
       }
     } catch (error) {
       console.error("Axios error details:", error);
       
-      // Handle axios errors
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         const data = error.response.data;
         const status = error.response.status;
         
-        // Check if data was created successfully despite error status
-        const isSuccess = (status === 500 && (data.id || data.enterpriseID || data.enterpriseName)) ||
-                         (data.success === true) ||
+        const isSuccess = (status === 201) ||
+                         (data.status === "success" && data.labelId) ||
                          (data.message && data.message.toLowerCase().includes("success"));
         
         if (isSuccess) {
-          toast.success("Enterprise created successfully!");
-          console.log("Enterprise created:", data);
+          toast.dark(data.message || "Label created successfully!", { transition: Slide });
+          console.log("Label created:", data);
           
           setTimeout(() => {
-            navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises");
+            navigate("/enterprise-catalog?tab=labels&section=all-labels");
           }, 1500);
         } else {
           const errorMessage = 
@@ -169,13 +122,11 @@ function CreateEnterprise() {
             (data.errors && JSON.stringify(data.errors)) ||
             `Server Error (${status})`;
           
-          toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000 });
+          toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000, transition: Slide });
         }
       } else if (error.request) {
-        // The request was made but no response was received
         toast.dark("Network error: Unable to reach the server. Please check your internet connection or try again later.");
       } else {
-        // Something happened in setting up the request that triggered an Error
         toast.dark(`Error: ${error.message || "Network error. Please check your connection and try again."}`);
       }
     }
@@ -183,37 +134,23 @@ function CreateEnterprise() {
 
   return (
     <div className="pages-layout-container">
-      <h2 className="pages-main-title">Create Enterprise</h2>
+      <h2 className="pages-main-title">Create Label</h2>
 
-      {/* Enterprise Details Section */}
+      {/* Label Details Section */}
       <div className="section">
-        <h3>Enter Enterprise Details</h3>
+        <h3>Enter Label Details</h3>
 
         <div className="input-group">
-          <label htmlFor="enterpriseName">
-            Enterprise Name <span className="required-asterisk">*</span>
+          <label htmlFor="labelName">
+            Label Name <span className="required-asterisk">*</span>
           </label>
           <input
             type="text"
-            id="enterpriseName"
-            placeholder="e.g., Acme Corporation"
+            id="labelName"
+            placeholder="e.g., Sony Music"
             className="input-field input-field-half-width"
-            onChange={(e) => setEnterpriseName(e.target.value)}
-            value={enterpriseName}
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="email">
-            Email <span className="required-asterisk">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            placeholder="e.g., contact@acme.com"
-            className="input-field input-field-half-width"
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
+            onChange={(e) => setLabelName(e.target.value)}
+            value={labelName}
           />
         </div>
 
@@ -224,7 +161,7 @@ function CreateEnterprise() {
           <input
             type="text"
             id="domain"
-            placeholder="e.g., acme.com"
+            placeholder="e.g., dashboard.brownelephant.co.in"
             className="input-field input-field-half-width"
             onChange={(e) => setDomain(e.target.value)}
             value={domain}
@@ -232,8 +169,24 @@ function CreateEnterprise() {
         </div>
 
         <div className="input-group">
+          <label htmlFor="planType">
+            Plan Type <span className="required-asterisk">*</span>
+          </label>
+          <select
+            id="planType"
+            className="input-field input-field-half-width"
+            onChange={(e) => setPlanType(e.target.value)}
+            value={planType}
+          >
+            <option value="Growth">Growth</option>
+            <option value="Pro">Pro</option>
+            <option value="Enterprise">Enterprise</option>
+          </select>
+        </div>
+
+        <div className="input-group">
           <label htmlFor="revenueShare">
-            Revenue Share <span className="required-asterisk">*</span>
+            Revenue Share (%) <span className="required-asterisk">*</span>
           </label>
           <div className="revenue-share-wrapper">
             <input
@@ -258,7 +211,6 @@ function CreateEnterprise() {
                 type="button"
                 onClick={() => {
                   setIsRevenueShareEditable(false);
-                  // Reset to default if empty
                   if (!revenueShare.trim()) {
                     setRevenueShare("10");
                   }
@@ -280,9 +232,9 @@ function CreateEnterprise() {
               <input
                 type="radio"
                 name="qcRequired"
-                value="Required"
-                onChange={() => setQcRequired("Required")}
-                checked={qcRequired === "Required"}
+                value="true"
+                onChange={() => setQcRequired(true)}
+                checked={qcRequired === true}
               />
               <span>Required</span>
             </label>
@@ -290,9 +242,9 @@ function CreateEnterprise() {
               <input
                 type="radio"
                 name="qcRequired"
-                value="Not required"
-                onChange={() => setQcRequired("Not required")}
-                checked={qcRequired === "Not required"}
+                value="false"
+                onChange={() => setQcRequired(false)}
+                checked={qcRequired === false}
               />
               <span>Not required</span>
             </label>
@@ -302,11 +254,11 @@ function CreateEnterprise() {
 
       {/* Action Buttons */}
       <div className="form-actions">
-        <button className="btn-cancel" onClick={() => navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises")}>
+        <button className="btn-cancel" onClick={() => navigate("/enterprise-catalog?tab=labels&section=all-labels")}>
           Cancel
         </button>
         <button className="btn-gradient" onClick={handleSubmit}>
-          Create Enterprise
+          Create Label
         </button>
       </div>
 
@@ -315,4 +267,5 @@ function CreateEnterprise() {
   );
 }
 
-export default CreateEnterprise;
+export default CreateLabel;
+

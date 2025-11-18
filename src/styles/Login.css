@@ -380,3 +380,22 @@ html {
 .click-here-link:hover {
   color: #005bb5;
 }
+
+/* Password reset note */
+.password-note {
+  font-size: 14px;
+  color: #555;
+  margin-top: 4px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.password-note-list {
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+/* Forgot password link with conditional cursor */
+.login-forgot-password.disabled {
+  cursor: not-allowed;
+}

@@ -11,6 +11,7 @@ function DataTable({
   showPagination = true,
   showCheckboxes = true,
   onSelectionChange,
+  customActions, // Array of custom action objects: { label: string, onClick: (item) => void, showCondition: (item) => boolean }
 }) {
   const topCheckboxRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -320,9 +321,15 @@ const handleDotsClick = (e, id) => {
                     return "status-gray";
                   };
 
+                  // If custom render is provided and returns a React element, use it directly
+                  // Otherwise, auto-wrap status values
+                  const isReactElement = value && typeof value === "object" && value.$$typeof;
+
                   return (
                     <td key={col.key}>
-                      {looksLikeStatus && rawText ? (
+                      {isReactElement ? (
+                        value
+                      ) : looksLikeStatus && rawText ? (
                         <span className={`status-pill ${getStatusClass(rawText)}`}>{rawText}</span>
                       ) : (
                         value
@@ -393,6 +400,27 @@ const handleDotsClick = (e, id) => {
     >
       Download XLS
     </button>
+    {customActions && customActions.map((action, index) => {
+      const selected = tableData.find((r) => r.id === openRow);
+      const shouldShow = !action.showCondition || action.showCondition(selected);
+      if (!shouldShow) return null;
+      
+      return (
+        <button
+          key={index}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (action.onClick && selected) {
+              action.onClick(selected);
+            }
+            setOpenRow(null);
+            setDropdownPosition(null);
+          }}
+        >
+          {action.label}
+        </button>
+      );
+    })}
   </div>
 )}
 

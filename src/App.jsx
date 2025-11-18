@@ -195,6 +195,7 @@ import { useRole } from "./context/RoleContext";
 import "./styles/styled.css";
 import EnterpriseCatalogPage from "./pages/EnterpriseCatalogPage.jsx";
 import CreateEnterprise from "./pages/CreateEnterprise.jsx";
+import CreateLabel from "./pages/CreateLabel.jsx";
 function AppWrapper() {
   return (
     <Router>
@@ -215,6 +216,9 @@ function App() {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("jwtToken");
     localStorage.removeItem("displayName");
+    localStorage.removeItem("role");
+    // Dispatch custom event to notify RoleContext of role change
+    window.dispatchEvent(new Event("roleChanged"));
     setIsLoggedIn(false);
   };
 
@@ -343,6 +347,12 @@ function App() {
           path="/enterprise-catalog/create-enterprise"
           element={
             isLoggedIn ? <CreateEnterprise /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/enterprise-catalog/create-label"
+          element={
+            isLoggedIn ? <CreateLabel /> : <Navigate to="/login" />
           }
         />
       </Routes>
