@@ -350,23 +350,39 @@ const Navbar = () => {
                 Dashboard
               </Link>
             </li>
-            <li className="nav-item">
-              {actualRole === "SuperAdmin" ? (
+            {/* SuperAdmin: Show Enterprises */}
+            {actualRole === "SuperAdmin" && (
+              <li className="nav-item">
                 <Link
                   to="/enterprise-catalog?tab=enterprises&section=all-enterprises"
                   onClick={() => setMenuOpen(false)}
                 >
                   Enterprises
                 </Link>
-              ) : (
+              </li>
+            )}
+            {/* EnterpriseAdmin: Show Labels */}
+            {actualRole === "EnterpriseAdmin" && (
+              <li className="nav-item">
                 <Link
                   to="/enterprise-catalog?tab=labels&section=all-labels"
                   onClick={() => setMenuOpen(false)}
                 >
                   Labels
                 </Link>
-              )}
-            </li>
+              </li>
+            )}
+            {/* LabelAdmin role: Show Artists (which navigates to artists catalog) */}
+            {actualRole === "LabelAdmin" && (
+              <li className="nav-item">
+                <Link
+                  to="/enterprise-catalog?tab=artists&section=all-artists"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Artists
+                </Link>
+              </li>
+            )}
             <li className="nav-item">
               <Link
                 to="/enterprise-catalog?tab=qc"

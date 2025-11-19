@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { useRole } from "../../context/RoleContext";
 
 import DataTable from "../DataTable";
 import GridView from "../GridView";
@@ -13,10 +14,27 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
   const [filteredData, setFilteredData] = useState([]);
   const [labelsData, setLabelsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [openStatusDropdown, setOpenStatusDropdown] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const toastShownRef = useRef(false);
   const lastFilterRef = useRef("");
+  const { actualRole } = useRole();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (openStatusDropdown && !e.target.closest('.status-dropdown-wrapper')) {
+        setOpenStatusDropdown(null);
+      }
+    };
+    
+    if (openStatusDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openStatusDropdown]);
 
   // Reset toast flag when filter changes
   useEffect(() => {
@@ -87,6 +105,16 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
             const apiStatus = label.status || "active";
             const displayStatus = statusDisplayMap[apiStatus] || "Active";
             
+            // Display Enterprise Name if available, otherwise Enterprise ID
+            let enterpriseDisplay = "";
+            if (label.enterprise?.enterpriseName) {
+              enterpriseDisplay = label.enterprise.enterpriseName;
+            } else if (label.enterpriseId) {
+              enterpriseDisplay = `ENT-${String(label.enterpriseId).padStart(3, '0')}`;
+            } else if (label.enterprise?.enterpriseId) {
+              enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
+            }
+            
             return {
               id: label.labelId || 0,
               labelid: `LAB-${String(label.labelId || 0).padStart(3, '0')}`,
@@ -95,7 +123,7 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
               planType: label.planType || "",
               revenueShare: label.revenueShare ? `${label.revenueShare}%` : "",
               qcRequired: label.qcRequired ? "Required" : "Not required",
-              enterprise: label.enterprise?.enterpriseName || "",
+              enterprise: enterpriseDisplay,
               status: displayStatus,
               createdAt: label.createdAt || "",
             };
@@ -205,6 +233,161 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     }
   }, [searchItem, selectedFilter, labelsData, setTable, navigate, loading]);
 
+  // Handle status update from dropdown
+  const handleStatusUpdate = async (labelId, newDisplayStatus) => {
+    if (!labelId || !newDisplayStatus) return;
+
+    const statusMap = {
+      "Active": "active",
+      "Suspended": "suspend",
+      "Disabled": "disable",
+    };
+    
+    const apiStatus = statusMap[newDisplayStatus] || "active";
+
+    setUpdatingStatus(labelId);
+    const token = localStorage.getItem("jwtToken");
+
+    try {
+      const response = await axios.post(
+        `/api/labels/status?id=${labelId}&status=${apiStatus}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Handle response - API might return empty body or different structure
+      const responseData = response.data || {};
+      const isSuccess = response.status >= 200 && response.status < 300;
+      
+      if (isSuccess) {
+        // Map API status back to display format if provided
+        const statusDisplayMap = {
+          "active": "Active",
+          "suspend": "Suspended",
+          "disable": "Disabled",
+        };
+        
+        // If response has status, use it; otherwise use the status we sent
+        const apiStatusValue = responseData.status || apiStatus;
+        const displayStatus = statusDisplayMap[apiStatusValue] || statusDisplayMap[apiStatus] || newDisplayStatus;
+        
+        // Update local state
+        setLabelsData((prev) =>
+          prev.map((label) =>
+            label.id === labelId
+              ? { ...label, status: displayStatus }
+              : label
+          )
+        );
+
+        toast.dark(responseData.message || "Label status updated successfully", {
+          transition: Slide,
+        });
+
+        // Close dropdown
+        setOpenStatusDropdown(null);
+
+        // Refetch to ensure data is in sync
+        setTimeout(() => {
+          const fetchLabels = async () => {
+            try {
+              const params = new URLSearchParams();
+              if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-labels") {
+                if (selectedFilter.toLowerCase() === "active-labels") {
+                  params.append("status", "active");
+                } else if (selectedFilter.toLowerCase() === "suspended-labels") {
+                  params.append("status", "suspend");
+                } else if (selectedFilter.toLowerCase() === "disabled-labels") {
+                  params.append("status", "disable");
+                }
+              }
+              if (searchItem?.trim()) {
+                params.append("search", searchItem.trim());
+              }
+              const url = `/api/labels${params.toString() ? `?${params.toString()}` : ""}`;
+              const res = await axios.get(url, {
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`,
+                },
+              });
+              const responseData = res.data || {};
+              const labelsArray = responseData.labels || res.data || [];
+              if (Array.isArray(labelsArray)) {
+                const statusDisplayMap = {
+                  "active": "Active",
+                  "suspend": "Suspended",
+                  "disable": "Disabled",
+                  "Active": "Active",
+                  "Suspended": "Suspended",
+                  "Disabled": "Disabled",
+                };
+                
+                const mappedData = labelsArray.map((label) => {
+                  const apiStatus = label.status || "active";
+                  const displayStatus = statusDisplayMap[apiStatus] || "Active";
+                  
+                  // Display Enterprise Name if available, otherwise Enterprise ID
+                  let enterpriseDisplay = "";
+                  if (label.enterprise?.enterpriseName) {
+                    enterpriseDisplay = label.enterprise.enterpriseName;
+                  } else if (label.enterpriseId) {
+                    enterpriseDisplay = `ENT-${String(label.enterpriseId).padStart(3, '0')}`;
+                  } else if (label.enterprise?.enterpriseId) {
+                    enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
+                  }
+                  
+                  return {
+                    id: label.labelId || 0,
+                    labelid: `LAB-${String(label.labelId || 0).padStart(3, '0')}`,
+                    label: label.labelName || "",
+                    domain: label.domain || "",
+                    planType: label.planType || "",
+                    revenueShare: label.revenueShare ? `${label.revenueShare}%` : "",
+                    qcRequired: label.qcRequired ? "Required" : "Not required",
+                    enterprise: enterpriseDisplay,
+                    status: displayStatus,
+                    createdAt: label.createdAt || "",
+                  };
+                });
+                setLabelsData(mappedData);
+              }
+            } catch (error) {
+              console.error("Error refetching labels:", error);
+            }
+          };
+          fetchLabels();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      if (error.response) {
+        toast.dark(
+          error.response.data?.message || `Failed to update status: ${error.response.statusText}`,
+          { transition: Slide }
+        );
+      } else {
+        toast.dark("Network error. Please try again.", { transition: Slide });
+      }
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  // Get status pill class based on status
+  const getStatusPillClass = (status) => {
+    const statusLower = (status || "Active").toLowerCase();
+    if (statusLower === "active") return "status-green";
+    if (statusLower === "suspended") return "status-yellow";
+    if (statusLower === "disabled") return "status-red";
+    return "status-gray";
+  };
+
   const columns = [
     { key: "labelid", label: "Label ID" },
     { key: "label", label: "Label Name" },
@@ -213,7 +396,92 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     { key: "planType", label: "Plan Type" },
     { key: "revenueShare", label: "Revenue Share" },
     { key: "qcRequired", label: "QC Required" },
-    { key: "status", label: "Status" },
+    {
+      key: "status",
+      label: "Status",
+      render: (item) => {
+        const currentStatus = item.status || "Active";
+        const pillClass = getStatusPillClass(currentStatus);
+        
+        if (actualRole === "SuperAdmin" || actualRole === "EnterpriseAdmin") {
+          const statusOptions = ["Active", "Suspended", "Disabled"];
+          const isOpen = openStatusDropdown === item.id;
+          
+          return (
+            <div className="status-dropdown-wrapper" style={{ position: "relative" }}>
+              <div
+                className={`status-pill ${pillClass}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenStatusDropdown(isOpen ? null : item.id);
+                }}
+                style={{
+                  cursor: updatingStatus === item.id ? "wait" : "pointer",
+                  opacity: updatingStatus === item.id ? 0.6 : 1,
+                  userSelect: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {currentStatus}
+                <span style={{ fontSize: "10px", marginLeft: "4px" }}>▼</span>
+              </div>
+              
+              {isOpen && (
+                <>
+                  <div
+                    className="status-dropdown-overlay"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenStatusDropdown(null);
+                    }}
+                  />
+                  <div className="status-dropdown-menu">
+                    {statusOptions.map((status) => {
+                      const optionPillClass = getStatusPillClass(status);
+                      const isSelected = status === currentStatus;
+                      
+                      return (
+                        <div
+                          key={status}
+                          className={`status-dropdown-option ${isSelected ? "selected" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (status !== currentStatus) {
+                              handleStatusUpdate(item.id, status);
+                            } else {
+                              setOpenStatusDropdown(null);
+                            }
+                          }}
+                          style={{
+                            cursor: updatingStatus === item.id ? "wait" : "pointer",
+                            opacity: updatingStatus === item.id ? 0.6 : 1,
+                          }}
+                        >
+                          <span className={`status-pill ${optionPillClass}`}>
+                            {status}
+                          </span>
+                          {isSelected && (
+                            <span style={{ marginLeft: "8px", color: "#1278bb" }}>✓</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        }
+        
+        return (
+          <span className={`status-pill ${pillClass}`}>
+            {currentStatus}
+          </span>
+        );
+      },
+    },
   ];
 
   if (loading) {

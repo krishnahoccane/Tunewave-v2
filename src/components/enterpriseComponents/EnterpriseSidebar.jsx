@@ -19,6 +19,12 @@ function EnterpriseSidebar({ activeTab, setActiveTab, currentSection, tab }) {
       { id: "suspended-labels", label: "Suspended Labels" },
       { id: "disabled-labels", label: "Disabled Labels" },
     ],
+    Artists: [
+      { id: "all-artists", label: "All Artists" },
+      { id: "active-artists", label: "Active Artists" },
+      { id: "suspended-artists", label: "Suspended Artists" },
+      { id: "disabled-artists", label: "Disabled Artists" },
+    ],
     QC: [
       { id: "all", label: "All" },
       { id: "pending", label: "Pending" },

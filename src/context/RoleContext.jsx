@@ -48,8 +48,8 @@ export const RoleProvider = ({ children }) => {
   }, []); // Empty dependency array - only run on mount/unmount
 
   // Map server role → frontend role
-  // SuperAdmin and EnterpriseAdmin both get "enterprise" role
-  const role = (storedRole === "SuperAdmin" || storedRole === "EnterpriseAdmin") ? "enterprise" : "normal";
+  // SuperAdmin, EnterpriseAdmin, and LabelAdmin all get "enterprise" role
+  const role = (storedRole === "SuperAdmin" || storedRole === "EnterpriseAdmin" || storedRole === "LabelAdmin") ? "enterprise" : "normal";
   
   // Expose actual role for role-specific checks
   const actualRole = storedRole || "normal";

@@ -196,6 +196,7 @@ import "./styles/styled.css";
 import EnterpriseCatalogPage from "./pages/EnterpriseCatalogPage.jsx";
 import CreateEnterprise from "./pages/CreateEnterprise.jsx";
 import CreateLabel from "./pages/CreateLabel.jsx";
+import CreateArtist from "./pages/CreateArtist.jsx";
 function AppWrapper() {
   return (
     <Router>
@@ -353,6 +354,12 @@ function App() {
           path="/enterprise-catalog/create-label"
           element={
             isLoggedIn ? <CreateLabel /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/enterprise-catalog/create-artist"
+          element={
+            isLoggedIn ? <CreateArtist /> : <Navigate to="/login" />
           }
         />
       </Routes>

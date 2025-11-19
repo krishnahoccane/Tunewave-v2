@@ -5,32 +5,59 @@ import "react-toastify/dist/ReactToastify.css";
 import "../styles/styled.css";
 import axios from "axios";
 
-function CreateLabel() {
+function CreateArtist() {
   const navigate = useNavigate();
 
-  const [labelName, setLabelName] = useState("");
-  const [enterpriseId, setEnterpriseId] = useState("");
-  const [domain, setDomain] = useState("");
-  const [planType, setPlanType] = useState("Growth");
+  const [artistName, setArtistName] = useState("");
+  const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("");
+  const [genre, setGenre] = useState("");
   const [revenueShare, setRevenueShare] = useState("10");
-  const [qcRequired, setQcRequired] = useState(true);
+  const [labelId, setLabelId] = useState("");
   const [isRevenueShareEditable, setIsRevenueShareEditable] = useState(false);
+
+  // Helper function to get userId from localStorage (for createdBy)
+  const getUserId = () => {
+    const storedUserId = localStorage.getItem("userId");
+    if (!storedUserId) return 0;
+    
+    try {
+      // Try to decode base64 first
+      const decoded = atob(storedUserId);
+      const userId = parseInt(decoded, 10);
+      return isNaN(userId) ? 0 : userId;
+    } catch {
+      // If not base64, try parsing directly
+      const userId = parseInt(storedUserId, 10);
+      return isNaN(userId) ? 0 : userId;
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!labelName.trim()) {
-      toast.dark("Please enter Label Name.", { transition: Slide });
+    if (!artistName.trim()) {
+      toast.dark("Please enter Artist Name.", { transition: Slide });
       return;
     }
-    if (!domain.trim()) {
-      toast.dark("Please enter Domain.", { transition: Slide });
+    if (!email.trim()) {
+      toast.dark("Please enter Email.", { transition: Slide });
       return;
     }
-    if (!planType.trim()) {
-      toast.dark("Please select Plan Type.", { transition: Slide });
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.dark("Please enter a valid email address.", { transition: Slide });
       return;
     }
-    
+    if (!country.trim()) {
+      toast.dark("Please enter Country.", { transition: Slide });
+      return;
+    }
+    if (!genre.trim()) {
+      toast.dark("Please enter Genre.", { transition: Slide });
+      return;
+    }
+
     // Validate revenue share
     const revenueShareToParse = revenueShare.trim() || "10";
     const revenueShareValue = parseFloat(revenueShareToParse.replace(/%/g, "").trim());
@@ -47,27 +74,25 @@ function CreateLabel() {
       return;
     }
 
+    // Get userId for createdBy
+    const createdBy = getUserId();
+
     // Prepare form data according to API schema
     const formData = {
-      labelName: labelName.trim(),
-      domain: domain.trim(),
-      planType: planType.trim(),
-      qcRequired: qcRequired,
+      artistID: 0,
+      labelID: labelId.trim() ? parseInt(labelId.trim(), 10) : 0,
+      artistName: artistName.trim(),
+      email: email.trim(),
+      country: country.trim(),
+      genre: genre.trim(),
       revenueShare: revenueShareValue,
+      createdBy: createdBy,
     };
-
-    // Add enterpriseId if provided (for testing)
-    if (enterpriseId.trim()) {
-      const enterpriseIdNum = parseInt(enterpriseId.trim(), 10);
-      if (!isNaN(enterpriseIdNum)) {
-        formData.enterpriseID = enterpriseIdNum;
-      }
-    }
     
     try {
       console.log("Submitting form data:", formData);
       
-      const response = await axios.post("/api/labels", formData, {
+      const response = await axios.post("/api/Artist", formData, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
@@ -79,15 +104,15 @@ function CreateLabel() {
       // Check if data was created successfully (201 Created)
       const isSuccess = response.status === 201 || 
                        (response.status >= 200 && response.status < 300) ||
-                       (data.status === "success" && data.labelId);
+                       (data.status === "success" && data.artistId);
       
       if (isSuccess) {
-        toast.dark(data.message || "Label created successfully!", { transition: Slide });
-        console.log("Label created:", data);
+        toast.dark(data.message || "Artist created successfully!", { transition: Slide });
+        console.log("Artist created:", data);
         
-        // Navigate back to labels catalog after a short delay
+        // Navigate back to artists catalog after a short delay
         setTimeout(() => {
-          navigate("/enterprise-catalog?tab=labels&section=all-labels");
+          navigate("/enterprise-catalog?tab=artists&section=all-artists");
         }, 1500);
       } else {
         const errorMessage = 
@@ -108,15 +133,15 @@ function CreateLabel() {
         const status = error.response.status;
         
         const isSuccess = (status === 201) ||
-                         (data.status === "success" && data.labelId) ||
+                         (data.status === "success" && data.artistId) ||
                          (data.message && data.message.toLowerCase().includes("success"));
         
         if (isSuccess) {
-          toast.dark(data.message || "Label created successfully!", { transition: Slide });
-          console.log("Label created:", data);
+          toast.dark(data.message || "Artist created successfully!", { transition: Slide });
+          console.log("Artist created:", data);
           
           setTimeout(() => {
-            navigate("/enterprise-catalog?tab=labels&section=all-labels");
+            navigate("/enterprise-catalog?tab=artists&section=all-artists");
           }, 1500);
         } else {
           const errorMessage = 
@@ -139,68 +164,66 @@ function CreateLabel() {
 
   return (
     <div className="pages-layout-container">
-      <h2 className="pages-main-title">Create Label</h2>
+      <h2 className="pages-main-title">Create Artist</h2>
 
-      {/* Label Details Section */}
+      {/* Artist Details Section */}
       <div className="section">
-        <h3>Enter Label Details</h3>
+        <h3>Enter Artist Details</h3>
 
         <div className="input-group">
-          <label htmlFor="labelName">
-            Label Name <span className="required-asterisk">*</span>
+          <label htmlFor="artistName">
+            Artist Name <span className="required-asterisk">*</span>
           </label>
           <input
             type="text"
-            id="labelName"
-            placeholder="e.g., Sony Music"
+            id="artistName"
+            placeholder="e.g., John Doe"
             className="input-field input-field-half-width"
-            onChange={(e) => setLabelName(e.target.value)}
-            value={labelName}
+            onChange={(e) => setArtistName(e.target.value)}
+            value={artistName}
           />
         </div>
 
         <div className="input-group">
-          <label htmlFor="enterpriseId">
-            Enterprise ID (for testing)
+          <label htmlFor="email">
+            Email <span className="required-asterisk">*</span>
           </label>
           <input
-            type="number"
-            id="enterpriseId"
-            placeholder="e.g., 1"
+            type="email"
+            id="email"
+            placeholder="e.g., john.doe@example.com"
             className="input-field input-field-half-width"
-            onChange={(e) => setEnterpriseId(e.target.value)}
-            value={enterpriseId}
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
           />
         </div>
 
         <div className="input-group">
-          <label htmlFor="domain">
-            Domain <span className="required-asterisk">*</span>
+          <label htmlFor="country">
+            Country <span className="required-asterisk">*</span>
           </label>
           <input
             type="text"
-            id="domain"
-            placeholder="e.g., dashboard.brownelephant.co.in"
+            id="country"
+            placeholder="e.g., United States"
             className="input-field input-field-half-width"
-            onChange={(e) => setDomain(e.target.value)}
-            value={domain}
+            onChange={(e) => setCountry(e.target.value)}
+            value={country}
           />
         </div>
 
         <div className="input-group">
-          <label htmlFor="planType">
-            Plan Type <span className="required-asterisk">*</span>
+          <label htmlFor="genre">
+            Genre <span className="required-asterisk">*</span>
           </label>
-          <select
-            id="planType"
+          <input
+            type="text"
+            id="genre"
+            placeholder="e.g., Pop, Rock, Hip-Hop"
             className="input-field input-field-half-width"
-            onChange={(e) => setPlanType(e.target.value)}
-            value={planType}
-          >
-            <option value="Growth">Growth</option>
-            <option value="Pro">Pro</option>
-            <option value="Enterprise">Enterprise</option>
-          </select>
+            onChange={(e) => setGenre(e.target.value)}
+            value={genre}
+          />
         </div>
 
         <div className="input-group">
@@ -243,41 +266,27 @@ function CreateLabel() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="qcRequired">
-            QC Required <span className="required-asterisk">*</span>
+          <label htmlFor="labelId">
+            Label ID (Optional)
           </label>
-          <div className="radio-group-container">
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="qcRequired"
-                value="true"
-                onChange={() => setQcRequired(true)}
-                checked={qcRequired === true}
-              />
-              <span>Required</span>
-            </label>
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="qcRequired"
-                value="false"
-                onChange={() => setQcRequired(false)}
-                checked={qcRequired === false}
-              />
-              <span>Not required</span>
-            </label>
-          </div>
+          <input
+            type="number"
+            id="labelId"
+            placeholder="e.g., 1"
+            className="input-field input-field-half-width"
+            onChange={(e) => setLabelId(e.target.value)}
+            value={labelId}
+          />
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="form-actions">
-        <button className="btn-cancel" onClick={() => navigate("/enterprise-catalog?tab=labels&section=all-labels")}>
+        <button className="btn-cancel" onClick={() => navigate("/enterprise-catalog?tab=artists&section=all-artists")}>
           Cancel
         </button>
         <button className="btn-gradient" onClick={handleSubmit}>
-          Create Label
+          Create Artist
         </button>
       </div>
 
@@ -286,5 +295,5 @@ function CreateLabel() {
   );
 }
 
-export default CreateLabel;
+export default CreateArtist;
 
