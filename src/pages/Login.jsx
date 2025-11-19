@@ -671,10 +671,10 @@ const handleLogin = async (e) => {
         )}
 
 
-
+{/* 
         <h4 className="login-title">Remove In Production</h4>
         <p className="login-subtitle">  Use as SuperAdmin email :   admin@tunewave.com     password: SuperAdmin@123</p>
-        <p className="login-subtitle">  Use as Enterprise email :   shiva@gmail.com      password:sh123</p>
+        <p className="login-subtitle">  Use as Enterprise email :   shiva@gmail.com      password: sh123</p> */}
         <form className="login-form" onSubmit={handleLogin}>
           {/* <h2>Login to Label</h2> */}
           {error && <p className="error">{error}</p>}
