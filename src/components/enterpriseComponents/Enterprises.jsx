@@ -175,6 +175,20 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     // But we can still apply client-side filtering if needed for additional logic
     let filtered = enterprisesData;
 
+    // Apply client-side status filter as fallback
+    const currentFilter = selectedFilter?.toLowerCase() || "";
+    if (currentFilter && currentFilter !== "all" && currentFilter !== "all-enterprises") {
+      const statusFilterMap = {
+        "active-enterprises": "Active",
+        "suspended-enterprises": "Suspended",
+        "disabled-enterprises": "Disabled",
+      };
+      const targetStatus = statusFilterMap[currentFilter];
+      if (targetStatus) {
+        filtered = filtered.filter((item) => item.status === targetStatus);
+      }
+    }
+
     // Apply client-side search filter if API doesn't handle it
     // (API should handle search via ?search= parameter, but keeping as fallback)
     if (searchItem?.trim() && !searchItem.includes("?")) {
@@ -189,8 +203,6 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     setTable(filtered);
 
     // ✅ Toast + redirect if no results (only show once per filter)
-    const currentFilter = selectedFilter?.toLowerCase() || "";
-    
     if (
       !loading &&
       filtered.length === 0 &&

@@ -683,10 +683,11 @@ const handleLogin = async (e) => {
 
 
         <h4 className="login-title">Remove In Production</h4>
-        <p className="login-subtitle">  Use as SuperAdmin email :   super@example.com     password: admin1234</p>
+        <p className="login-subtitle">  Use as SuperAdmin email :   ven@g.com    password: ven@1234</p>
 
-        <p className="login-subtitle">  Use as Enterprise email :   Ramya@g.co      password: Ramya1234</p>
-        <p className="login-subtitle">  Use as Label email :   shiva@g.co      password: shiva123</p>
+        <p className="login-subtitle">  Use as Enterprise email :   gopi@g.co      password: gopi1234</p>
+        <p className="login-subtitle">  Use as Label email :   shuva@g.co      password: shiva1234</p>
+        <p className="login-subtitle">  Use as Artist email :   deepu@g.co      password: deepu1234</p>
 
         <form className="login-form" onSubmit={handleLogin}>
           {/* <h2>Login to Label</h2> */}

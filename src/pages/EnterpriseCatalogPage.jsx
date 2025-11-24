@@ -183,6 +183,8 @@ function EnterpriseCatalogPage() {
         <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-label")}>Create Label</button>}
           {currentSection === "Artists" && actualRole === "LabelAdmin" && 
         <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-artist")}>Create Artist</button>}
+          {currentSection === "Artists" && actualRole && actualRole.toLowerCase() === "artist" && 
+        <button className="btn-gradient" onClick={() => navigate("/create-release")}>Create Release</button>}
         </div>
       </div>
 

@@ -95,15 +95,17 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
             "active": "Active",
             "suspend": "Suspended",
             "disable": "Disabled",
+            "pending_domain_verification": "Pending Domain Verification",
             "Active": "Active",
             "Suspended": "Suspended",
             "Disabled": "Disabled",
+            "Pending Domain Verification": "Pending Domain Verification",
           };
           
           // Map API response to component format
           const mappedData = labelsArray.map((label) => {
             const apiStatus = label.status || "active";
-            const displayStatus = statusDisplayMap[apiStatus] || "Active";
+            const displayStatus = statusDisplayMap[apiStatus] || apiStatus || "Active";
             
             // Display Enterprise Name if available, otherwise Enterprise ID
             let enterpriseDisplay = "";
@@ -115,17 +117,38 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
               enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
             }
             
+            // Format dates
+            const formatDate = (dateString) => {
+              if (!dateString) return "";
+              try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+              } catch {
+                return dateString;
+              }
+            };
+            
             return {
               id: label.labelId || 0,
+              labelId: label.labelId || 0,
               labelid: `LAB-${String(label.labelId || 0).padStart(3, '0')}`,
+              labelName: label.labelName || "",
               label: label.labelName || "",
               domain: label.domain || "",
-              planType: label.planType || "",
-              revenueShare: label.revenueShare ? `${label.revenueShare}%` : "",
-              qcRequired: label.qcRequired ? "Required" : "Not required",
+              enterpriseId: label.enterpriseId || 0,
               enterprise: enterpriseDisplay,
+              planTypeId: label.planTypeId || 0,
+              planType: label.planType || label.planTypeId || "",
+              revenueSharePercent: label.revenueSharePercent ?? label.revenueShare ?? 0,
+              revenueShare: label.revenueSharePercent || label.revenueShare ? `${label.revenueSharePercent || label.revenueShare}%` : "",
+              qcRequired: label.qcRequired ? "Required" : "Not required",
+              agreementStartDate: label.agreementStartDate || "",
+              agreementEndDate: label.agreementEndDate || "",
+              agreementStartDateFormatted: formatDate(label.agreementStartDate),
+              agreementEndDateFormatted: formatDate(label.agreementEndDate),
               status: displayStatus,
               createdAt: label.createdAt || "",
+              createdAtFormatted: formatDate(label.createdAt),
             };
           });
           
@@ -188,6 +211,20 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
   useEffect(() => {
     let filtered = labelsData;
 
+    // Apply client-side status filter as fallback
+    const currentFilter = selectedFilter?.toLowerCase() || "";
+    if (currentFilter && currentFilter !== "all" && currentFilter !== "all-labels") {
+      const statusFilterMap = {
+        "active-labels": "Active",
+        "suspended-labels": "Suspended",
+        "disabled-labels": "Disabled",
+      };
+      const targetStatus = statusFilterMap[currentFilter];
+      if (targetStatus) {
+        filtered = filtered.filter((item) => item.status === targetStatus);
+      }
+    }
+
     // Apply client-side search filter if API doesn't handle it
     if (searchItem?.trim() && !searchItem.includes("?")) {
       filtered = filtered.filter((item) =>
@@ -202,8 +239,6 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     setTable(filtered);
 
     // Toast + redirect if no results (only show once per filter)
-    const currentFilter = selectedFilter?.toLowerCase() || "";
-    
     if (
       !loading &&
       filtered.length === 0 &&
@@ -250,8 +285,8 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
 
     try {
       const response = await axios.post(
-        `/api/labels/status?id=${labelId}&status=${apiStatus}`,
-        {},
+        `/api/labels/${labelId}/status`,
+        { status: apiStatus },
         {
           headers: {
             "Content-Type": "application/json",
@@ -270,6 +305,7 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
           "active": "Active",
           "suspend": "Suspended",
           "disable": "Disabled",
+          "pending_domain_verification": "Pending Domain Verification",
         };
         
         // If response has status, use it; otherwise use the status we sent
@@ -323,14 +359,16 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
                   "active": "Active",
                   "suspend": "Suspended",
                   "disable": "Disabled",
+                  "pending_domain_verification": "Pending Domain Verification",
                   "Active": "Active",
                   "Suspended": "Suspended",
                   "Disabled": "Disabled",
+                  "Pending Domain Verification": "Pending Domain Verification",
                 };
                 
                 const mappedData = labelsArray.map((label) => {
                   const apiStatus = label.status || "active";
-                  const displayStatus = statusDisplayMap[apiStatus] || "Active";
+                  const displayStatus = statusDisplayMap[apiStatus] || apiStatus || "Active";
                   
                   // Display Enterprise Name if available, otherwise Enterprise ID
                   let enterpriseDisplay = "";
@@ -342,17 +380,38 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
                     enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
                   }
                   
+                  // Format dates
+                  const formatDate = (dateString) => {
+                    if (!dateString) return "";
+                    try {
+                      const date = new Date(dateString);
+                      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    } catch {
+                      return dateString;
+                    }
+                  };
+                  
                   return {
                     id: label.labelId || 0,
+                    labelId: label.labelId || 0,
                     labelid: `LAB-${String(label.labelId || 0).padStart(3, '0')}`,
+                    labelName: label.labelName || "",
                     label: label.labelName || "",
                     domain: label.domain || "",
-                    planType: label.planType || "",
-                    revenueShare: label.revenueShare ? `${label.revenueShare}%` : "",
-                    qcRequired: label.qcRequired ? "Required" : "Not required",
+                    enterpriseId: label.enterpriseId || 0,
                     enterprise: enterpriseDisplay,
+                    planTypeId: label.planTypeId || 0,
+                    planType: label.planType || label.planTypeId || "",
+                    revenueSharePercent: label.revenueSharePercent ?? label.revenueShare ?? 0,
+                    revenueShare: label.revenueSharePercent || label.revenueShare ? `${label.revenueSharePercent || label.revenueShare}%` : "",
+                    qcRequired: label.qcRequired ? "Required" : "Not required",
+                    agreementStartDate: label.agreementStartDate || "",
+                    agreementEndDate: label.agreementEndDate || "",
+                    agreementStartDateFormatted: formatDate(label.agreementStartDate),
+                    agreementEndDateFormatted: formatDate(label.agreementEndDate),
                     status: displayStatus,
                     createdAt: label.createdAt || "",
+                    createdAtFormatted: formatDate(label.createdAt),
                   };
                 });
                 setLabelsData(mappedData);
@@ -385,6 +444,7 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     if (statusLower === "active") return "status-green";
     if (statusLower === "suspended") return "status-yellow";
     if (statusLower === "disabled") return "status-red";
+    if (statusLower === "pending domain verification" || statusLower === "pending_domain_verification") return "status-yellow";
     return "status-gray";
   };
 
@@ -393,7 +453,6 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     { key: "label", label: "Label Name" },
     { key: "domain", label: "Domain" },
     { key: "enterprise", label: "Enterprise" },
-    { key: "planType", label: "Plan Type" },
     { key: "revenueShare", label: "Revenue Share" },
     { key: "qcRequired", label: "QC Required" },
     {
