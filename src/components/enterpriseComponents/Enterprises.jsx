@@ -4,6 +4,7 @@ import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useRole } from "../../context/RoleContext";
+import * as EnterprisesService from "../../services/enterprises";
 
 import DataTable from "../DataTable";
 import GridView from "../GridView";
@@ -59,51 +60,27 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
 
       try {
         // Build query parameters for filters
-        const params = new URLSearchParams();
+        const params = {};
         
         // Add status filter if selected (using API status values)
         if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-enterprises") {
           if (selectedFilter.toLowerCase() === "active-enterprises") {
-            params.append("status", "active");
+            params.status = "active";
           } else if (selectedFilter.toLowerCase() === "suspended-enterprises") {
-            params.append("status", "suspend");
+            params.status = "suspend";
           } else if (selectedFilter.toLowerCase() === "disabled-enterprises") {
-            params.append("status", "disable");
+            params.status = "disable";
           }
         }
         
         // Add search filter if provided
         if (searchItem?.trim()) {
-          params.append("search", searchItem.trim());
+          params.search = searchItem.trim();
         }
 
-        // Try lowercase endpoint first (per API docs: GET /api/enterprises)
-        let url = `/api/enterprises${params.toString() ? `?${params.toString()}` : ""}`;
-        
-        let response;
-        try {
-          response = await axios.get(url, {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-          });
-        } catch (firstError) {
-          // If 404, try capitalized endpoint as fallback
-          if (firstError.response?.status === 404) {
-            url = `/api/Enterprise${params.toString() ? `?${params.toString()}` : ""}`;
-            response = await axios.get(url, {
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-              },
-            });
-          } else {
-            throw firstError;
-          }
-        }
+        const responseData = await EnterprisesService.getEnterprises(params);
 
-        if (response.data && Array.isArray(response.data)) {
+        if (responseData && Array.isArray(responseData)) {
           // Map API status to display format
           const statusDisplayMap = {
             "active": "Active",
@@ -115,7 +92,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
           };
           
           // Map API response to component format
-          const mappedData = response.data.map((enterprise) => {
+          const mappedData = responseData.map((enterprise) => {
             const apiStatus = enterprise.status || "active";
             const displayStatus = statusDisplayMap[apiStatus] || "Active";
             
@@ -135,7 +112,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
           
           setEnterprisesData(mappedData);
         } else {
-          console.warn("Unexpected API response format:", response.data);
+          console.warn("Unexpected API response format:", responseData);
           setEnterprisesData([]);
         }
       } catch (error) {
@@ -191,7 +168,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     };
 
     fetchEnterprises();
-  }, [selectedFilter, searchItem, location.key]); // Refetch when filter, search changes, or on navigation
+  }, [selectedFilter, searchItem, location.key, location.pathname, location.search]); // Refetch when filter, search changes, or on navigation
 
   useEffect(() => {
     // Since API handles filtering, we just use the data directly
@@ -255,25 +232,11 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     const apiStatus = statusMap[newDisplayStatus] || "active";
 
     setUpdatingStatus(enterpriseId);
-    const token = localStorage.getItem("jwtToken");
 
     try {
-      const response = await axios.post(
-        `/api/Enterprise/status?id=${enterpriseId}&status=${apiStatus}`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Handle response - API might return empty body or different structure
-      const responseData = response.data || {};
-      const isSuccess = response.status >= 200 && response.status < 300;
+      const responseData = await EnterprisesService.updateEnterpriseStatus(enterpriseId, apiStatus);
       
-      if (isSuccess) {
+      if (responseData !== undefined) {
         // Map API status back to display format if provided
         const statusDisplayMap = {
           "active": "Active",
@@ -283,7 +246,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
         
         // If response has status, use it; otherwise use the status we sent
         const apiStatusValue = responseData.status || apiStatus;
-        const displayStatus = statusDisplayMap[apiStatusValue] || statusDisplayMap[apiStatus] || selectedStatus;
+        const displayStatus = statusDisplayMap[apiStatusValue] || statusDisplayMap[apiStatus] || newDisplayStatus;
         
         // Update local state
         setEnterprisesData((prev) =>
@@ -305,27 +268,21 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
         setTimeout(() => {
           const fetchEnterprises = async () => {
             try {
-              const params = new URLSearchParams();
+              const params = {};
               if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-enterprises") {
                 if (selectedFilter.toLowerCase() === "active-enterprises") {
-                  params.append("status", "active");
+                  params.status = "active";
                 } else if (selectedFilter.toLowerCase() === "suspended-enterprises") {
-                  params.append("status", "suspend");
+                  params.status = "suspend";
                 } else if (selectedFilter.toLowerCase() === "disabled-enterprises") {
-                  params.append("status", "disable");
+                  params.status = "disable";
                 }
               }
               if (searchItem?.trim()) {
-                params.append("search", searchItem.trim());
+                params.search = searchItem.trim();
               }
-              const url = `/api/enterprises${params.toString() ? `?${params.toString()}` : ""}`;
-              const res = await axios.get(url, {
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}`,
-                },
-              });
-              if (res.data && Array.isArray(res.data)) {
+              const resData = await EnterprisesService.getEnterprises(params);
+              if (resData && Array.isArray(resData)) {
                 const statusDisplayMap = {
                   "active": "Active",
                   "suspend": "Suspended",
@@ -335,7 +292,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
                   "Disabled": "Disabled",
                 };
                 
-                const mappedData = res.data.map((enterprise) => {
+                const mappedData = resData.map((enterprise) => {
                   const apiStatus = enterprise.status || "active";
                   const displayStatus = statusDisplayMap[apiStatus] || "Active";
                   

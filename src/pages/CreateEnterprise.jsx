@@ -4,6 +4,7 @@ import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/styled.css";
 import axios from "axios";
+import * as EnterprisesService from "../services/enterprises";
 
 function CreateEnterprise() {
   const navigate = useNavigate();
@@ -75,11 +76,10 @@ function CreateEnterprise() {
     // Prepare form data according to API schema
     const formData = {
       enterpriseName: enterpriseName.trim(),
-      email: email.trim(),
+      ownerEmail: email.trim(), // Map email to ownerEmail for API
       domain: domain.trim(),
-      revenueShare: revenueShareValue,
+      revenueSharePercent: revenueShareValue, // Map revenueShare to revenueSharePercent
       qcRequired: qcRequiredBool,
-    //   createdBy: createdBy,
     };
 
     const token = localStorage.getItem("jwtToken");
@@ -95,37 +95,28 @@ function CreateEnterprise() {
       console.log("Submitting form data:", formData);
       console.log("Token exists:", !!token);
       
-      const response = await axios.post("/api/Enterprise/", formData, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      const data = await EnterprisesService.createEnterprise(formData);
 
-      console.log("Response status:", response.status);
-      console.log("Response data:", response.data);
-
-      const data = response.data;
+      console.log("Response data:", data);
       
-      // Check if data was created successfully despite error status
-      // Sometimes backend saves data but returns error status
-      const isSuccess = response.status >= 200 && response.status < 300 ||
-                       (response.status === 500 && (data.id || data.enterpriseID || data.enterpriseName)) ||
-                       (data.success === true) ||
-                       (data.message && data.message.toLowerCase().includes("success"));
+      // Check if data was created successfully
+      const isSuccess = data && (data.id || data.enterpriseId || data.enterpriseName || data.success === true);
       
       if (isSuccess) {
         toast.success("Enterprise created successfully!");
         console.log("Enterprise created:", data);
         
         // Navigate back to enterprise catalog after a short delay
+        // Use replace: false and add timestamp to force refresh
         setTimeout(() => {
-          navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises");
+          navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises", { 
+            replace: false,
+            state: { refresh: true, timestamp: Date.now() }
+          });
         }, 1500);
       } else {
         // Backend error - show detailed error message
         console.error("Backend Error Response:", data);
-        console.error("Response Status:", response.status);
         
         // Extract error message from various possible response formats
         const errorMessage = 
@@ -134,7 +125,7 @@ function CreateEnterprise() {
           data.title ||
           data.detail ||
           (data.errors && JSON.stringify(data.errors)) ||
-          `Server Error (${response.status})`;
+          "Failed to create enterprise";
         
         toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000 });
       }
@@ -148,29 +139,15 @@ function CreateEnterprise() {
         const data = error.response.data;
         const status = error.response.status;
         
-        // Check if data was created successfully despite error status
-        const isSuccess = (status === 500 && (data.id || data.enterpriseID || data.enterpriseName)) ||
-                         (data.success === true) ||
-                         (data.message && data.message.toLowerCase().includes("success"));
+        const errorMessage = 
+          error.response.data?.message || 
+          error.response.data?.error || 
+          error.response.data?.title ||
+          error.response.data?.detail ||
+          (error.response.data?.errors && JSON.stringify(error.response.data.errors)) ||
+          `Server Error (${error.response.status})`;
         
-        if (isSuccess) {
-          toast.success("Enterprise created successfully!");
-          console.log("Enterprise created:", data);
-          
-          setTimeout(() => {
-            navigate("/enterprise-catalog?tab=enterprises&section=all-enterprises");
-          }, 1500);
-        } else {
-          const errorMessage = 
-            data.message || 
-            data.error || 
-            data.title ||
-            data.detail ||
-            (data.errors && JSON.stringify(data.errors)) ||
-            `Server Error (${status})`;
-          
-          toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000 });
-        }
+        toast.dark(`Backend Error: ${errorMessage}`, { autoClose: 5000 });
       } else if (error.request) {
         // The request was made but no response was received
         toast.dark("Network error: Unable to reach the server. Please check your internet connection or try again later.");

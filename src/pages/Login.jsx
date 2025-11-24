@@ -5,6 +5,7 @@ import lsiImage from "../assets/lsi.jpeg";
 import axios from "axios";
 import thunderbolt from "../assets/thunderbolt.png";
 import { useRole } from "../context/RoleContext";
+import * as AuthService from "../services/auth";
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -73,14 +74,26 @@ export default function Login({ onLogin }) {
     setSuccessMessage("");
     
     try {
-      const response = await axios.get(`/api/Auth/check-email?email=${email}`);
-      const data = response.data;
+      const data = await AuthService.checkEmail(email);
       console.log("Email check response:", data);
 
       if (data.exists) {
         setEmailVerified(true);
         setSuccessMessage(`Please enter your password.`);
-        setDisplayName(data.display_name || "noUserName");
+        setDisplayName(data.displayName || data.display_name || "noUserName");
+        
+        // Store role if available in email check response
+        // This ensures role is available immediately for Navbar rendering
+        if (data.role) {
+          console.log("🔐 Setting role from email check:", data.role);
+          localStorage.setItem("role", data.role);
+          // Dispatch custom event to notify RoleContext of role change
+          window.dispatchEvent(new Event("roleChanged"));
+          // Small delay to ensure RoleContext updates
+          setTimeout(() => {
+            console.log("🔐 Role after email check:", localStorage.getItem("role"));
+          }, 100);
+        }
       } else {
         setError("Email does not exist. Please check your email.");
       }
@@ -147,23 +160,67 @@ const handleLogin = async (e) => {
   console.log("🔐 Login Payload:", payload);
 
   try {
-    const response = await axios.post("/api/Auth/login", payload, {
-      headers: { "Content-Type": "application/json" },
-    });
-
-    const data = response.data;
+    const data = await AuthService.login(payload);
     console.log("Login Response:", data);
 
     // Use data.token instead of data.data?.token
     if (data.token) {
       localStorage.setItem("jwtToken", data.token);
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("displayName", data.fullName || payload.email);
-      const newRole = data.role || "normal";
+      localStorage.setItem("displayName", data.fullName || data.user?.fullName || payload.email);
+      
+      // Extract role: prioritize response role, then email check role, then JWT token, then default
+      let newRole = data.role;
+      
+      // If role not in response, check localStorage (from email check)
+      if (!newRole) {
+        const storedRole = localStorage.getItem("role");
+        console.log("🔐 Checking localStorage for role:", storedRole);
+        if (storedRole && storedRole !== "normal" && storedRole.trim() !== "") {
+          newRole = storedRole;
+          console.log("🔐 Using role from localStorage (email check):", newRole);
+        } else {
+          console.log("🔐 No valid role found in localStorage, will try JWT token");
+        }
+      }
+      
+      // If still no role, try to extract from JWT token
+      if (!newRole && data.token) {
+        try {
+          const tokenParts = data.token.split(".");
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log("🔐 JWT payload:", payload);
+            // Check for role in various possible claim formats
+            const tokenRole = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+                     payload.role || 
+                     payload.Role ||
+                     payload["role"];
+            if (tokenRole) {
+              newRole = tokenRole;
+              console.log("🔐 Extracted role from JWT token:", newRole);
+            } else {
+              console.log("🔐 No role found in JWT token payload");
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to extract role from token:", error);
+        }
+      }
+      
+      // Default to "normal" if still no role found
+      newRole = newRole || "normal";
+      
+      console.log("🔐 Final role to set:", newRole);
       localStorage.setItem("role", newRole);
 
       // Dispatch custom event to notify RoleContext of role change
       window.dispatchEvent(new Event("roleChanged"));
+      
+      // Force a small delay to ensure RoleContext updates
+      setTimeout(() => {
+        console.log("🔐 Role after dispatch:", localStorage.getItem("role"));
+      }, 100);
         
       if (onLogin) onLogin();  // optional callback
       navigate("/dashboard");   // now navigation will work
@@ -297,13 +354,7 @@ const handleLogin = async (e) => {
     try {
       console.log("Sending forgot password request for email:", email);
       
-      const response = await axios.post("/api/Auth/forgetpassword", { email }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = response.data;
+      const data = await AuthService.forgetPassword({ email });
       console.log("Forgot password response data:", data);
 
       // Check if successful - API returns { key, success, message, next_resend_wait_seconds }
@@ -368,17 +419,11 @@ const handleLogin = async (e) => {
     setError("");
 
     try {
-      const response = await axios.post("/api/Auth/forgetpassword/codevalidate", {
+      const data = await AuthService.validateOtp({
         email: email,
         code: otpCode,
         key: resetKey,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-
-      const data = response.data;
       console.log("OTP validation response:", data);
       
       if (data.success) {
@@ -444,18 +489,12 @@ const handleLogin = async (e) => {
     setError("");
 
     try {
-      const response = await axios.post("/api/Auth/forgetpassword/password", {
+      const data = await AuthService.resetPassword({
         email: email,
         newPassword: newPassword,
         confirmPassword: confirmPassword,
         key: resetKey,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-
-      const data = response.data;
       console.log("Reset password response:", data);
 
       if (data.success) {
@@ -497,35 +536,13 @@ const handleLogin = async (e) => {
     setSuccessMessage("");
 
     try {
-      const response = await axios.post("/api/Auth/forgetpassword/resendcode", {
+      const data = await AuthService.resendOtp({
         email: email,
         key: resetKey,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-
-      const data = response.data;
       console.log("Resend OTP response:", data);
 
-      // Handle 429 rate limit response
-      if (response.status === 429) {
-        const waitSeconds = data.remaining_seconds || 60;
-        setError(data.error || "Please wait before requesting again.");
-        setResendDisabled(true);
-        setResendTimer(waitSeconds);
-        const timerInterval = setInterval(() => {
-          setResendTimer((prev) => {
-            if (prev <= 1) {
-              clearInterval(timerInterval);
-              setResendDisabled(false);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      } else if (data.success) {
+      if (data.success) {
         setResetKey(data.key || resetKey);
         setSuccessMessage(data.message || "OTP resent successfully to registered email & WhatsApp.");
         
@@ -591,14 +608,7 @@ const handleLogin = async (e) => {
         return;
       }
       try {
-        const response = await axios.get("/api/Auth/verify", {
-          headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-        
-        const data = response.data;
+        const data = await AuthService.verifyToken(token);
 
         if (data.message && data.user) {
           // Token is valid, update user info if needed
@@ -673,9 +683,11 @@ const handleLogin = async (e) => {
 
 
         <h4 className="login-title">Remove In Production</h4>
-        <p className="login-subtitle">  Use as SuperAdmin email :   admin@tunewave.com     password: SuperAdmin@123</p>
-        <p className="login-subtitle">  Use as Enterprise email :   shiva@gmail.com      password: sh123</p>
-        <p className="login-subtitle">  Use as Label email :   g@gmail.com      password: g123</p>
+        <p className="login-subtitle">  Use as SuperAdmin email :   super@example.com     password: admin1234</p>
+
+        <p className="login-subtitle">  Use as Enterprise email :   Ramya@g.co      password: Ramya1234</p>
+        <p className="login-subtitle">  Use as Label email :   shiva@g.co      password: shiva123</p>
+
         <form className="login-form" onSubmit={handleLogin}>
           {/* <h2>Login to Label</h2> */}
           {error && <p className="error">{error}</p>}

@@ -49,10 +49,28 @@ export const RoleProvider = ({ children }) => {
 
   // Map server role → frontend role
   // SuperAdmin, EnterpriseAdmin, and LabelAdmin all get "enterprise" role
-  const role = (storedRole === "SuperAdmin" || storedRole === "EnterpriseAdmin" || storedRole === "LabelAdmin") ? "enterprise" : "normal";
+  // Normalize role to handle case variations
+  const normalizedRole = storedRole?.trim() || "normal";
+  const role = (
+    normalizedRole === "SuperAdmin" || 
+    normalizedRole === "superadmin" || 
+    normalizedRole?.toLowerCase() === "superadmin" ||
+    normalizedRole === "EnterpriseAdmin" || 
+    normalizedRole === "enterpriseadmin" ||
+    normalizedRole?.toLowerCase() === "enterpriseadmin" ||
+    normalizedRole === "LabelAdmin" || 
+    normalizedRole === "labeladmin" ||
+    normalizedRole?.toLowerCase() === "labeladmin"
+  ) ? "enterprise" : "normal";
   
-  // Expose actual role for role-specific checks
-  const actualRole = storedRole || "normal";
+  // Expose actual role for role-specific checks (normalize to match expected format)
+  const actualRole = normalizedRole === "superadmin" || normalizedRole?.toLowerCase() === "superadmin" 
+    ? "SuperAdmin" 
+    : normalizedRole === "enterpriseadmin" || normalizedRole?.toLowerCase() === "enterpriseadmin"
+    ? "EnterpriseAdmin"
+    : normalizedRole === "labeladmin" || normalizedRole?.toLowerCase() === "labeladmin"
+    ? "LabelAdmin"
+    : normalizedRole;
 
   return (
     <RoleContext.Provider value={{ role, actualRole }}>

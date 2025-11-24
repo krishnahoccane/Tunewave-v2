@@ -26,6 +26,11 @@ import { useContext } from "react";
 import { useRole } from "../context/RoleContext";
 const Navbar = () => {
   const { role, actualRole } = useRole();
+  
+  // Debug: Log role values
+  React.useEffect(() => {
+    console.log("Navbar - role:", role, "actualRole:", actualRole);
+  }, [role, actualRole]);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -351,33 +356,36 @@ const Navbar = () => {
               </Link>
             </li>
             {/* SuperAdmin: Show Enterprises */}
-            {actualRole === "SuperAdmin" && (
+            {(actualRole === "SuperAdmin" || actualRole?.toLowerCase() === "superadmin") && (
               <li className="nav-item">
                 <Link
                   to="/enterprise-catalog?tab=enterprises&section=all-enterprises"
                   onClick={() => setMenuOpen(false)}
+                  className={isActive("/enterprise-catalog") && location.search.includes("enterprises") ? "active" : ""}
                 >
                   Enterprises
                 </Link>
               </li>
             )}
             {/* EnterpriseAdmin: Show Labels */}
-            {actualRole === "EnterpriseAdmin" && (
+            {(actualRole === "EnterpriseAdmin" || actualRole?.toLowerCase() === "enterpriseadmin") && (
               <li className="nav-item">
                 <Link
                   to="/enterprise-catalog?tab=labels&section=all-labels"
                   onClick={() => setMenuOpen(false)}
+                  className={isActive("/enterprise-catalog") && location.search.includes("labels") ? "active" : ""}
                 >
                   Labels
                 </Link>
               </li>
             )}
             {/* LabelAdmin role: Show Artists (which navigates to artists catalog) */}
-            {actualRole === "LabelAdmin" && (
+            {(actualRole === "LabelAdmin" || actualRole?.toLowerCase() === "labeladmin") && (
               <li className="nav-item">
                 <Link
                   to="/enterprise-catalog?tab=artists&section=all-artists"
                   onClick={() => setMenuOpen(false)}
+                  className={isActive("/enterprise-catalog") && location.search.includes("artists") ? "active" : ""}
                 >
                   Artists
                 </Link>
