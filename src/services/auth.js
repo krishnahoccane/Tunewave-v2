@@ -54,6 +54,21 @@ export const verifyToken = async (token) => {
 };
 
 /**
+ * Get user entities (memberships) - includes enterprises, labels, and artists
+ * @returns {Promise<Object>} Response data with userID, fullName, email, role, status, and memberships
+ */
+export const getUserEntities = async () => {
+  const token = localStorage.getItem("jwtToken");
+  const response = await axios.get("/api/users/entities", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
+/**
  * Initiate password reset flow - sends OTP to email
  * @param {Object} data - Password reset request data
  * @param {string} data.email - User email address
@@ -145,6 +160,7 @@ export default {
   checkEmail,
   login,
   verifyToken,
+  getUserEntities,
   forgetPassword,
   resendOtp,
   validateOtp,

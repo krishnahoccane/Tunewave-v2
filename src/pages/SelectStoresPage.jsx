@@ -60,19 +60,29 @@ const SelectStoresPage = () => {
 
   const handleNext = () => {
     if (!distributionOption) {
-      toast.dark("Please select a distribution option.", { transition: Slide });
+      toast.error("Please select a distribution option.", { transition: Slide });
       return;
     }
     if (distributionOption === "manual" && selectedStores.length === 0) {
-      toast.dark("Please select at least one store.", { transition: Slide });
+      toast.error("Please select at least one store.", { transition: Slide });
       return;
     }
 
+    // Show success toast before navigation
+    toast.success("✅ Stores selected successfully!", { 
+      transition: Slide,
+      autoClose: 2000,
+    });
+
+    // Navigate to preview page with success flag
     navigate("/preview-distribute", {
       state: {
         ...releaseData,
         distribution: distributionOption,
+        stores: selectedStores,
         selectedStores,
+        success: true,
+        message: "Release created successfully!",
       },
     });
   };

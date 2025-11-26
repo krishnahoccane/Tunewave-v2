@@ -169,42 +169,66 @@ const handleLogin = async (e) => {
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("displayName", data.fullName || data.user?.fullName || payload.email);
       
-      // Extract role: prioritize response role, then email check role, then JWT token, then default
+      // Extract artistId and role from login response or JWT token
+      let artistId = data.artistId || data.artistID || data.artist_id;
       let newRole = data.role;
       
-      // If role not in response, check localStorage (from email check)
+      // If artistId not in response, try to extract from JWT token
+      if (!artistId && data.token) {
+        try {
+          const tokenParts = data.token.split(".");
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log("🔐 JWT payload:", payload);
+            
+            // Extract artistId from token
+            const tokenArtistId = payload.artistId || 
+                                 payload.artistID || 
+                                 payload.artist_id ||
+                                 payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/artistId"] ||
+                                 payload.userId ||
+                                 payload.userID ||
+                                 payload.user_id;
+            if (tokenArtistId) {
+              artistId = tokenArtistId;
+              console.log("🔐 Extracted artistId from JWT token:", artistId);
+            }
+            
+            // Extract role from token if not in response
+            if (!newRole) {
+              const tokenRole = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+                       payload.role || 
+                       payload.Role ||
+                       payload["role"];
+              if (tokenRole) {
+                newRole = tokenRole;
+                console.log("🔐 Extracted role from JWT token:", newRole);
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to extract data from token:", error);
+        }
+      }
+      
+      // Store artistId if found
+      if (artistId) {
+        try {
+          const encoded = btoa(String(artistId));
+          localStorage.setItem("artistId", encoded);
+        } catch (e) {
+          localStorage.setItem("artistId", String(artistId));
+        }
+        console.log("🔐 Stored artistId:", artistId);
+      }
+      
+      // If role not in response or token, check localStorage (from email check)
       if (!newRole) {
         const storedRole = localStorage.getItem("role");
         console.log("🔐 Checking localStorage for role:", storedRole);
         if (storedRole && storedRole !== "normal" && storedRole.trim() !== "") {
           newRole = storedRole;
           console.log("🔐 Using role from localStorage (email check):", newRole);
-        } else {
-          console.log("🔐 No valid role found in localStorage, will try JWT token");
-        }
-      }
-      
-      // If still no role, try to extract from JWT token
-      if (!newRole && data.token) {
-        try {
-          const tokenParts = data.token.split(".");
-          if (tokenParts.length === 3) {
-            const payload = JSON.parse(atob(tokenParts[1]));
-            console.log("🔐 JWT payload:", payload);
-            // Check for role in various possible claim formats
-            const tokenRole = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
-                     payload.role || 
-                     payload.Role ||
-                     payload["role"];
-            if (tokenRole) {
-              newRole = tokenRole;
-              console.log("🔐 Extracted role from JWT token:", newRole);
-            } else {
-              console.log("🔐 No role found in JWT token payload");
-            }
-          }
-        } catch (error) {
-          console.warn("Failed to extract role from token:", error);
         }
       }
       
@@ -687,7 +711,7 @@ const handleLogin = async (e) => {
 
         <p className="login-subtitle">  Use as Enterprise email :   gopi@g.co      password: gopi1234</p>
         <p className="login-subtitle">  Use as Label email :   shuva@g.co      password: shiva1234</p>
-        <p className="login-subtitle">  Use as Artist email :   deepu@g.co      password: deepu1234</p>
+        <p className="login-subtitle">  Use as Artist email :   deepu@g.com      password: deepu1234</p>
 
         <form className="login-form" onSubmit={handleLogin}>
           {/* <h2>Login to Label</h2> */}

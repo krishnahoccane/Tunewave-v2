@@ -5,6 +5,8 @@ import "../styles/TrackDetails.css";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import * as FilesService from "../services/files";
+import * as TracksService from "../services/tracks";
 
 import ContributorsSection from "../components/ContributorsSection.jsx";
 const allLanguages = [
@@ -197,7 +199,7 @@ const TrackDetails = () => {
   //   navigate("/upload-tracks");
   // };
 
-  const handleSaveAndContinue = () => {
+  const handleSaveAndContinue = async () => {
     // 🧾 Validation for required fields
     if (!trackTitle.trim()) {
       toast.dark("Please enter the Track Title.", { transition: Slide });
@@ -234,34 +236,307 @@ const TrackDetails = () => {
     const locationState = window.history.state?.usr || {};
     const { track, trackIdx } = locationState;
 
-    const trackData = {
-      ...track,
-      trackTitle,
-      catalogId,
-      lyricsLanguageOption,
-      lyricsLanguage:
-        lyricsLanguageOption === "Select Language" ? lyricsLanguage : "",
-      explicitStatus:
-        lyricsLanguageOption === "Select Language" ? explicitStatus : "",
-      crbts,
-      isrcOption,
-      isrcCode: isrcOption === "yes" ? isrcCode.trim() : "",
-      detailsCompleted: true,
-    };
-
-    let tracks = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
-
-    if (typeof trackIdx === "number" && tracks[trackIdx]) {
-      tracks[trackIdx] = trackData;
-    } else {
-      tracks.push(trackData);
+    // Get releaseId from localStorage
+    const releaseId = parseInt(localStorage.getItem("currentReleaseId"), 10);
+    if (!releaseId) {
+      toast.dark("❌ Release ID not found. Please go back and create a release first.", {
+        transition: Slide,
+      });
+      return;
     }
 
-    localStorage.setItem("uploadedTracks", JSON.stringify(tracks));
+    // Validate that track has a file object
+    if (!track.file && !track.fileId) {
+      toast.dark("❌ Track file not found. Please go back and upload the track file again.", {
+        transition: Slide,
+        autoClose: 5000,
+      });
+      return;
+    }
 
-    toast.dark("Track details saved successfully!", { position: "top-center" });
-    resetForm();
-    navigate("/upload-tracks");
+    // Get track number (index + 1)
+    let tracks = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
+    const trackNumber = typeof trackIdx === "number" ? trackIdx + 1 : tracks.length + 1;
+
+    // Get artistId from localStorage (required field - cannot be null)
+    const storedArtistId = localStorage.getItem("artistId");
+    let parsedArtistId = null;
+    
+    if (storedArtistId) {
+      try {
+        // Try to decode if it's base64 encoded
+        parsedArtistId = parseInt(atob(storedArtistId), 10);
+        if (isNaN(parsedArtistId)) {
+          // If decoding fails, try direct parse
+          parsedArtistId = parseInt(storedArtistId, 10);
+        }
+      } catch {
+        // If atob fails, try direct parse
+        parsedArtistId = parseInt(storedArtistId, 10);
+      }
+    }
+
+    if (!parsedArtistId || isNaN(parsedArtistId)) {
+      toast.dark("❌ Artist ID not found. Please ensure you're logged in as an artist.", {
+        transition: Slide,
+        autoClose: 5000,
+      });
+      return;
+    }
+
+    // Declare trackData outside try block for error handling
+    let trackData = null;
+
+    try {
+      let fileId = track.fileId;
+      let audioFileId = null;
+
+      // Validate required fields first
+      const durationSeconds = track.durationSeconds || Math.floor(track.duration || 0);
+      if (durationSeconds <= 0) {
+        throw new Error("Track duration must be greater than 0. Please ensure the audio file loaded correctly.");
+      }
+
+      // Step 1: Create track FIRST (without audioFileId)
+      toast.dark("📝 Creating track...", { transition: Slide });
+
+      trackData = {
+        releaseId: releaseId,
+        trackNumber: trackNumber,
+        title: trackTitle.trim(),
+        durationSeconds: durationSeconds,
+        explicitFlag: explicitStatus === "yes",
+        isrc: isrcOption === "yes" && isrcCode.trim() ? isrcCode.trim() : null,
+        language: lyricsLanguageOption === "Select Language" && lyricsLanguage ? lyricsLanguage : null,
+        trackVersion: catalogId.trim() || null,
+        primaryArtistId: parsedArtistId, // Required field - use logged-in user's artistId (maps to ArtistID in DB)
+        audioFileId: null, // Will be set after file upload
+      };
+
+      console.log("📤 Track data with artistId:", parsedArtistId);
+
+      console.log("📤 Creating track with data:", JSON.stringify(trackData, null, 2));
+
+      const createdTrack = await TracksService.createTrack(trackData);
+      const trackId = createdTrack.trackId || createdTrack.id;
+
+      if (!trackId) {
+        throw new Error("Track creation failed - no trackId returned");
+      }
+
+      console.log("✅ Track created with ID:", trackId);
+      toast.success("✅ Track created successfully!", { 
+        transition: Slide,
+        autoClose: 2000,
+      });
+
+      // Step 2: Upload file AFTER track is created (now we have trackId)
+      if (track.file && !fileId) {
+        toast.dark("📤 Uploading audio file...", { transition: Slide });
+        
+        // Determine content type based on file extension
+        let contentType = track.format;
+        if (!contentType) {
+          const fileExt = track.file.name.toLowerCase().split('.').pop();
+          contentType = fileExt === 'flac' ? 'audio/flac' : fileExt === 'wav' ? 'audio/wav' : 'audio/flac';
+        }
+
+        // Initiate file upload - NOW with actual trackId
+        const uploadInitData = {
+          releaseId: releaseId,
+          trackId: trackId, // Use the actual trackId from created track
+          fileType: "audio",
+          fileName: track.file.name,
+          contentType: contentType,
+          expectedFileSize: track.file.size,
+        };
+
+        console.log("📤 Initiating file upload:", JSON.stringify(uploadInitData, null, 2));
+
+        try {
+          const uploadInitResponse = await FilesService.initiateFileUpload(uploadInitData);
+          fileId = uploadInitResponse.fileId || uploadInitResponse.id;
+
+          if (!fileId) {
+            throw new Error("File upload initiation failed - no fileId returned");
+          }
+
+          console.log("✅ File upload initiated, fileId:", fileId, "uploadUrl:", uploadInitResponse.uploadUrl);
+
+          // Upload file to the returned URL
+          if (uploadInitResponse.uploadUrl) {
+            console.log("📤 Uploading file to URL:", uploadInitResponse.uploadUrl);
+            
+            // Upload file using PUT to the uploadUrl
+            let uploadResponse;
+            try {
+              uploadResponse = await fetch(uploadInitResponse.uploadUrl, {
+                method: 'PUT',
+                body: track.file,
+                headers: {
+                  'Content-Type': contentType || 'application/octet-stream',
+                },
+              });
+            } catch (fetchError) {
+              console.error("Fetch error:", fetchError);
+              throw new Error(`Network error uploading file: ${fetchError.message}. Please check your internet connection and try again.`);
+            }
+
+            if (!uploadResponse.ok) {
+              let errorText = "";
+              try {
+                errorText = await uploadResponse.text();
+              } catch (e) {
+                errorText = uploadResponse.statusText;
+              }
+              throw new Error(`File upload failed (${uploadResponse.status}): ${errorText || uploadResponse.statusText}`);
+            }
+
+            // Complete file upload
+            const completeData = {
+              fileId: fileId,
+              checksum: uploadInitResponse.checksum || "", // You may need to calculate this
+              fileSize: track.file.size,
+              cloudfrontUrl: uploadInitResponse.cloudfrontUrl || uploadInitResponse.uploadUrl,
+            };
+
+            await FilesService.completeFileUpload(completeData);
+            audioFileId = fileId;
+            toast.dark("✅ File uploaded successfully!", { transition: Slide, autoClose: 2000 });
+
+            // Step 3: Update track with audioFileId
+            if (audioFileId) {
+              toast.dark("🔄 Updating track with file reference...", { transition: Slide });
+              try {
+                await TracksService.updateTrack(trackId, {
+                  audioFileId: audioFileId,
+                });
+                toast.success("✅ Track updated with file reference successfully!", { 
+                  transition: Slide,
+                  autoClose: 2000,
+                });
+                console.log("✅ Track updated with audioFileId:", audioFileId);
+              } catch (updateError) {
+                console.error("Error updating track with audioFileId:", updateError);
+                toast.error("⚠️ Track created but failed to update file reference. Please try again later.", {
+                  transition: Slide,
+                  autoClose: 5000,
+                });
+              }
+            }
+          }
+        } catch (uploadError) {
+          console.error("File upload error:", uploadError);
+          console.error("Upload error details:", {
+            message: uploadError.message,
+            response: uploadError.response?.data,
+            status: uploadError.response?.status,
+            uploadInitData: uploadInitData,
+          });
+          
+          // Track is already created, but file upload failed
+          // We can still proceed, but warn the user
+          toast.error("⚠️ Track created but file upload failed. You can retry file upload later.", {
+            transition: Slide,
+            autoClose: 5000,
+          });
+        }
+      } else if (fileId) {
+        audioFileId = fileId;
+      }
+
+      // Step 3: Update track in localStorage with trackId and fileId
+      const updatedTrackData = {
+        ...track,
+        trackTitle,
+        catalogId,
+        lyricsLanguageOption,
+        lyricsLanguage:
+          lyricsLanguageOption === "Select Language" ? lyricsLanguage : "",
+        explicitStatus:
+          lyricsLanguageOption === "Select Language" ? explicitStatus : "",
+        crbts,
+        isrcOption,
+        isrcCode: isrcOption === "yes" ? isrcCode.trim() : "",
+        detailsCompleted: true,
+        trackId: trackId,
+        fileId: fileId || audioFileId,
+      };
+
+      tracks = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
+
+      if (typeof trackIdx === "number" && tracks[trackIdx]) {
+        tracks[trackIdx] = updatedTrackData;
+      } else {
+        tracks.push(updatedTrackData);
+      }
+
+      localStorage.setItem("uploadedTracks", JSON.stringify(tracks));
+
+      // Step 4: Update release draft with trackId immediately
+      // Note: This is optional - release will be updated when user proceeds to next step
+      // We skip this to avoid 405 errors, and update only when user clicks Next
+      console.log("✅ Track created successfully. Release will be updated when you proceed to next step.");
+
+      toast.success("✅ Track created and saved successfully!", { 
+        transition: Slide, 
+        autoClose: 3000,
+      });
+      resetForm();
+      navigate("/upload-tracks");
+    } catch (error) {
+      console.error("Error saving track:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        trackData: trackData || "Not defined",
+      });
+      
+      // Extract validation errors if present
+      let errorMessage = "Error saving track. Please try again.";
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for validation errors (ASP.NET Core format)
+        if (errorData.errors && typeof errorData.errors === 'object') {
+          const validationErrors = [];
+          Object.keys(errorData.errors).forEach((field) => {
+            const fieldErrors = errorData.errors[field];
+            if (Array.isArray(fieldErrors)) {
+              fieldErrors.forEach((err) => {
+                validationErrors.push(`${field}: ${err}`);
+              });
+            } else {
+              validationErrors.push(`${field}: ${fieldErrors}`);
+            }
+          });
+          
+          if (validationErrors.length > 0) {
+            errorMessage = `Validation errors:\n${validationErrors.join('\n')}`;
+            console.error("Validation errors:", validationErrors);
+          }
+        }
+        
+        // Fallback to other error message formats
+        if (errorMessage === "Error saving track. Please try again.") {
+          errorMessage = errorData.title || 
+                        errorData.message || 
+                        errorData.error || 
+                        error.message || 
+                        errorMessage;
+        }
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      // Show error toast
+      toast.error(`❌ ${errorMessage}`, { 
+        transition: Slide, 
+        autoClose: 8000,
+      });
+    }
   };
 
   // Ensure valid time input and auto-format to 2 digits

@@ -1,8 +1,8 @@
 // hooks and libraries
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { toast, ToastContainer } from "react-toastify";
+import { toast, ToastContainer, Slide } from "react-toastify";
 
 // css
 // import "../styles/UploadTracks.css";
@@ -15,12 +15,36 @@ const UploadTracks = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Get releaseId from URL params or localStorage
+  const searchParams = new URLSearchParams(location.search);
+  const releaseId = searchParams.get("releaseId") || localStorage.getItem("currentReleaseId");
+  
   const releaseMetadata = location.state || {};
-  const [tracks, setTracks] = useState(() =>
-    JSON.parse(localStorage.getItem("uploadedTracks") || "[]")
-  );
+  
+  // Filter out tracks that don't have file objects (read-only tracks from previous sessions)
+  const [tracks, setTracks] = useState(() => {
+    const storedTracks = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
+    // Only keep tracks that have a file object or are already completed (have trackId)
+    return storedTracks.filter(track => track.file || track.trackId);
+  });
+  
   const [draggedTrackIdx, setDraggedTrackIdx] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Store releaseId in localStorage if not already stored
+  useEffect(() => {
+    if (releaseId) {
+      localStorage.setItem("currentReleaseId", releaseId);
+    }
+    
+    // Clean up localStorage: remove tracks without file objects that aren't completed
+    const storedTracks = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
+    const validTracks = storedTracks.filter(track => track.file || track.trackId);
+    if (validTracks.length !== storedTracks.length) {
+      localStorage.setItem("uploadedTracks", JSON.stringify(validTracks));
+      setTracks(validTracks);
+    }
+  }, [releaseId]);
 
   // Save tracks to local storage
   const saveTracksToStorage = (tracksArr) => {
@@ -44,10 +68,13 @@ const UploadTracks = () => {
     const files = Array.from(e.target.files);
     const validFormats = ["audio/flac", "audio/wav"];
     const newTracks = [];
+    let loadedCount = 0;
 
     files.forEach((file) => {
-      if (!validFormats.includes(file.type)) {
-        toast.dark(`❌ ${file.name} is not a valid format.`);
+      // Check file extension as well (some browsers may not set MIME type correctly)
+      const fileExt = file.name.toLowerCase().split('.').pop();
+      if (!validFormats.includes(file.type) && !["flac", "wav"].includes(fileExt)) {
+        toast.dark(`❌ ${file.name} is not a valid format. Only FLAC and WAV files are allowed.`);
         return;
       }
 
@@ -57,18 +84,27 @@ const UploadTracks = () => {
         const newTrack = {
           id: Date.now() + Math.random(),
           name: file.name,
-          format: file.type,
+          format: file.type || (fileExt === "flac" ? "audio/flac" : "audio/wav"),
+          file: file, // Store file object for later upload
           url: audioURL,
           duration: audio.duration,
+          durationSeconds: Math.floor(audio.duration),
           metadata: {},
           detailsCompleted: false,
+          trackId: null, // Will be set after track is created via API
+          fileId: null, // Will be set after file is uploaded
         };
         newTracks.push(newTrack);
+        loadedCount++;
 
-        if (newTracks.length === files.length) {
+        if (loadedCount === files.length) {
           const updatedTracks = [...tracks, ...newTracks];
           saveTracksToStorage(updatedTracks);
+          toast.dark(`✅ ${newTracks.length} track(s) uploaded successfully!`, { autoClose: 3000 });
         }
+      };
+      audio.onerror = () => {
+        toast.dark(`❌ Error loading ${file.name}. Please try again.`);
       };
     });
   };
@@ -102,8 +138,13 @@ const UploadTracks = () => {
     setDraggedTrackIdx(null);
   };
 
-  // Proceed to next page
-  const handleNextStep = () => {
+  // Proceed to next page - After all tracks are created, update release with trackIds
+  const handleNextStep = async () => {
+    if (!releaseId) {
+      toast.dark("❌ Release ID not found. Please go back and create a release first.");
+      return;
+    }
+
     if (tracks.length === 0) {
       toast.dark("⚠️ Please upload at least one track before continuing.");
       return;
@@ -114,11 +155,84 @@ const UploadTracks = () => {
       return;
     }
 
-    localStorage.setItem("uploadedTracks", JSON.stringify(tracks));
+    // Check if all tracks have been created (have trackId)
+    const tracksWithoutId = tracks.filter((t) => !t.trackId);
+    if (tracksWithoutId.length > 0) {
+      toast.dark(`⚠️ Please complete track details for ${tracksWithoutId.length} track(s).`);
+      return;
+    }
 
-    navigate("/select-stores", {
-      state: { ...releaseMetadata, tracks },
-    });
+    // Update release with trackIds
+    try {
+      const trackIds = tracks.map((t) => t.trackId).filter((id) => id !== null && id !== undefined && id !== 0);
+      
+      if (trackIds.length === 0) {
+        toast.error("⚠️ No valid tracks found to update release.", { transition: Slide });
+        return;
+      }
+
+      console.log("📤 Updating release with trackIds:", trackIds);
+      
+      // Fetch release first to get all existing fields, then update with trackIds
+      const { updateRelease, getReleaseById } = await import("../services/releases");
+      
+      try {
+        // Try to get existing release data first
+        const existingRelease = await getReleaseById(releaseId);
+        console.log("📥 Existing release data:", existingRelease);
+        
+        // Update with existing data plus trackIds
+        await updateRelease(releaseId, {
+          ...existingRelease,
+          trackIds: trackIds,
+        });
+      } catch (fetchError) {
+        // If fetch fails, try updating with just trackIds (API might accept partial updates)
+        console.warn("Could not fetch release, trying direct update:", fetchError);
+        await updateRelease(releaseId, {
+          trackIds: trackIds,
+        });
+      }
+
+      console.log("✅ Release updated successfully with trackIds:", trackIds);
+      
+      // Show success toast
+      toast.success("✅ Release updated with tracks successfully!", { 
+        transition: Slide,
+        autoClose: 3000,
+      });
+      
+      // Clear uploaded tracks from localStorage after successful update
+      localStorage.setItem("uploadedTracks", JSON.stringify(tracks));
+      
+      // Navigate to select stores page (next step in flow)
+      navigate("/select-stores", {
+        state: { 
+          ...releaseMetadata, 
+          tracks, 
+          releaseId,
+        },
+      });
+    } catch (error) {
+      console.error("Error updating release with trackIds:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        releaseId: releaseId,
+        trackIds: tracks.map((t) => t.trackId),
+      });
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error ||
+                          error.message ||
+                          "Failed to update release";
+      
+      toast.error(`❌ Error updating release: ${errorMessage}`, { 
+        transition: Slide,
+        autoClose: 5000,
+      });
+    }
   };
 
   return (
@@ -230,9 +344,14 @@ const UploadTracks = () => {
                     <div className="track-info" style={{ textAlign: "center" }}>
                       <strong>Track {idx + 1}</strong>
                       <p>{track.name}</p>
+                      {!track.file && !track.trackId && (
+                        <p style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+                          ⚠️ File missing
+                        </p>
+                      )}
                     </div>
                     <div className="track-controls">
-                      <audio controls src={track.url}></audio>
+                      {track.url && <audio controls src={track.url}></audio>}
                       <span className="duration">
                         {formatDuration(track.duration)}
                       </span>
@@ -240,7 +359,20 @@ const UploadTracks = () => {
                         className={`edit-btn ${
                           !track.detailsCompleted ? "incomplete" : ""
                         }`}
-                        onClick={() => handleEditTrack(track, idx)}
+                        onClick={() => {
+                          if (!track.file && !track.trackId) {
+                            toast.dark("⚠️ This track file is missing. Please delete and re-upload.", {
+                              autoClose: 3000,
+                            });
+                            return;
+                          }
+                          handleEditTrack(track, idx);
+                        }}
+                        disabled={!track.file && !track.trackId}
+                        style={{
+                          opacity: (!track.file && !track.trackId) ? 0.5 : 1,
+                          cursor: (!track.file && !track.trackId) ? "not-allowed" : "pointer",
+                        }}
                       >
                         Edit {!track.detailsCompleted && "⚠️"}
                       </button>

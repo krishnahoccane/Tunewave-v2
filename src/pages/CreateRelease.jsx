@@ -12,9 +12,16 @@ import "react-toastify/dist/ReactToastify.css";
 import "../styles/styled.css";
 
 import ContributorsSection from "../components/ContributorsSection.jsx";
+import * as ReleasesService from "../services/releases";
+import * as TracksService from "../services/tracks";
+import * as FilesService from "../services/files";
+import * as ArtistsService from "../services/artists";
+import * as AuthService from "../services/auth";
+import { useRole } from "../context/RoleContext";
 
 function CreateRelease() {
   const navigate = useNavigate();
+  const { actualRole } = useRole();
   const [fileUploaded, setFileUploaded] = useState(null);
 
   const [showArtistModal, setShowArtistModal] = useState(false);
@@ -171,6 +178,416 @@ function CreateRelease() {
   const [hasUPC, setHasUPC] = useState(null); // 'yes' or 'no'
   const [upcCode, setUpcCode] = useState("");
   const [profile, setProfileModel] = useState("");
+  
+  // Label ID - will be fetched from logged-in user's artist profile
+  const [labelId, setLabelId] = useState(null);
+  const [enterpriseId, setEnterpriseId] = useState(null);
+  const [loadingLabelId, setLoadingLabelId] = useState(true);
+
+
+  // Fetch labelId and artistId from user entities API
+  useEffect(() => {
+    const fetchUserEntities = async () => {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) {
+        setLoadingLabelId(false);
+        return;
+      }
+
+      try {
+        // Fetch user entities to get memberships (labels, artists, enterprises)
+        const entitiesData = await AuthService.getUserEntities();
+        console.log("User entities data:", entitiesData);
+
+        // Extract data based on user role
+        if (actualRole === "LabelAdmin" || actualRole?.toLowerCase() === "labeladmin") {
+          // For LabelAdmin, get labelId from memberships.labels
+          // Handle both possible structures: entitiesData.memberships?.labels or entitiesData.labels
+          const labels = entitiesData.memberships?.labels || entitiesData.labels || [];
+          console.log("LabelAdmin: Full entitiesData structure:", entitiesData);
+          console.log("LabelAdmin: Labels array:", labels);
+          
+          if (labels.length > 0) {
+            // Find label with isDefault: true, otherwise use first label
+            const defaultLabel = labels.find(label => label.isDefault === true || label.isDefault === "true");
+            const selectedLabel = defaultLabel || labels[0];
+            
+            // Extract labelId - check multiple field name variations
+            const labelId = selectedLabel.labelId ?? 
+                           selectedLabel.labelID ?? 
+                           selectedLabel.label_id ??
+                           selectedLabel.id;
+            
+            if (labelId !== null && labelId !== undefined) {
+              const parsedLabelId = parseInt(labelId, 10);
+              if (!isNaN(parsedLabelId)) {
+                setLabelId(parsedLabelId);
+                localStorage.setItem("labelId", String(parsedLabelId));
+                console.log("LabelAdmin: Using labelId:", parsedLabelId, defaultLabel ? "(default)" : "(first)");
+                
+                // Extract enterpriseId from selected label if available
+                const foundEnterpriseId = selectedLabel.enterpriseId ?? 
+                                         selectedLabel.enterpriseID ?? 
+                                         selectedLabel.enterprise_id ??
+                                         selectedLabel.enterprise?.enterpriseId;
+                
+                if (foundEnterpriseId !== null && foundEnterpriseId !== undefined) {
+                  const parsedEnterpriseId = parseInt(foundEnterpriseId, 10);
+                  if (!isNaN(parsedEnterpriseId)) {
+                    setEnterpriseId(parsedEnterpriseId);
+                    localStorage.setItem("enterpriseId", String(parsedEnterpriseId));
+                    console.log("LabelAdmin: Found enterpriseId from label:", parsedEnterpriseId);
+                  }
+                } else if (parsedLabelId) {
+                  // Fetch label details to get enterpriseId
+                  try {
+                    console.log("LabelAdmin: Fetching label details to get enterpriseId for labelId:", parsedLabelId);
+                    const labelResponse = await axios.get(`/api/labels/${parsedLabelId}`, {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    
+                    console.log("LabelAdmin: Label API response:", labelResponse.data);
+                    const labelData = labelResponse.data;
+                    const fetchedEnterpriseId = labelData.enterpriseId ?? 
+                                               labelData.enterpriseID ?? 
+                                               labelData.enterprise_id ??
+                                               labelData.enterprise?.enterpriseId ??
+                                               labelData.enterprise?.enterpriseID;
+                    
+                    if (fetchedEnterpriseId !== null && fetchedEnterpriseId !== undefined) {
+                      const parsedEnterpriseId = parseInt(fetchedEnterpriseId, 10);
+                      if (!isNaN(parsedEnterpriseId)) {
+                        setEnterpriseId(parsedEnterpriseId);
+                        localStorage.setItem("enterpriseId", String(parsedEnterpriseId));
+                        console.log("LabelAdmin: ✅ Successfully fetched enterpriseId from label API:", parsedEnterpriseId);
+                      } else {
+                        console.warn("LabelAdmin: enterpriseId from API is not a valid number:", fetchedEnterpriseId);
+                      }
+                    } else {
+                      console.warn("LabelAdmin: enterpriseId not found in label API response. Available fields:", Object.keys(labelData));
+                    }
+                  } catch (error) {
+                    console.error("LabelAdmin: ❌ Error fetching enterpriseId from label API:", error);
+                    console.error("LabelAdmin: Error details:", {
+                      message: error.message,
+                      response: error.response?.data,
+                      status: error.response?.status,
+                      labelId: parsedLabelId
+                    });
+                  }
+                }
+              } else {
+                console.warn("LabelAdmin: labelId is not a valid number:", labelId);
+                toast.dark("Unable to find label ID. Please contact support.", {
+                  transition: Slide,
+                  autoClose: 5000,
+                });
+              }
+            } else {
+              console.warn("LabelAdmin: No labelId found in labels array. Selected label:", selectedLabel);
+              toast.dark("Unable to find label ID. Please contact support.", {
+                transition: Slide,
+                autoClose: 5000,
+              });
+            }
+          } else {
+            console.warn("LabelAdmin: No labels found. Available keys:", Object.keys(entitiesData));
+            toast.dark("No labels found for your account. Please contact support.", {
+              transition: Slide,
+              autoClose: 5000,
+            });
+          }
+        } else if (actualRole === "Artist" || actualRole?.toLowerCase() === "artist") {
+          // For Artist, get artistId and labelId from memberships
+          // Handle both possible structures: entitiesData.memberships?.artists or entitiesData.artists
+          const artists = entitiesData.memberships?.artists || entitiesData.artists || [];
+          const labels = entitiesData.memberships?.labels || entitiesData.labels || [];
+          
+          console.log("Artist: Full entitiesData structure:", entitiesData);
+          console.log("Artist: Artists array:", artists);
+          console.log("Artist: Labels array:", labels);
+
+          // Get artistId from memberships.artists - check for isDefault
+          let artistId = null;
+          if (artists.length > 0) {
+            // Find artist with isDefault: true, otherwise use first artist
+            const defaultArtist = artists.find(artist => artist.isDefault === true || artist.isDefault === "true");
+            const selectedArtist = defaultArtist || artists[0];
+            artistId = selectedArtist.artistId;
+            
+            if (artistId) {
+              // Store artistId for future use
+              localStorage.setItem("artistId", String(artistId));
+              console.log("Artist: Found artistId:", artistId, defaultArtist ? "(default)" : "(first)");
+            }
+          }
+
+          // Try to get labelId from memberships.labels first - check for isDefault
+          let foundLabelId = null;
+          if (labels.length > 0) {
+            console.log("Artist: Labels array from memberships:", labels);
+            // Find label with isDefault: true, otherwise use first label
+            const defaultLabel = labels.find(label => label.isDefault === true || label.isDefault === "true");
+            const selectedLabel = defaultLabel || labels[0];
+            
+            // Extract labelId - check multiple field name variations
+            foundLabelId = selectedLabel.labelId ?? 
+                          selectedLabel.labelID ?? 
+                          selectedLabel.label_id ??
+                          selectedLabel.id;
+            
+            // Convert to number if it's a string
+            if (foundLabelId !== null && foundLabelId !== undefined) {
+              foundLabelId = parseInt(foundLabelId, 10);
+              // Check if conversion was successful (not NaN)
+              if (isNaN(foundLabelId)) {
+                foundLabelId = null;
+              }
+            }
+            
+            console.log("Artist: Selected label:", selectedLabel);
+            console.log("Artist: Extracted labelId from memberships:", foundLabelId, defaultLabel ? "(default)" : "(first)");
+            
+            // Extract enterpriseId from selected label if available
+            let foundEnterpriseId = selectedLabel.enterpriseId ?? 
+                                 selectedLabel.enterpriseID ?? 
+                                 selectedLabel.enterprise_id ??
+                                 selectedLabel.enterprise?.enterpriseId ??
+                                 selectedLabel.enterprise?.enterpriseID;
+            
+            if (foundEnterpriseId !== null && foundEnterpriseId !== undefined) {
+              const parsedEnterpriseId = parseInt(foundEnterpriseId, 10);
+              if (!isNaN(parsedEnterpriseId)) {
+                setEnterpriseId(parsedEnterpriseId);
+                localStorage.setItem("enterpriseId", String(parsedEnterpriseId));
+                console.log("Artist: Found enterpriseId from label data:", parsedEnterpriseId);
+              }
+            } else {
+              // enterpriseId not in label data, will fetch from API after labelId is set
+              console.log("Artist: enterpriseId not found in label data, will fetch from API");
+            }
+          } else {
+            console.log("Artist: No labels found in labels array");
+            console.log("Artist: Available keys in entitiesData:", Object.keys(entitiesData));
+          }
+
+          // If no labelId from memberships, fetch from artists table
+          if (!foundLabelId && artistId) {
+            try {
+              console.log("Artist: No labelId in memberships, fetching from artists table...", { artistId });
+              const artistData = await ArtistsService.getArtistById(artistId);
+              console.log("Artist: Full artist data from API:", artistData);
+              
+              // Extract labelId from artist data (check multiple possible field names)
+              foundLabelId = artistData.labelId || 
+                           artistData.labelID || 
+                           artistData.label_id ||
+                           artistData.createdByLabelId ||
+                           artistData.createdByLabelID ||
+                           artistData.created_by_label_id ||
+                           artistData.data?.labelId ||
+                           artistData.data?.labelID ||
+                           artistData.data?.label_id;
+              
+              if (foundLabelId) {
+                console.log("Artist: Found labelId from artists table:", foundLabelId);
+              } else {
+                console.warn("Artist: No labelId found in artist data. Available fields:", Object.keys(artistData));
+                console.warn("Artist: Full artist data structure:", JSON.stringify(artistData, null, 2));
+              }
+            } catch (error) {
+              console.error("Error fetching artist data:", error);
+              console.error("Error details:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                artistId: artistId
+              });
+              const errorMessage =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                "Error fetching artist information.";
+              toast.dark(errorMessage, {
+                transition: Slide,
+                autoClose: 5000,
+              });
+            }
+          }
+
+          // Set labelId if found
+          if (foundLabelId !== null && foundLabelId !== undefined) {
+            const parsedLabelId = parseInt(foundLabelId, 10);
+            if (!isNaN(parsedLabelId)) {
+              setLabelId(parsedLabelId);
+              localStorage.setItem("labelId", String(parsedLabelId));
+              console.log("Artist: Successfully set labelId:", parsedLabelId);
+              
+              // Always try to fetch enterpriseId if not already found
+              const storedEnterpriseId = localStorage.getItem("enterpriseId");
+              if (!storedEnterpriseId && parsedLabelId) {
+                try {
+                  console.log("Artist: Fetching label details to get enterpriseId for labelId:", parsedLabelId);
+                  const labelResponse = await axios.get(`/api/labels/${parsedLabelId}`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+                      "Content-Type": "application/json",
+                    },
+                  });
+                  
+                  console.log("Artist: Label API response:", labelResponse.data);
+                  const labelData = labelResponse.data;
+                  const fetchedEnterpriseId = labelData.enterpriseId ?? 
+                                             labelData.enterpriseID ?? 
+                                             labelData.enterprise_id ??
+                                             labelData.enterprise?.enterpriseId ??
+                                             labelData.enterprise?.enterpriseID;
+                  
+                  if (fetchedEnterpriseId !== null && fetchedEnterpriseId !== undefined) {
+                    const parsedEnterpriseId = parseInt(fetchedEnterpriseId, 10);
+                    if (!isNaN(parsedEnterpriseId)) {
+                      setEnterpriseId(parsedEnterpriseId);
+                      localStorage.setItem("enterpriseId", String(parsedEnterpriseId));
+                      console.log("Artist: ✅ Successfully fetched enterpriseId from label API:", parsedEnterpriseId);
+                    } else {
+                      console.warn("Artist: enterpriseId from API is not a valid number:", fetchedEnterpriseId);
+                    }
+                  } else {
+                    console.warn("Artist: enterpriseId not found in label API response. Available fields:", Object.keys(labelData));
+                    console.warn("Artist: Full label API response:", JSON.stringify(labelData, null, 2));
+                  }
+                } catch (error) {
+                  console.error("Artist: ❌ Error fetching enterpriseId from label API:", error);
+                  console.error("Artist: Error details:", {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                    labelId: parsedLabelId
+                  });
+                  // Don't show error toast here, as labelId is more critical
+                }
+              } else if (storedEnterpriseId) {
+                console.log("Artist: Using enterpriseId from localStorage:", storedEnterpriseId);
+                setEnterpriseId(parseInt(storedEnterpriseId, 10));
+              }
+            } else {
+              console.warn("Artist: labelId is not a valid number:", foundLabelId);
+              toast.dark("Unable to find label ID. Please contact support.", {
+                transition: Slide,
+                autoClose: 5000,
+              });
+            }
+          } else {
+            console.warn("Artist: No labelId found from memberships or artists table");
+            console.warn("Artist: Debug info - artists:", artists, "labels:", labels, "artistId:", artistId);
+            toast.dark("Unable to find label ID. Please contact support.", {
+              transition: Slide,
+              autoClose: 5000,
+            });
+          }
+        } else {
+          // For other roles, try to get labelId from memberships.labels - check for isDefault
+          // Handle both possible structures: entitiesData.memberships?.labels or entitiesData.labels
+          const labels = entitiesData.memberships?.labels || entitiesData.labels || [];
+          console.log("Other role: Labels array:", labels);
+          
+          if (labels.length > 0) {
+            // Find label with isDefault: true, otherwise use first label
+            const defaultLabel = labels.find(label => label.isDefault === true || label.isDefault === "true");
+            const selectedLabel = defaultLabel || labels[0];
+            
+            // Extract labelId - check multiple field name variations
+            const labelId = selectedLabel.labelId ?? 
+                           selectedLabel.labelID ?? 
+                           selectedLabel.label_id ??
+                           selectedLabel.id;
+            
+            if (labelId !== null && labelId !== undefined) {
+              const parsedLabelId = parseInt(labelId, 10);
+              if (!isNaN(parsedLabelId)) {
+                setLabelId(parsedLabelId);
+                localStorage.setItem("labelId", String(parsedLabelId));
+                console.log("Other role: Using labelId:", parsedLabelId, defaultLabel ? "(default)" : "(first)");
+                
+                // Extract enterpriseId from selected label if available
+                const foundEnterpriseId = selectedLabel.enterpriseId ?? 
+                                         selectedLabel.enterpriseID ?? 
+                                         selectedLabel.enterprise_id ??
+                                         selectedLabel.enterprise?.enterpriseId;
+                
+                if (foundEnterpriseId !== null && foundEnterpriseId !== undefined) {
+                  const parsedEnterpriseId = parseInt(foundEnterpriseId, 10);
+                  if (!isNaN(parsedEnterpriseId)) {
+                    setEnterpriseId(parsedEnterpriseId);
+                    localStorage.setItem("enterpriseId", String(parsedEnterpriseId));
+                    console.log("Other role: Found enterpriseId from label:", parsedEnterpriseId);
+                  }
+                } else if (parsedLabelId) {
+                  // Fetch label details to get enterpriseId
+                  try {
+                    console.log("Other role: Fetching label details to get enterpriseId for labelId:", parsedLabelId);
+                    const labelResponse = await axios.get(`/api/labels/${parsedLabelId}`, {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    
+                    console.log("Other role: Label API response:", labelResponse.data);
+                    const labelData = labelResponse.data;
+                    const fetchedEnterpriseId = labelData.enterpriseId ?? 
+                                               labelData.enterpriseID ?? 
+                                               labelData.enterprise_id ??
+                                               labelData.enterprise?.enterpriseId ??
+                                               labelData.enterprise?.enterpriseID;
+                    
+                    if (fetchedEnterpriseId !== null && fetchedEnterpriseId !== undefined) {
+                      const parsedEnterpriseId = parseInt(fetchedEnterpriseId, 10);
+                      if (!isNaN(parsedEnterpriseId)) {
+                        setEnterpriseId(parsedEnterpriseId);
+                        localStorage.setItem("enterpriseId", String(parsedEnterpriseId));
+                        console.log("Other role: ✅ Successfully fetched enterpriseId from label API:", parsedEnterpriseId);
+                      } else {
+                        console.warn("Other role: enterpriseId from API is not a valid number:", fetchedEnterpriseId);
+                      }
+                    } else {
+                      console.warn("Other role: enterpriseId not found in label API response. Available fields:", Object.keys(labelData));
+                    }
+                  } catch (error) {
+                    console.error("Other role: ❌ Error fetching enterpriseId from label API:", error);
+                    console.error("Other role: Error details:", {
+                      message: error.message,
+                      response: error.response?.data,
+                      status: error.response?.status,
+                      labelId: parsedLabelId
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user entities:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Error fetching user information.";
+        toast.dark(errorMessage, {
+          transition: Slide,
+          autoClose: 5000,
+        });
+      } finally {
+        setLoadingLabelId(false);
+      }
+    };
+
+    fetchUserEntities();
+  }, [actualRole]);
 
   // Example: adding/updating a contributor
   const addContributor = (contributor) => {
@@ -273,6 +690,13 @@ function CreateRelease() {
   // };
 
   const handleSubmit = async () => {
+    if (loadingLabelId) {
+      toast.dark("Please wait while we load your information...", {
+        transition: Slide,
+      });
+      return;
+    }
+
     if (!releaseTitle.trim()) {
       toast.dark("Please enter a Release Title.", { transition: Slide });
       return;
@@ -291,45 +715,223 @@ function CreateRelease() {
       });
       return;
     }
-    // if (contributors.length === 0) {
-    //   toast.dark("Please add at least one Main Primary Artist.", {transition: Slide});
-    //   return;
-    // }
+    if (!labelId) {
+      toast.dark("Label ID is required. Unable to find your label. Please contact support.", {
+        transition: Slide,
+        autoClose: 5000,
+      });
+      return;
+    }
+    
+    // Try to get enterpriseId if missing - check localStorage first, then try fetching from label API
+    let finalEnterpriseId = enterpriseId || parseInt(localStorage.getItem("enterpriseId"), 10);
+    
+    if (!finalEnterpriseId || isNaN(finalEnterpriseId)) {
+      // Last attempt: fetch from label API
+      try {
+        console.log("handleSubmit: enterpriseId missing, fetching from label API for labelId:", labelId);
+        const labelResponse = await axios.get(`/api/labels/${labelId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+            "Content-Type": "application/json",
+          },
+        });
+        
+        const labelData = labelResponse.data;
+        const fetchedEnterpriseId = labelData.enterpriseId ?? 
+                                   labelData.enterpriseID ?? 
+                                   labelData.enterprise_id ??
+                                   labelData.enterprise?.enterpriseId ??
+                                   labelData.enterprise?.enterpriseID;
+        
+        if (fetchedEnterpriseId !== null && fetchedEnterpriseId !== undefined) {
+          finalEnterpriseId = parseInt(fetchedEnterpriseId, 10);
+          if (!isNaN(finalEnterpriseId)) {
+            setEnterpriseId(finalEnterpriseId);
+            localStorage.setItem("enterpriseId", String(finalEnterpriseId));
+            console.log("handleSubmit: ✅ Successfully fetched enterpriseId:", finalEnterpriseId);
+          }
+        }
+      } catch (error) {
+        console.error("handleSubmit: ❌ Failed to fetch enterpriseId:", error);
+      }
+    }
+    
+    if (!finalEnterpriseId || isNaN(finalEnterpriseId)) {
+      toast.dark("Enterprise ID is required. Unable to find your enterprise. Please contact support.", {
+        transition: Slide,
+        autoClose: 5000,
+      });
+      return;
+    }
 
-    // ✅ Continue with form submission if all fields are valid
-    const formData = new FormData();
-    formData.append("releaseTitle", releaseTitle);
-    formData.append("titleVersion", titleVersion);
-    formData.append("digitalReleaseDate", digitalReleaseDate);
-    formData.append("originalReleaseDate", originalReleaseDate);
-    formData.append("primaryGenre", primaryGenre);
-    formData.append("secondaryGenre", secondaryGenre);
-    formData.append("hasUPC", hasUPC);
-    if (coverArtwork) formData.append("coverArtwork", coverArtwork);
-    if (hasUPC === "yes") formData.append("upcCode", upcCode);
-    formData.append("localizations", JSON.stringify(localizations));
-    formData.append("contributors", JSON.stringify(contributors));
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      toast.dark("Authentication required. Please login again.", {
+        transition: Slide,
+      });
+      return;
+    }
 
     try {
-      const response = await axios.post("/wp/wp-json/gf/v2/entries", formData, {
-        headers: {
-          Authorization: `Basic ${btoa(
-            "ck_23e474a3a4a15b8460b78f01bc60d565dd7f94c5:cs_84ee6ec3c485d7727560ad9103ed3311d2afb088"
-          )}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Format dates to ISO string
+      const formatDate = (dateString) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        return date.toISOString();
+      };
 
-      toast.success("Release created successfully!");
-      console.log("Response:", response.data);
+      // Format contributors - map to API format
+      // Get artistId from localStorage (set during login/entities fetch)
+      const storedArtistId = localStorage.getItem("artistId");
+      let parsedArtistId = null;
+      
+      if (storedArtistId) {
+        try {
+          // Try to decode if it's base64 encoded
+          parsedArtistId = parseInt(atob(storedArtistId), 10);
+          if (isNaN(parsedArtistId)) {
+            // If decoding fails, try direct parse
+            parsedArtistId = parseInt(storedArtistId, 10);
+          }
+        } catch {
+          // If atob fails, try direct parse
+          parsedArtistId = parseInt(storedArtistId, 10);
+        }
+      }
+
+      // Format contributors - use contributors from state if available, otherwise use logged-in artistId
+      let formattedContributors = [];
+      
+      if (contributors.length > 0) {
+        formattedContributors = contributors.map((contributor) => ({
+          artistId: contributor.artistId || contributor.id || parsedArtistId || 0,
+          role: contributor.role || "Primary",
+        }));
+      } else if (parsedArtistId && !isNaN(parsedArtistId)) {
+        // If no contributors added via UI, use logged-in user's artistId as default Primary Artist
+        formattedContributors = [{
+          artistId: parsedArtistId,
+          role: "Primary",
+        }];
+        console.log("Using logged-in artistId as default contributor:", parsedArtistId);
+      }
+
+      // Validate contributors - API requires at least one contributor
+      if (formattedContributors.length === 0) {
+        toast.dark("Please add at least one contributor or ensure you're logged in as an artist.", {
+          transition: Slide,
+          autoClose: 5000,
+        });
+        return false;
+      }
+
+      // Prepare release data according to API spec - Save as DRAFT
+      // Use finalEnterpriseId which was validated/fetched above
+      const releaseData = {
+        enterpriseId: finalEnterpriseId,
+        labelId: labelId,
+        title: releaseTitle.trim(),
+        titleVersion: titleVersion.trim() || null,
+        description: "", // Add description field if available in form
+        coverArtUrl: null, // Will be set after cover art upload
+        primaryGenre: primaryGenre,
+        secondaryGenre: secondaryGenre || null,
+        digitalReleaseDate: formatDate(digitalReleaseDate),
+        originalReleaseDate: formatDate(originalReleaseDate) || null,
+        hasUPC: hasUPC === "yes",
+        upcCode: hasUPC === "yes" && upcCode ? upcCode : null,
+        contributors: formattedContributors, // Always send array, never null
+        distributionOption: {
+          distributionType: "SelectAll",
+          selectedStoreIds: [],
+        },
+        trackIds: [], // TrackIds will be added later after tracks are uploaded and created
+      };
+
+      console.log("📤 Saving release as DRAFT:", JSON.stringify(releaseData, null, 2));
+      console.log("📤 LabelId being sent:", labelId, "Type:", typeof labelId);
+
+      // Create release as DRAFT (without tracks)
+      const releaseResponse = await ReleasesService.createRelease(releaseData);
+      const createdReleaseId = releaseResponse.releaseId || releaseResponse.id || releaseResponse.releaseID;
+
+      if (!createdReleaseId) {
+        throw new Error("Release created but no ID returned");
+      }
+
+      // Store releaseId in localStorage for use in track upload flow
+      localStorage.setItem("currentReleaseId", String(createdReleaseId));
+
+      // Handle cover art upload if needed
+      // Note: Cover art upload might need to be handled separately via file upload API
+      // For now, we'll store the release ID and handle cover art in a separate step
+      if (coverArtwork) {
+        // TODO: Upload cover art using FilesService
+        // This would involve:
+        // 1. initiateFileUpload for cover art
+        // 2. Upload file to the returned URL
+        // 3. completeFileUpload
+        // 4. Update release with coverArtUrl
+        console.log("Cover art upload needs to be implemented");
+      }
+
+      toast.success("✅ Release saved as draft successfully!", { 
+        transition: Slide,
+        autoClose: 3000,
+      });
+      console.log("✅ Release saved as draft with ID:", createdReleaseId);
+
+      // Navigate to upload tracks page with release ID
+      navigate(`/upload-tracks?releaseId=${createdReleaseId}`);
       return true;
     } catch (error) {
-      toast.dark("Error submitting form. Please try again.");
-      console.error("Error submitting:", error.response?.data || error.message);
+      console.error("Error creating release:", error);
+      console.error("Error response data:", error.response?.data);
+      
+      // Extract validation errors if present
+      let errorMessage = "Error creating release. Please try again.";
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for validation errors (ASP.NET Core format)
+        if (errorData.errors && typeof errorData.errors === 'object') {
+          const validationErrors = [];
+          Object.keys(errorData.errors).forEach((field) => {
+            const fieldErrors = errorData.errors[field];
+            if (Array.isArray(fieldErrors)) {
+              fieldErrors.forEach((err) => {
+                validationErrors.push(`${field}: ${err}`);
+              });
+            } else {
+              validationErrors.push(`${field}: ${fieldErrors}`);
+            }
+          });
+          
+          if (validationErrors.length > 0) {
+            errorMessage = `Validation errors:\n${validationErrors.join('\n')}`;
+            console.error("Validation errors:", validationErrors);
+          }
+        }
+        
+        // Fallback to other error message formats
+        if (errorMessage === "Error creating release. Please try again.") {
+          errorMessage = errorData.title || 
+                        errorData.message || 
+                        errorData.error || 
+                        error.message || 
+                        errorMessage;
+        }
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      toast.error(`❌ ${errorMessage}`, { 
+        transition: Slide, 
+        autoClose: 8000,
+      });
       return false;
-    } finally {
-      // used finally for now to navigate
-      navigate("/upload-tracks");
     }
   };
 
