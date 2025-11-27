@@ -15,6 +15,12 @@ function CreateEnterprise() {
   const [revenueShare, setRevenueShare] = useState("10");
   const [isRevenueShareEditable, setIsRevenueShareEditable] = useState(false);
   const [qcRequired, setQcRequired] = useState("");
+  
+  // ISRC Master Code fields
+  const [hasIsrcMasterCode, setHasIsrcMasterCode] = useState("");
+  const [isrcAudioUrl, setIsrcAudioUrl] = useState("");
+  const [isrcVideoUrl, setIsrcVideoUrl] = useState("");
+  const [isrcCertificateFile, setIsrcCertificateFile] = useState(null);
   // Helper function to get userId from localStorage (might be base64 encoded)
   const getUserId = () => {
     const storedUserId = localStorage.getItem("userId");
@@ -81,6 +87,22 @@ function CreateEnterprise() {
       revenueSharePercent: revenueShareValue, // Map revenueShare to revenueSharePercent
       qcRequired: qcRequiredBool,
     };
+
+    // Handle ISRC Master Code fields
+    if (hasIsrcMasterCode === "Yes") {
+      // If Yes, include ISRC URLs (null if empty)
+      formData.hasIsrcMasterCode = true;
+      formData.isrcAudioUrl = isrcAudioUrl.trim() || null;
+      formData.isrcVideoUrl = isrcVideoUrl.trim() || null;
+      formData.isrcCertificateFile = isrcCertificateFile;
+      formData.isrcCertificateUrl = null; // Will be set after file upload
+    } else {
+      // If No, set all ISRC fields to null
+      formData.hasIsrcMasterCode = false;
+      formData.isrcAudioUrl = null;
+      formData.isrcVideoUrl = null;
+      formData.isrcCertificateUrl = null;
+    }
 
     const token = localStorage.getItem("jwtToken");
     
@@ -275,6 +297,108 @@ function CreateEnterprise() {
             </label>
           </div>
         </div>
+      </div>
+
+      {/* ISRC Master Code Section */}
+      <div className="section">
+        <h3>ISRC Master Code</h3>
+
+        <div className="input-group">
+          <label htmlFor="hasIsrcMasterCode">
+            Do you have ISRC Master Code? <span className="required-asterisk">*</span>
+          </label>
+          <div className="radio-group-container">
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="hasIsrcMasterCode"
+                value="Yes"
+                onChange={() => setHasIsrcMasterCode("Yes")}
+                checked={hasIsrcMasterCode === "Yes"}
+              />
+              <span>Yes</span>
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="hasIsrcMasterCode"
+                value="No"
+                onChange={() => {
+                  setHasIsrcMasterCode("No");
+                  // Clear ISRC fields when No is selected
+                  setIsrcAudioUrl("");
+                  setIsrcVideoUrl("");
+                  setIsrcCertificateFile(null);
+                }}
+                checked={hasIsrcMasterCode === "No"}
+              />
+              <span>No</span>
+            </label>
+          </div>
+        </div>
+
+        {hasIsrcMasterCode === "Yes" && (
+          <>
+            <div className="input-group">
+              <label htmlFor="isrcAudioUrl">
+                Audio Master Code
+              </label>
+              <input
+                type="text"
+                id="isrcAudioUrl"
+                placeholder="e.g., US-ABC-12-34567"
+                className="input-field input-field-half-width"
+                onChange={(e) => setIsrcAudioUrl(e.target.value)}
+                value={isrcAudioUrl}
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="isrcVideoUrl">
+                Video Master Code
+              </label>
+              <input
+                type="text"
+                id="isrcVideoUrl"
+                placeholder="e.g., US-XYZ-98-76543"
+                className="input-field input-field-half-width"
+                onChange={(e) => setIsrcVideoUrl(e.target.value)}
+                value={isrcVideoUrl}
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="isrcCertificateFile">
+                ISRC Certificate PDF
+              </label>
+              <small style={{ display: "block", marginTop: "5px", color: "#666", marginBottom: "5px" }}>
+                Upload a PDF file:
+              </small>
+              <input
+                type="file"
+                id="isrcCertificateFile"
+                accept=".pdf"
+                className="input-field input-field-half-width"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.type !== "application/pdf") {
+                      toast.dark("Please select a PDF file.", { transition: Slide });
+                      return;
+                    }
+                    setIsrcCertificateFile(file);
+                    toast.dark("PDF file selected.", { transition: Slide });
+                  }
+                }}
+              />
+              {isrcCertificateFile && (
+                <small style={{ display: "block", marginTop: "5px", color: "#28a745" }}>
+                  Selected: {isrcCertificateFile.name}
+                </small>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Action Buttons */}

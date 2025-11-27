@@ -285,11 +285,14 @@ const handleDotsClick = (e, id) => {
               <tr
                 key={item.id}
                 className={`${selectedItems.has(item.id) ? "selected" : ""} ${hoveredRow === item.id ? "hovered" : ""}`}
-                onChange={() => handleItemSelect(item.id) }
               >
                 {showCheckboxes && (
                   <td>
-                    <input type="checkbox" checked={selectedItems.has(item.id)}  />
+                    <input 
+                      type="checkbox" 
+                      checked={selectedItems.has(item.id)}
+                      onChange={() => handleItemSelect(item.id)}
+                    />
                   </td>
                 )}
                 {tableColumns.map((col) => {
@@ -324,15 +327,21 @@ const handleDotsClick = (e, id) => {
                   // If custom render is provided and returns a React element, use it directly
                   // Otherwise, auto-wrap status values
                   const isReactElement = value && typeof value === "object" && value.$$typeof;
+                  
+                  // Check if value is a plain object (not a React element, not null, not array)
+                  const isPlainObject = value && typeof value === "object" && !isReactElement && !Array.isArray(value) && value.constructor === Object;
 
                   return (
                     <td key={col.key}>
                       {isReactElement ? (
                         value
+                      ) : isPlainObject ? (
+                        // If it's a plain object, try to stringify it or show a fallback
+                        JSON.stringify(value)
                       ) : looksLikeStatus && rawText ? (
                         <span className={`status-pill ${getStatusClass(rawText)}`}>{rawText}</span>
                       ) : (
-                        value
+                        value != null ? String(value) : ""
                       )}
                     </td>
                   );
