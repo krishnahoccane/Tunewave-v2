@@ -12,6 +12,7 @@ function DataTable({
   showCheckboxes = true,
   onSelectionChange,
   customActions, // Array of custom action objects: { label: string, onClick: (item) => void, showCondition: (item) => boolean }
+  onRowClick, // Callback function when a row is clicked
 }) {
   const topCheckboxRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -284,7 +285,23 @@ const handleDotsClick = (e, id) => {
             {paginatedData.map((item) => (
               <tr
                 key={item.id}
-                className={`${selectedItems.has(item.id) ? "selected" : ""} ${hoveredRow === item.id ? "hovered" : ""}`}
+                className={`${selectedItems.has(item.id) ? "selected" : ""} ${hoveredRow === item.id ? "hovered" : ""} ${onRowClick ? "clickable-row" : ""}`}
+                onChange={() => handleItemSelect(item.id) }
+                onClick={(e) => {
+                  // Don't trigger row click if clicking on checkbox, action menu, or dropdown
+                  if (
+                    e.target.type === "checkbox" ||
+                    e.target.closest(".action-menu") ||
+                    e.target.closest(".dropdown") ||
+                    e.target.closest(".copy-cell")
+                  ) {
+                    return;
+                  }
+                  if (onRowClick) {
+                    onRowClick(item);
+                  }
+                }}
+                style={onRowClick ? { cursor: "pointer" } : {}}
               >
                 {showCheckboxes && (
                   <td>
@@ -327,21 +344,15 @@ const handleDotsClick = (e, id) => {
                   // If custom render is provided and returns a React element, use it directly
                   // Otherwise, auto-wrap status values
                   const isReactElement = value && typeof value === "object" && value.$$typeof;
-                  
-                  // Check if value is a plain object (not a React element, not null, not array)
-                  const isPlainObject = value && typeof value === "object" && !isReactElement && !Array.isArray(value) && value.constructor === Object;
 
                   return (
                     <td key={col.key}>
                       {isReactElement ? (
                         value
-                      ) : isPlainObject ? (
-                        // If it's a plain object, try to stringify it or show a fallback
-                        JSON.stringify(value)
                       ) : looksLikeStatus && rawText ? (
                         <span className={`status-pill ${getStatusClass(rawText)}`}>{rawText}</span>
                       ) : (
-                        value != null ? String(value) : ""
+                        value
                       )}
                     </td>
                   );

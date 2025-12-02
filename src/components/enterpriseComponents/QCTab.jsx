@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useRole } from "../../context/RoleContext";
+import axios from "axios";
 
 import DataTable from "../DataTable";
 import GridView from "../GridView";
@@ -11,24 +13,132 @@ import "../../styles/TabComponents.css";
 
 function QCTab({ searchTerm, showMode, setTableData, onSelectionChange, selectedFilter }) {
   const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { actualRole } = useRole();
 
-  const qcData = useMemo(
-    () => [
-      { id: 1, report: "QC Report 1", qcId: "QC001", status: "Pending", reviewer: "John" },
-      { id: 2, report: "QC Report 2", qcId: "QC002", status: "Reverted", reviewer: "Emma" },
-      { id: 3, report: "QC Report 3", qcId: "QC003", status: "Drafts", reviewer: "Noah" },
-      { id: 4, report: "QC Report 4", qcId: "QC004", status: "Rejected", reviewer: "Ava" },
-      { id: 5, report: "QC Report 5", qcId: "QC005", status: "Metadata Issue", reviewer: "Liam" },
-      { id: 6, report: "QC Report 6", qcId: "QC006", status: "Artwork Issue", reviewer: "Mia" },
-      { id: 7, report: "QC Report 7", qcId: "QC007", status: "Audio Issue", reviewer: "Sophia" },
-      { id: 8, report: "QC Report 8", qcId: "QC008", status: "Copyright Conflict", reviewer: "Ethan" },
-    ],
-    []
-  );
+  // Get authentication headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("jwtToken");
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  // Get QC API endpoint based on role
+  const getQCEndpoint = () => {
+    if (actualRole === "SuperAdmin" || actualRole?.toLowerCase() === "superadmin") {
+      return "/api/qc/queue/tunewave";
+    } else if (actualRole === "EnterpriseAdmin" || actualRole?.toLowerCase() === "enterpriseadmin") {
+      return "/api/qc/queue/enterprise";
+    } else if (actualRole === "LabelAdmin" || actualRole?.toLowerCase() === "labeladmin") {
+      return "/api/qc/queue/label";
+    }
+    return "/api/qc/queue/label"; // Default fallback
+  };
+
+  // Fetch QC data from API
+  useEffect(() => {
+    const fetchQCData = async () => {
+      try {
+        setLoading(true);
+        const endpoint = getQCEndpoint();
+        const response = await axios.get(endpoint, {
+          headers: getAuthHeaders(),
+        });
+        
+        // Handle API response structure: { queue: [...], count: number, labelId/enterpriseId?: number }
+        const responseData = response.data || {};
+        const qcData = responseData.queue || responseData.data || (Array.isArray(response.data) ? response.data : []);
+        
+        console.log("QC API Response:", responseData);
+        console.log("QC Data Array:", qcData);
+        console.log("QC Data Length:", qcData?.length);
+        console.log("First item sample:", qcData[0]);
+        
+        // If no data, set empty arrays and return early
+        if (!qcData || qcData.length === 0) {
+          console.log("No QC data found in API response");
+          setFilteredData([]);
+          setOriginalData([]);
+          setTableData([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Transform API response to match expected format
+        const transformedData = qcData.map((item, index) => {
+          // Normalize status - check various possible field names and values
+          let statusValue = item.status || item.qcStatus || item.releaseStatus || "Pending";
+          
+          // Normalize status value (handle case variations)
+          if (statusValue) {
+            statusValue = String(statusValue).trim();
+            // Map common variations to standard values
+            const statusLower = statusValue.toLowerCase();
+            if (statusLower === "pending" || statusLower === "pending label" || statusLower === "pendinglabel") {
+              statusValue = "Pending";
+            } else if (statusLower === "approved" || statusLower === "approve") {
+              statusValue = "Approved";
+            } else if (statusLower === "rejected" || statusLower === "reject") {
+              statusValue = "Rejected";
+            } else {
+              // Capitalize first letter
+              statusValue = statusValue.charAt(0).toUpperCase() + statusValue.slice(1).toLowerCase();
+            }
+          } else {
+            statusValue = "Pending";
+          }
+          
+          return {
+            // Include all other fields from API first
+            ...item,
+            // Then override with transformed values
+            id: item.releaseId || item.id || index + 1,
+            releaseId: item.releaseId || item.id,
+            report: item.title || item.report || item.name || `QC Report ${index + 1}`,
+            qcId: item.qcId || `QC${String(item.releaseId || item.id || index + 1).padStart(4, "0")}`,
+            status: statusValue, // Use normalized status
+            reviewer: item.reviewer || item.reviewedBy || item.reviewerName || "N/A",
+            submittedAt: item.submittedAt || item.submittedDate || item.createdAt || "",
+            aiScore: item.aiScore,
+            flagsSummary: item.flagsSummary,
+          };
+        });
+        
+        console.log("Transformed QC Data:", transformedData);
+        console.log("Status values found:", transformedData.map(item => item.status));
+        
+        setFilteredData(transformedData);
+        setOriginalData(transformedData);
+        setTableData(transformedData);
+      } catch (error) {
+        console.error("Error fetching QC data:", error);
+        const errorMessage = error.response?.data?.message || error.message || "Failed to load QC data";
+        toast.error(errorMessage, {
+          position: "bottom-center",
+          autoClose: 3000,
+        });
+        // Set empty data on error - no mock data fallback
+        setFilteredData([]);
+        setOriginalData([]);
+        setTableData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQCData();
+  }, [actualRole, setTableData]);
+
+  // Store original data separately for filtering
+  const [originalData, setOriginalData] = useState([]);
 
   useEffect(() => {
-    let filtered = qcData;
+    if (loading || originalData.length === 0) return;
+    
+    let filtered = [...originalData];
 
     // ✅ Apply filter only if not "All"
     if (selectedFilter && selectedFilter.toLowerCase() !== "all") {
@@ -61,19 +171,61 @@ function QCTab({ searchTerm, showMode, setTableData, onSelectionChange, selected
         navigate("/enterprise-catalog?tab=qc");
       }, 2600);
     }
-  }, [searchTerm, selectedFilter, qcData, setTableData, navigate]);
+  }, [searchTerm, selectedFilter, originalData, loading, setTableData, navigate]);
+
+  const handleRowClick = (item) => {
+    // Pass the full item data to the detail page
+    // The detail page will use the API data or transform it as needed
+    navigate("/qc-detail", {
+      state: {
+        trackData: item, // Pass the full QC item data
+        qcItem: item,
+        releaseId: item.releaseId || item.id,
+      },
+    });
+  };
 
   const columns = [
-    { key: "report", label: "REPORT NAME" },
-    { key: "qcId", label: "QC ID" },
-    { key: "status", label: "STATUS" },
+    { 
+      key: "report", 
+      label: "REPORT NAME",
+      render: (item) => <span>{item.report || item.title || "N/A"}</span>
+    },
+    { 
+      key: "qcId", 
+      label: "QC ID",
+      render: (item) => (
+        <div className="copy-cell">
+          <span>{item.qcId || `QC${String(item.releaseId || item.id || 0).padStart(4, "0")}`}</span>
+          <CopyButton text={item.qcId || `QC${String(item.releaseId || item.id || 0).padStart(4, "0")}`} />
+        </div>
+      )
+    },
+    { 
+      key: "status", 
+      label: "STATUS",
+      render: (item) => <span>{item.status || "Pending"}</span>
+    },
+    {
+      key: "submittedAt",
+      label: "SUBMITTED AT",
+      render: (item) => {
+        if (!item.submittedAt) return <span>N/A</span>;
+        try {
+          const date = new Date(item.submittedAt);
+          return <span>{date.toLocaleDateString()} {date.toLocaleTimeString()}</span>;
+        } catch {
+          return <span>{item.submittedAt}</span>;
+        }
+      }
+    },
     {
       key: "reviewer",
       label: "REVIEWER",
       render: (item) => (
         <div className="copy-cell">
-          <span>{item.reviewer}</span>
-          <CopyButton text={item.reviewer} />
+          <span>{item.reviewer || item.reviewedBy || "N/A"}</span>
+          {item.reviewer && <CopyButton text={item.reviewer} />}
         </div>
       ),
     },
@@ -81,13 +233,41 @@ function QCTab({ searchTerm, showMode, setTableData, onSelectionChange, selected
 
   return (
     <div className="tab-content">
-      {showMode === "grid" ? (
+      {loading ? (
+        <div className="loading-container">Loading QC data...</div>
+      ) : showMode === "grid" ? (
         <GridView data={filteredData} />
+      ) : filteredData.length === 0 ? (
+        // Show table structure with "No Queue" message - same as SuperAdmin
+        <div className="data-table-container">
+          <div className="table-wrapper">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  {columns.map((column) => (
+                    <th key={column.key}>
+                      <span>{column.label}</span>
+                    </th>
+                  ))}
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={columns.length + 1} style={{ textAlign: "center", padding: "40px 20px" }}>
+                    <div style={{ fontSize: "16px", color: "#666" }}>No Queue</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
         <DataTable
           data={filteredData}
           columns={columns}
           onSelectionChange={onSelectionChange}
+          onRowClick={handleRowClick}
         />
       )}
 

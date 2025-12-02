@@ -60,54 +60,62 @@ function Artists({ searchItem, showMode, setTable, onSelectionChange, selectedFi
           params.append("search", searchItem.trim());
         }
 
-        let url = `/api/Artist${params.toString() ? `?${params.toString()}` : ""}`;
-        let response;
+        // Use the correct endpoint: /api/artists (plural)
+        const url = `/api/artists${params.toString() ? `?${params.toString()}` : ""}`;
         
-        try {
-          response = await axios.get(url, {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-          });
-        } catch (firstError) {
-          // If 404, try lowercase endpoint as fallback
-          if (firstError.response?.status === 404) {
-            console.log("Trying lowercase endpoint as fallback...");
-            url = `/api/artist${params.toString() ? `?${params.toString()}` : ""}`;
-            response = await axios.get(url, {
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-              },
-            });
-          } else {
-            throw firstError;
-          }
-        }
+        const response = await axios.get(url, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
 
-        // Handle API response structure - API might return array directly or wrapped in object
-        const responseData = response.data || {};
-        const artistsArray = Array.isArray(response.data) 
-          ? response.data 
-          : responseData.artists || responseData.data || [];
+        // Handle API response structure - API returns array directly
+        const artistsArray = Array.isArray(response.data) ? response.data : [];
         
         if (Array.isArray(artistsArray)) {
-          // Map API response to component format
+          // Helper function to safely extract string values from API response
+          // Handles empty objects {} and null/undefined values
+          const safeString = (value, defaultValue = "") => {
+            if (value === null || value === undefined) return defaultValue;
+            if (typeof value === "object" && Object.keys(value).length === 0) return defaultValue;
+            if (typeof value === "string") return value;
+            return String(value);
+          };
+
+          // Map API response to component format based on actual API structure
           const mappedData = artistsArray.map((artist) => {
+            // Handle status mapping: API returns "Active" but we need to check for filter compatibility
+            let status = safeString(artist.status, "Active");
+            // Normalize status for filtering
+            if (status.toLowerCase() === "active") {
+              status = "Active";
+            } else if (status.toLowerCase() === "suspend" || status.toLowerCase() === "suspended") {
+              status = "Suspended";
+            } else if (status.toLowerCase() === "disable" || status.toLowerCase() === "disabled") {
+              status = "Disabled";
+            }
+            
+            // Safely extract image URL - handle empty objects
+            const imageUrl = safeString(artist.imageUrl);
+            const image = imageUrl || "/src/assets/samplIcon.png";
+            
             return {
-              id: artist.artistID || artist.artistId || artist.id || 0,
-              artistid: `ART-${String(artist.artistID || artist.artistId || artist.id || 0).padStart(3, '0')}`,
-              name: artist.artistName || artist.name || "",
-              email: artist.email || "",
-              country: artist.country || "",
-              genre: artist.genre || "",
+              id: artist.artistId || artist.artistID || artist.id || 0,
+              artistid: `ART-${String(artist.artistId || artist.artistID || artist.id || 0).padStart(4, '0')}`,
+              name: safeString(artist.artistName || artist.name),
+              email: safeString(artist.email),
+              country: safeString(artist.country),
+              genre: safeString(artist.genre),
+              bio: safeString(artist.bio),
+              imageUrl: imageUrl,
+              dateOfBirth: safeString(artist.dateOfBirth),
               revenueShare: artist.revenueShare ? `${artist.revenueShare}%` : "",
-              labelID: artist.labelID || artist.labelId || "",
+              labelID: artist.labelId || artist.labelID || null,
               releases: artist.releases || artist.releaseCount || 0,
-              image: artist.image || artist.profileImage || "/src/assets/samplIcon.png",
-              status: artist.status || "Active",
-              createdAt: artist.createdAt || artist.createdDate || "",
+              image: image,
+              status: status,
+              createdAt: safeString(artist.createdAt || artist.createdDate),
             };
           });
           
@@ -223,28 +231,64 @@ function Artists({ searchItem, showMode, setTable, onSelectionChange, selectedFi
     }
   }, [searchItem, selectedFilter, artistsData, setTable, navigate, loading]);
 
+  // Helper to safely render values (handles empty objects, null, undefined)
+  const safeRender = (value) => {
+    if (value === null || value === undefined) return "N/A";
+    if (typeof value === "object" && Object.keys(value).length === 0) return "N/A";
+    if (typeof value === "string" && value.trim() === "") return "N/A";
+    return String(value);
+  };
+
   const columns = [
-    { key: "artistid", label: "Artist ID" },
+    { 
+      key: "artistid", 
+      label: "Artist ID",
+      render: (item) => <span>{safeRender(item.artistid)}</span>
+    },
     { 
       key: "name", 
       label: "Artist Name",
       render: (item) => (
         <div className="title-cell">
-          <img src={item.image} alt={item.name} className="release-image" />
-          <span>{item.name}</span>
+          <img 
+            src={item.image || "/src/assets/samplIcon.png"} 
+            alt={safeRender(item.name)} 
+            className="release-image" 
+            onError={(e) => {
+              e.target.src = "/src/assets/samplIcon.png";
+            }}
+          />
+          <span>{safeRender(item.name)}</span>
         </div>
       )
     },
-    { key: "email", label: "Email" },
-    { key: "country", label: "Country" },
-    { key: "genre", label: "Genre" },
-    { key: "revenueShare", label: "Revenue Share" },
+    { 
+      key: "email", 
+      label: "Email",
+      render: (item) => <span>{safeRender(item.email)}</span>
+    },
+    { 
+      key: "country", 
+      label: "Country",
+      render: (item) => <span>{safeRender(item.country)}</span>
+    },
+    { 
+      key: "genre", 
+      label: "Genre",
+      render: (item) => <span>{safeRender(item.genre)}</span>
+    },
+    { 
+      key: "revenueShare", 
+      label: "Revenue Share",
+      render: (item) => <span>{safeRender(item.revenueShare)}</span>
+    },
     { 
       key: "releases", 
       label: "Releases",
-      render: (item) => (
-        <span>{item.releases} release{item.releases !== 1 ? "s" : ""}</span>
-      )
+      render: (item) => {
+        const count = item.releases || 0;
+        return <span>{count} release{count !== 1 ? "s" : ""}</span>;
+      }
     },
   ];
 

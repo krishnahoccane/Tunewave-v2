@@ -219,6 +219,60 @@ p {
   border: 1px solid #504e4e !important;
 }
 
+/* Capsule/Pill-shaped buttons for Approve/Reject */
+.btn-capsule {
+  padding: 10px 24px;
+  border-radius: 999px; /* Fully rounded pill shape */
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-capsule:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-capsule.btn-approve {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-capsule.btn-approve:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-capsule.btn-approve:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.btn-capsule.btn-reject {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-capsule.btn-reject:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btn-capsule.btn-reject:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
 
 /* Copy Btn */
 /* -------------------------------------------------------------------------------------------------------------------------------- */
@@ -1411,6 +1465,22 @@ label {
 .meta-value {
   font-weight: 400;
   color: #555;
+}
+
+.editable-input {
+  font-weight: 400;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.editable-input:focus {
+  outline: none;
+  border-color: #1278bb;
+  box-shadow: 0 0 0 2px rgba(18, 120, 187, 0.1);
 }
 
 /* Action Buttons */

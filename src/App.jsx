@@ -190,6 +190,7 @@ import PreviewDistributePage from "./pages/PreviewDistributePage.jsx";
 import TrackDetails from "./pages/TrackDetails.jsx";
 import TicketRaisePage from "./pages/TicketRaisePage.jsx";
 import SelectStoresPage from "./pages/SelectStoresPage.jsx";
+import QCDetailPage from "./pages/QCDetailPage.jsx";
 import { useRole } from "./context/RoleContext";
 // change name later
 import "./styles/styled.css";
@@ -360,6 +361,12 @@ function App() {
           path="/enterprise-catalog/create-artist"
           element={
             isLoggedIn ? <CreateArtist /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/qc-detail"
+          element={
+            isLoggedIn ? <QCDetailPage /> : <Navigate to="/login" />
           }
         />
       </Routes>

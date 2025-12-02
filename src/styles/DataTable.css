@@ -98,6 +98,14 @@
   border-left: 3px solid #1178bb;
 }
 
+.data-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.data-table tbody tr.clickable-row:hover {
+  background-color: rgba(18, 120, 187, 0.1);
+}
+
 /* ============================= */
 /* Cell Custom Content */
 .title-cell {
