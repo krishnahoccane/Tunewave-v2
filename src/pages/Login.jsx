@@ -710,9 +710,12 @@ const handleLogin = async (e) => {
         <p className="login-subtitle">  Use as SuperAdmin email :   ven@g.com    password: ven@1234</p>
 
         <p className="login-subtitle">  Use as Enterprise email :   gopi@g.co      password: gopi1234</p>
-        <p className="login-subtitle">  Use as Label email :   shuva@g.co      password: shiva1234</p>
+        <p className="login-subtitle">  Use as Label email :   shiv@g.co      password: shiva1234</p>
         <p className="login-subtitle">  Use as Artist email :   deepu@g.com      password: deepu1234</p>
 
+        <p className="login-subtitle">  Use as Artist email :   deepu@g.com      password: deepu1234</p> 
+
+        
         <form className="login-form" onSubmit={handleLogin}>
           {/* <h2>Login to Label</h2> */}
           {error && <p className="error">{error}</p>}

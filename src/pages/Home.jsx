@@ -34,6 +34,11 @@ function Home() {
         },
       });
 
+      if (!response.ok) {
+        console.error("Error fetching user details:", response.status, response.statusText);
+        return;
+      }
+
       const data = await response.json();
 
       if (!response.ok) {

@@ -17,6 +17,12 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/main/, ""),
       },
+      "/wp": {
+        target: "http://spacestation.tunewave.in",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/wp/, ""), // Remove /wp prefix, WordPress API is at root
+      },
     },
   },
 });

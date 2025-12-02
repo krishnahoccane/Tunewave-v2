@@ -113,6 +113,7 @@ p {
   font-family: "Poppins", sans-serif;
   background: #f9fafb;
   margin-top: auto;
+    height: 100%;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------------------ */
@@ -416,25 +417,45 @@ p {
   margin-top: 10px;
 }
 
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 550px;
+}
+
 .upload-box {
   border: 2px dashed #9ca3af;
   border-radius: 8px;
-  padding: 50px;
-  width: 600px;
-  height: 400px;
+  padding: 40px;
+  width: 100%;
+  height: 350px;
   text-align: center;
-
-  min-height: 220px;
+  min-height: 200px;
   align-items: center;
   color: #555;
   background: #fafafa;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .upload-box:hover {
   background: #f3f4f6;
   border-color: #2563eb;
+}
+
+.upload-box.upload-success {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.upload-box.upload-error {
+  border-color: #ef4444;
+  background: #fef2f2;
 }
 
 .text {
@@ -453,10 +474,52 @@ p {
 
 .upload-preview {
   max-width: 100%;
-  max-height: 200px;
-  margin-top: 10px;
+  max-height: 300px;
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
+}
+
+/* Upload Status Messages */
+.upload-status {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.upload-status.status-info {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+.upload-status.status-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.upload-status.status-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+}
+
+.status-text {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.status-text.info-text {
+  color: #0369a1;
+}
+
+.status-text.success-text {
+  color: #15803d;
+}
+
+.status-text.error-text {
+  color: #dc2626;
 }
 
 .tips-box {
@@ -1214,6 +1277,115 @@ label {
 /* Uploaded Tracks List */
 .uploaded-tracks-list {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tracks-preview-section {
+  margin-top: 20px;
+}
+
+.track-preview-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.track-preview-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #2563eb;
+}
+
+.track-preview-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.track-number-badge {
+  background: #2563eb;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.track-preview-info {
+  flex: 1;
+}
+
+.track-preview-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.track-version {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.track-preview-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.track-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 13px;
+}
+
+.detail-value {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.status-complete {
+  color: #10b981 !important;
+  font-weight: 600;
+}
+
+.status-incomplete {
+  color: #f59e0b !important;
+  font-weight: 600;
+}
+
+.track-preview-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.track-action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .track-card {
@@ -1225,6 +1397,43 @@ label {
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 10px;
+}
+
+.track-card.preview-style {
+  flex-direction: column;
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.track-card.preview-style .metadata-row {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.track-card.preview-style .duration-player-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.track-card.preview-style .duration-player-row audio {
+  width: 200px;
+  height: 32px;
+}
+
+.track-card.preview-style .track-actions-row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .track-info {

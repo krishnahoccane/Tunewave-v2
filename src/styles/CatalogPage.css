@@ -178,7 +178,7 @@
   overflow: auto; /* Both horizontal and vertical scrolling */
   position: relative;
   background: #f8f9fa;
-  padding: 16px 0;  
+  /* padding: 16px 0;   */
   height: calc(100vh - 250px); /* Fixed height to ensure vertical scrolling */
 
   /* Enhanced scrollbar styles */

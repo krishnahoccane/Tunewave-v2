@@ -31,7 +31,7 @@ function QCTab({ searchTerm, showMode, setTableData, onSelectionChange, selected
     if (actualRole === "SuperAdmin" || actualRole?.toLowerCase() === "superadmin") {
       return "/api/qc/queue/tunewave";
     } else if (actualRole === "EnterpriseAdmin" || actualRole?.toLowerCase() === "enterpriseadmin") {
-      return "/api/qc/queue/enterprise";
+      return "/api/qc/queue/Enterprise";
     } else if (actualRole === "LabelAdmin" || actualRole?.toLowerCase() === "labeladmin") {
       return "/api/qc/queue/label";
     }
@@ -91,11 +91,17 @@ function QCTab({ searchTerm, showMode, setTableData, onSelectionChange, selected
             statusValue = "Pending";
           }
           
+          // Create unique ID by combining releaseId and submittedAt (or index as fallback)
+          // This ensures uniqueness even when multiple QC entries exist for the same release
+          const uniqueId = item.submittedAt 
+            ? `${item.releaseId || item.id || index}_${item.submittedAt}`
+            : `${item.releaseId || item.id || index}_${index}`;
+          
           return {
             // Include all other fields from API first
             ...item,
             // Then override with transformed values
-            id: item.releaseId || item.id || index + 1,
+            id: uniqueId, // Use unique ID to prevent duplicate keys
             releaseId: item.releaseId || item.id,
             report: item.title || item.report || item.name || `QC Report ${index + 1}`,
             qcId: item.qcId || `QC${String(item.releaseId || item.id || index + 1).padStart(4, "0")}`,

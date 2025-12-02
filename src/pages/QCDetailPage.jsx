@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useRole } from "../context/RoleContext";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { getFiles, getFileById } from "../services/files";
 import "../styles/styled.css";
+import "../styles/Home.css";
 import previewImg from "../assets/lsi.jpeg";
 
 /**
@@ -82,6 +85,19 @@ export default function QCDetailPage() {
   const [coverPreview, setCoverPreview] = useState(trackData?.coverImage || previewImg);
   const [status, setStatus] = useState(trackData?.status || "Pending");
 
+  // Audio player state (similar to Home.jsx)
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio, setAudio] = useState(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  // Track edited fields for update functionality
+  const [editedFields, setEditedFields] = useState(new Set());
+  const [hasChanges, setHasChanges] = useState(false);
+  const [editedStores, setEditedStores] = useState(null);
+  const [editedTracks, setEditedTracks] = useState([]);
+
   // Fetch release details and tracks by releaseId
   useEffect(() => {
     const fetchReleaseData = async () => {
@@ -100,50 +116,441 @@ export default function QCDetailPage() {
           headers: getAuthHeaders(),
         });
         
-        const releaseData = releaseResponse.data || {};
-        console.log("Release data fetched:", releaseData);
+        const responseData = releaseResponse.data || {};
+        console.log("Release API response:", responseData);
         
-        // Store original data for merging later
-        setOriginalReleaseData(releaseData);
+        // Handle API response structure: { release: {...}, contributors: [...], tracks: [...] }
+        const releaseData = responseData.release || responseData;
+        // Handle null contributors/tracks explicitly - API returns null, not empty array
+        const contributorsData = (responseData.contributors === null || responseData.contributors === undefined) 
+          ? [] 
+          : (Array.isArray(responseData.contributors) ? responseData.contributors : []);
+        const tracksData = (responseData.tracks === null || responseData.tracks === undefined)
+          ? []
+          : (Array.isArray(responseData.tracks) ? responseData.tracks : []);
+        
+        console.log("Release data:", releaseData);
+        console.log("Contributors:", contributorsData);
+        console.log("Tracks:", tracksData);
+        
+        // Store original data for merging later (include full response structure)
+        setOriginalReleaseData({
+          ...releaseData,
+          contributors: contributorsData,
+          tracks: tracksData,
+        });
+        
+        // Get main artist from contributors and fetch artist details if needed
+        let artistName = "N/A";
+        if (contributorsData && contributorsData.length > 0) {
+          const mainArtist = contributorsData.find(c => c.role === "Main Primary Artist" || !c.role) || contributorsData[0];
+          
+          if (mainArtist) {
+            // If artistName is not in contributor, fetch from artist API using artistId
+            if (mainArtist.artistName) {
+              artistName = mainArtist.artistName;
+            } else if (mainArtist.name) {
+              artistName = mainArtist.name;
+            } else if (mainArtist.artistId && mainArtist.artistId > 0) {
+              // Fetch artist details using artistId
+              try {
+                const artistResponse = await axios.get(`/api/artists/${mainArtist.artistId}`, {
+                  headers: getAuthHeaders(),
+                });
+                const artistData = artistResponse.data || {};
+                artistName = artistData.artistName || artistData.name || "N/A";
+                console.log("Fetched artist name:", artistName);
+              } catch (artistError) {
+                console.warn("Could not fetch artist details:", artistError);
+                artistName = "N/A";
+              }
+            }
+          }
+        }
+
+        // Fetch label details if labelId is available
+        let labelName = releaseData.labelName || releaseData.label || "N/A";
+        if (releaseData.labelId && releaseData.labelId > 0 && !labelName) {
+          try {
+            const labelResponse = await axios.get(`/api/labels/${releaseData.labelId}`, {
+              headers: getAuthHeaders(),
+            });
+            const labelData = labelResponse.data || {};
+            labelName = labelData.labelName || labelData.name || "N/A";
+            console.log("Fetched label name:", labelName);
+          } catch (labelError) {
+            console.warn("Could not fetch label details:", labelError);
+          }
+        }
+
+        // Fetch cover art file details if coverArtUrl is a fileId or if we need to get file details
+        let coverArtUrl = releaseData.coverArtUrl;
+        if (releaseData.coverArtFileId && releaseData.coverArtFileId > 0) {
+          try {
+            const coverFileResponse = await getFileById(releaseData.coverArtFileId);
+            if (coverFileResponse?.cloudfrontUrl) {
+              coverArtUrl = coverFileResponse.cloudfrontUrl;
+              console.log("Fetched cover art URL from file:", coverArtUrl);
+            }
+          } catch (coverFileError) {
+            console.warn("Could not fetch cover art file:", coverFileError);
+          }
+        }
+
+        // Fetch distribution stores details if storeIds are available
+        let storesList = releaseData.distributionOption?.selectedStoreIds || releaseData.stores || releaseData.distributionStores || [];
+        if (storesList.length > 0 && typeof storesList[0] === 'number') {
+          // If stores are IDs, try to fetch store names (if endpoint exists)
+          try {
+            // Try to fetch store details - adjust endpoint if different
+            const storePromises = storesList.map(storeId => 
+              axios.get(`/api/stores/${storeId}`, {
+                headers: getAuthHeaders(),
+              }).catch(() => null)
+            );
+            const storeResponses = await Promise.all(storePromises);
+            const storeNames = storeResponses
+              .filter(res => res && res.data)
+              .map(res => res.data.name || res.data.storeName || String(res.data.id));
+            
+            if (storeNames.length > 0) {
+              storesList = storeNames;
+              console.log("Fetched store names:", storeNames);
+            }
+          } catch (storeError) {
+            console.warn("Could not fetch store details:", storeError);
+            // Keep original storeIds if fetch fails
+          }
+        }
         
         // Update form data with fetched release data
         const updatedFormData = {
           title: releaseData.title || formData.title,
-          artist: releaseData.artistName || releaseData.artist || formData.artist,
-          label: releaseData.labelName || releaseData.label || formData.label,
+          artist: artistName,
+          label: labelName,
           language: releaseData.language || formData.language,
           primaryGenre: releaseData.primaryGenre || formData.primaryGenre,
           secondaryGenre: releaseData.secondaryGenre || formData.secondaryGenre,
-          explicitLyrics: releaseData.explicitLyrics ? "Yes" : "No",
+          explicitLyrics: releaseData.isExplicit || releaseData.explicitLyrics ? "Yes" : "No",
           digitalReleaseDate: releaseData.digitalReleaseDate || releaseData.releaseDate || formData.digitalReleaseDate,
           originalReleaseDate: releaseData.originalReleaseDate || formData.originalReleaseDate,
           isrcCode: releaseData.isrcCode || formData.isrcCode,
           upcCode: releaseData.upcCode || formData.upcCode,
-          stores: releaseData.stores || releaseData.distributionStores || formData.stores,
+          stores: storesList,
         };
         
         setFormData(updatedFormData);
         setStatus(releaseData.status || "Pending");
         
-        // Set cover image
-        if (releaseData.coverArtUrl || releaseData.coverImage) {
-          setCoverPreview(releaseData.coverArtUrl || releaseData.coverImage);
+        // Set cover image - use fetched coverArtUrl or fallback
+        if (coverArtUrl && coverArtUrl !== "null" && coverArtUrl.trim() !== "") {
+          setCoverPreview(coverArtUrl);
+        } else if (releaseData.coverImage && releaseData.coverImage !== "null" && releaseData.coverImage.trim() !== "") {
+          setCoverPreview(releaseData.coverImage);
+        } else {
+          // Use default image if no cover art URL
+          setCoverPreview(previewImg);
         }
         
-        // Fetch tracks for this release
-        console.log(`Fetching tracks for releaseId: ${releaseId}`);
+        // Store original stores for comparison
+        setEditedStores(null);
+        setEditedFields(new Set()); // Reset edited fields on new data load
+        setHasChanges(false);
+        
+        // Fetch tracks from /api/files endpoint first (primary source)
+        // Files endpoint provides trackId, trackTitle, trackNumber, cloudfrontUrl, status
+        let filesData = [];
         try {
-          let tracksData = [];
+          const filesResponse = await getFiles({ releaseId: releaseId, fileType: "Audio" });
+          if (filesResponse?.files && Array.isArray(filesResponse.files)) {
+            filesData = filesResponse.files;
+            console.log(`Fetched ${filesData.length} audio files from /api/files for releaseId ${releaseId}:`, filesData);
+          }
+        } catch (filesError) {
+          console.warn(`Failed to fetch files for releaseId ${releaseId}:`, filesError);
+        }
+        
+        // Use tracks from API response if available, otherwise fetch separately
+        // Also check trackIds in releaseData as a fallback
+        const hasTracksInResponse = tracksData.length > 0;
+        const hasTrackIds = releaseData.trackIds && Array.isArray(releaseData.trackIds) && releaseData.trackIds.length > 0;
+        
+        console.log("Tracks check:", {
+          filesDataLength: filesData.length,
+          tracksDataLength: tracksData.length,
+          trackIds: releaseData.trackIds,
+          hasTracksInResponse,
+          hasTrackIds
+        });
+        
+        // If we have files data, use it as the primary source for tracks
+        if (filesData.length > 0) {
+          console.log("Using files data as primary source for tracks:", filesData.length);
+          // Group files by trackId (in case there are multiple files per track)
+          const filesByTrackId = {};
+          filesData.forEach(file => {
+            const trackId = file.trackId;
+            if (!filesByTrackId[trackId]) {
+              filesByTrackId[trackId] = [];
+            }
+            filesByTrackId[trackId].push(file);
+          });
           
-          // First, check if tracks are included in release data
-          if (releaseData.tracks && Array.isArray(releaseData.tracks) && releaseData.tracks.length > 0) {
-            console.log("Tracks found in release data");
-            tracksData = releaseData.tracks;
-          } else {
-            // Try fetching tracks from dedicated endpoint
+          // Map files to tracks and fetch full track details
+          const mappedTracksPromises = Object.keys(filesByTrackId).map(async (trackIdStr, index) => {
+            const trackId = parseInt(trackIdStr);
+            const trackFiles = filesByTrackId[trackId];
+            
+            // Get the best file (prefer AVAILABLE status with non-null cloudfrontUrl)
+            // Filter out null/empty cloudfrontUrls - API returns actual null, not string "null"
+            const hasValidCloudfrontUrl = (f) => f.cloudfrontUrl !== null && f.cloudfrontUrl !== undefined && f.cloudfrontUrl !== "" && f.cloudfrontUrl !== "null";
+            
+            const bestFile = trackFiles.find(f => f.status === "AVAILABLE" && hasValidCloudfrontUrl(f)) || 
+                            trackFiles.find(f => hasValidCloudfrontUrl(f)) || 
+                            trackFiles.find(f => f.status === "AVAILABLE") ||
+                            trackFiles[0];
+            
+            console.log(`Track ${trackId} - Best file selected:`, {
+              fileId: bestFile?.fileId,
+              status: bestFile?.status,
+              cloudfrontUrl: bestFile?.cloudfrontUrl,
+              cloudfrontUrlType: typeof bestFile?.cloudfrontUrl,
+              allFiles: trackFiles.map(f => ({ 
+                fileId: f.fileId, 
+                status: f.status, 
+                cloudfrontUrl: f.cloudfrontUrl,
+                cloudfrontUrlType: typeof f.cloudfrontUrl,
+                hasValidUrl: hasValidCloudfrontUrl(f)
+              }))
+            });
+            
+            // Get audioUrl from bestFile, handling null properly
+            let audioUrl = "";
+            if (bestFile && hasValidCloudfrontUrl(bestFile)) {
+              audioUrl = bestFile.cloudfrontUrl;
+              console.log(`Using cloudfrontUrl from bestFile for track ${trackId}:`, audioUrl);
+            } else if (bestFile?.fileId) {
+              // If cloudfrontUrl is null, try fetching file status from /api/files/status/{fileId}
+              try {
+                console.log(`cloudfrontUrl is null for fileId ${bestFile.fileId}, fetching status...`);
+                const fileStatusResponse = await axios.get(`/api/files/status/${bestFile.fileId}`, {
+                  headers: getAuthHeaders(),
+                });
+                if (fileStatusResponse?.data?.cloudfrontUrl && hasValidCloudfrontUrl({ cloudfrontUrl: fileStatusResponse.data.cloudfrontUrl })) {
+                  audioUrl = fileStatusResponse.data.cloudfrontUrl;
+                  console.log(`Fetched cloudfrontUrl from /api/files/status/${bestFile.fileId}:`, audioUrl);
+                  // Update bestFile with the fetched cloudfrontUrl
+                  bestFile.cloudfrontUrl = audioUrl;
+                } else {
+                  console.warn(`File status endpoint returned null cloudfrontUrl for fileId ${bestFile.fileId}`);
+                }
+              } catch (statusError) {
+                console.warn(`Failed to fetch file status for fileId ${bestFile.fileId}:`, statusError);
+              }
+            }
+            
+            // Fetch full track details from /api/tracks/{trackId}
+            let trackDetails = null;
             try {
-              console.log(`Trying /api/tracks?releaseId=${releaseId}`);
-              const tracksResponse = await axios.get(`/api/tracks?releaseId=${releaseId}`, {
+              const trackResponse = await axios.get(`/api/tracks/${trackId}`, {
+                headers: getAuthHeaders(),
+              });
+              trackDetails = trackResponse.data;
+              console.log(`Fetched track details for trackId ${trackId}:`, trackDetails);
+            } catch (trackError) {
+              console.warn(`Failed to fetch track details for trackId ${trackId}:`, trackError);
+            }
+            
+            // Combine file data with track details
+            const durationSeconds = trackDetails?.durationSeconds || bestFile?.durationSeconds || 0;
+            
+            // Log final audio URL for debugging
+            console.log(`Track ${trackId} final audioUrl:`, {
+              trackId: trackId,
+              audioUrl: audioUrl,
+              hasAudioUrl: !!audioUrl && audioUrl !== "null" && audioUrl.trim() !== "",
+              fileId: bestFile?.fileId,
+              fileStatus: bestFile?.status
+            });
+            
+            return {
+              id: trackId,
+              trackId: trackId,
+              audioFileId: trackDetails?.audioFileId || bestFile?.fileId || 0,
+              fileId: bestFile?.fileId,
+              title: trackDetails?.title || bestFile?.trackTitle || `Track ${index + 1}`,
+              audioUrl: audioUrl && audioUrl !== "null" ? audioUrl : "", // Ensure null becomes empty string
+              fileDetails: bestFile,
+              duration: durationSeconds 
+                ? `${Math.floor(durationSeconds / 60)}:${String(Math.floor(durationSeconds % 60)).padStart(2, "0")}`
+                : "00:00",
+              durationSeconds: durationSeconds,
+              isrc: trackDetails?.isrc || "",
+              trackNumber: trackDetails?.trackNumber || bestFile?.trackNumber || index + 1,
+              language: trackDetails?.language || "",
+              trackVersion: trackDetails?.trackVersion || "",
+              isExplicit: trackDetails?.isExplicit || trackDetails?.explicitFlag || false,
+              isInstrumental: trackDetails?.isInstrumental || false,
+              status: bestFile?.status || "UNKNOWN",
+              ...trackDetails, // Include all other track fields
+            };
+          });
+          
+          const mappedTracks = await Promise.all(mappedTracksPromises);
+          // Sort by trackNumber
+          mappedTracks.sort((a, b) => (a.trackNumber || 0) - (b.trackNumber || 0));
+          console.log(`Mapped ${mappedTracks.length} tracks from files data:`, mappedTracks);
+          setTracks(mappedTracks);
+        } else if (hasTracksInResponse) {
+          console.log("Tracks found in API response:", tracksData.length);
+          // Map tracks and fetch audio files
+          // According to API: GET /api/releases/{releaseId} returns tracks with audioFileId, fileId, and audioUrl (CloudFront URL)
+          const mappedTracksPromises = tracksData.map(async (track, index) => {
+            const trackId = track.trackId || track.id || index + 1;
+            let audioFileId = track.audioFileId;
+            const durationSeconds = track.durationSeconds || track.duration;
+            
+            // If audioFileId is not in the track data, fetch full track details from /api/tracks/{trackId}
+            // Also check if audioFileId is an empty object {} which should be treated as undefined
+            // Note: audioFileId = 0 is valid (means no file attached), so we only fetch if it's undefined/null/empty object
+            if ((audioFileId === undefined || audioFileId === null || (typeof audioFileId === 'object' && Object.keys(audioFileId).length === 0)) && trackId) {
+              try {
+                const fullTrackResponse = await axios.get(`/api/tracks/${trackId}`, {
+                  headers: getAuthHeaders(),
+                });
+                const fetchedAudioFileId = fullTrackResponse?.data?.audioFileId;
+                // Accept any number (including 0) - 0 means no file attached, which is valid
+                if (fetchedAudioFileId !== undefined && fetchedAudioFileId !== null && typeof fetchedAudioFileId === 'number') {
+                  audioFileId = fetchedAudioFileId;
+                  console.log(`Fetched audioFileId ${audioFileId} for track ${trackId} from /api/tracks/${trackId}`);
+                  // Merge full track data with existing track data
+                  Object.assign(track, fullTrackResponse.data);
+                }
+              } catch (trackError) {
+                console.warn(`Failed to fetch full track details for trackId ${trackId}:`, trackError);
+              }
+            }
+            
+            // Fetch audio file for this track
+            // According to API structure: tracks from GET /api/releases/{releaseId} have audioUrl (CloudFront URL) directly
+            let audioUrl = track.audioUrl || track.audioFileUrl || track.fileUrl || track.audioFile?.url || "";
+            let fileDetails = null;
+            
+            // If audioUrl is already in track data (from GET /api/releases/{releaseId}), use it
+            if (audioUrl && audioUrl !== "null" && audioUrl.trim() !== "") {
+              console.log(`Using audioUrl from track data for track ${trackId}:`, audioUrl);
+            } else {
+              // If audioUrl is null/missing, try to fetch it
+              // This happens when audioFileId = 0/null or file doesn't have cloudfrontUrl
+              try {
+                // First, try to fetch by audioFileId if available (more direct)
+                if (audioFileId && typeof audioFileId === 'number' && audioFileId > 0) {
+                  try {
+                    fileDetails = await getFileById(audioFileId);
+                    if (fileDetails?.cloudfrontUrl) {
+                      audioUrl = fileDetails.cloudfrontUrl;
+                      console.log(`Found audio URL for track ${trackId} via audioFileId ${audioFileId}:`, audioUrl);
+                    }
+                  } catch (fileIdError) {
+                    console.warn(`Failed to fetch file by audioFileId ${audioFileId}:`, fileIdError);
+                  }
+                }
+                
+                // If still no URL, try using fileId from track (if available)
+                if (!audioUrl && track.fileId && typeof track.fileId === 'number' && track.fileId > 0) {
+                  try {
+                    fileDetails = await getFileById(track.fileId);
+                    if (fileDetails?.cloudfrontUrl) {
+                      audioUrl = fileDetails.cloudfrontUrl;
+                      console.log(`Found audio URL for track ${trackId} via fileId ${track.fileId}:`, audioUrl);
+                    }
+                  } catch (fileIdError) {
+                    console.warn(`Failed to fetch file by fileId ${track.fileId}:`, fileIdError);
+                  }
+                }
+                
+                // If no URL found yet, try fetching by trackId as fallback
+                if (!audioUrl) {
+                  const filesResponse = await getFiles({ trackId: trackId, fileType: "Audio", status: "AVAILABLE" });
+                  if (filesResponse?.files && filesResponse.files.length > 0) {
+                    // Get the first available audio file's cloudfrontUrl
+                    const audioFile = filesResponse.files.find(f => f.status === "AVAILABLE" && f.cloudfrontUrl) || filesResponse.files[0];
+                    if (audioFile?.cloudfrontUrl) {
+                      audioUrl = audioFile.cloudfrontUrl;
+                      fileDetails = audioFile;
+                      console.log(`Found audio URL for track ${trackId} via trackId query:`, audioUrl);
+                    }
+                  }
+                }
+              } catch (fileError) {
+                console.warn(`Failed to fetch audio file for track ${trackId}:`, fileError);
+              }
+            }
+            
+            return {
+              id: trackId,
+              trackId: trackId,
+              audioFileId: audioFileId,
+              title: track.title || `Track ${index + 1}`,
+              audioUrl: audioUrl,
+              fileDetails: fileDetails, // Include file details if fetched
+              duration: durationSeconds 
+                ? `${Math.floor(durationSeconds / 60)}:${String(Math.floor(durationSeconds % 60)).padStart(2, "0")}`
+                : track.duration || "00:00",
+              durationSeconds: durationSeconds,
+              isrc: track.isrc || track.isrcCode || "",
+              trackNumber: track.trackNumber || index + 1,
+              language: track.language || "",
+              trackVersion: track.trackVersion || "",
+              isExplicit: track.isExplicit || track.explicitFlag || false,
+              isInstrumental: track.isInstrumental || false,
+              ...track, // Include all other track fields
+            };
+          });
+          
+          const mappedTracks = await Promise.all(mappedTracksPromises);
+          console.log(`Mapped ${mappedTracks.length} tracks with audio URLs:`, mappedTracks);
+          setTracks(mappedTracks);
+        } else {
+          // Fetch tracks separately if not in response
+          console.log(`Fetching tracks separately for releaseId: ${releaseId}`);
+          
+          // Try different endpoints for fetching tracks
+          let fetchedTracksData = [];
+          let tracksFetched = false;
+          
+          // First, try fetching by trackIds if available
+          if (hasTrackIds) {
+            try {
+              console.log(`Fetching tracks by trackIds:`, releaseData.trackIds);
+              const trackPromises = releaseData.trackIds.map(trackId => 
+                axios.get(`/api/tracks/${trackId}`, {
+                  headers: getAuthHeaders(),
+                }).catch(err => {
+                  console.warn(`Failed to fetch track ${trackId}:`, err);
+                  return null;
+                })
+              );
+              
+              const trackResponses = await Promise.all(trackPromises);
+              fetchedTracksData = trackResponses
+                .filter(res => res && res.data)
+                .map(res => res.data);
+              
+              if (fetchedTracksData.length > 0) {
+                tracksFetched = true;
+                console.log(`Fetched ${fetchedTracksData.length} tracks by trackIds`);
+              }
+            } catch (trackIdsError) {
+              console.warn("Failed to fetch tracks by IDs:", trackIdsError);
+            }
+          }
+          
+          // If trackIds didn't work, try endpoint: /api/releases/{releaseId}/tracks
+          if (!tracksFetched) {
+            try {
+              console.log(`Trying /api/releases/${releaseId}/tracks`);
+              const tracksResponse = await axios.get(`/api/releases/${releaseId}/tracks`, {
                 headers: getAuthHeaders(),
               });
               
@@ -151,82 +558,146 @@ export default function QCDetailPage() {
               
               // Handle different response formats
               if (Array.isArray(tracksResponse.data)) {
-                tracksData = tracksResponse.data;
+                fetchedTracksData = tracksResponse.data;
               } else if (tracksResponse.data?.data && Array.isArray(tracksResponse.data.data)) {
-                tracksData = tracksResponse.data.data;
+                fetchedTracksData = tracksResponse.data.data;
               } else if (tracksResponse.data?.tracks && Array.isArray(tracksResponse.data.tracks)) {
-                tracksData = tracksResponse.data.tracks;
-              } else if (tracksResponse.data?.items && Array.isArray(tracksResponse.data.items)) {
-                tracksData = tracksResponse.data.items;
+                fetchedTracksData = tracksResponse.data.tracks;
               }
               
-              console.log(`Found ${tracksData.length} tracks`);
+              if (fetchedTracksData.length > 0) {
+                tracksFetched = true;
+                console.log(`Fetched ${fetchedTracksData.length} tracks from /api/releases/{id}/tracks`);
+              }
             } catch (firstError) {
-              console.warn("First tracks endpoint failed:", {
+              console.warn("Tracks endpoint /api/releases/{id}/tracks failed:", {
                 status: firstError.response?.status,
                 message: firstError.message,
-                data: firstError.response?.data,
               });
-              
-              // Try alternative endpoint
-              try {
-                console.log(`Trying /api/releases/${releaseId}/tracks`);
-                const altTracksResponse = await axios.get(`/api/releases/${releaseId}/tracks`, {
-                  headers: getAuthHeaders(),
-                });
-                
-                if (Array.isArray(altTracksResponse.data)) {
-                  tracksData = altTracksResponse.data;
-                } else if (altTracksResponse.data?.data) {
-                  tracksData = altTracksResponse.data.data;
-                } else if (altTracksResponse.data?.tracks) {
-                  tracksData = altTracksResponse.data.tracks;
-                }
-                
-                console.log(`Found ${tracksData.length} tracks from alternative endpoint`);
-              } catch (secondError) {
-                console.warn("Alternative tracks endpoint also failed:", {
-                  status: secondError.response?.status,
-                  message: secondError.message,
-                });
-                tracksData = [];
-              }
             }
           }
           
-          // Map tracks to playable format
-          const mappedTracks = tracksData.map((track, index) => {
+          if (tracksFetched && fetchedTracksData.length > 0) {
+            // Map tracks and fetch audio files
+            // According to API: GET /api/releases/{releaseId} returns tracks with audioFileId, fileId, and audioUrl (CloudFront URL)
+            const mappedTracksPromises = fetchedTracksData.map(async (track, index) => {
             const trackId = track.trackId || track.id || index + 1;
-            const audioUrl = track.audioFileUrl || track.audioUrl || track.fileUrl || track.audioFile?.url || "";
+            let audioFileId = track.audioFileId;
             const durationSeconds = track.durationSeconds || track.duration;
+            
+            // If audioFileId is not in the track data, fetch full track details
+            // Also check if audioFileId is an empty object {} which should be treated as undefined
+            // Note: audioFileId = 0 is valid (means no file attached), so we only fetch if it's undefined/null/empty object
+            if ((audioFileId === undefined || audioFileId === null || (typeof audioFileId === 'object' && Object.keys(audioFileId).length === 0)) && trackId) {
+              try {
+                const fullTrackResponse = await axios.get(`/api/tracks/${trackId}`, {
+                  headers: getAuthHeaders(),
+                });
+                const fetchedAudioFileId = fullTrackResponse?.data?.audioFileId;
+                // Accept any number (including 0) - 0 means no file attached, which is valid
+                if (fetchedAudioFileId !== undefined && fetchedAudioFileId !== null && typeof fetchedAudioFileId === 'number') {
+                  audioFileId = fetchedAudioFileId;
+                  console.log(`Fetched audioFileId ${audioFileId} for track ${trackId}`);
+                  // Merge full track data with existing track data
+                  Object.assign(track, fullTrackResponse.data);
+                }
+              } catch (trackError) {
+                console.warn(`Failed to fetch full track details for trackId ${trackId}:`, trackError);
+              }
+            }
+            
+            // Fetch audio file for this track
+            // According to API structure: tracks from GET /api/releases/{releaseId} have audioUrl (CloudFront URL) directly
+            let audioUrl = track.audioUrl || track.audioFileUrl || track.fileUrl || track.audioFile?.url || "";
+            let fileDetails = null;
+            
+            // If audioUrl is already in track data (from GET /api/releases/{releaseId}), use it
+            // According to API: tracks have audioUrl (CloudFront URL) directly if file is attached
+            if (audioUrl && audioUrl !== "null" && audioUrl.trim() !== "") {
+              console.log(`Using audioUrl from track data for track ${trackId}:`, audioUrl);
+            } else {
+              // If audioUrl is null/missing, try to fetch it
+              // This happens when audioFileId = 0/null (no file attached) or file doesn't have cloudfrontUrl
+              // Note: audioFileId = 0 means no file attached, so don't try to fetch by audioFileId if it's 0
+              try {
+                // First, try to fetch by audioFileId if available and > 0 (0 means no file attached)
+                if (audioFileId && typeof audioFileId === 'number' && audioFileId > 0) {
+                  try {
+                    fileDetails = await getFileById(audioFileId);
+                    if (fileDetails?.cloudfrontUrl) {
+                      audioUrl = fileDetails.cloudfrontUrl;
+                      console.log(`Found audio URL for track ${trackId} via audioFileId ${audioFileId}:`, audioUrl);
+                    }
+                  } catch (fileIdError) {
+                    console.warn(`Failed to fetch file by audioFileId ${audioFileId}:`, fileIdError);
+                  }
+                }
+                
+                // If still no URL, try using fileId from track (if available and > 0)
+                if (!audioUrl && track.fileId && typeof track.fileId === 'number' && track.fileId > 0) {
+                  try {
+                    fileDetails = await getFileById(track.fileId);
+                    if (fileDetails?.cloudfrontUrl) {
+                      audioUrl = fileDetails.cloudfrontUrl;
+                      console.log(`Found audio URL for track ${trackId} via fileId ${track.fileId}:`, audioUrl);
+                    }
+                  } catch (fileIdError) {
+                    console.warn(`Failed to fetch file by fileId ${track.fileId}:`, fileIdError);
+                  }
+                }
+                
+                // If no URL found yet, try fetching by trackId as fallback
+                if (!audioUrl) {
+                  const filesResponse = await getFiles({ trackId: trackId, fileType: "Audio", status: "AVAILABLE" });
+                  if (filesResponse?.files && filesResponse.files.length > 0) {
+                    // Get the first available audio file's cloudfrontUrl
+                    const audioFile = filesResponse.files.find(f => f.status === "AVAILABLE" && f.cloudfrontUrl) || filesResponse.files[0];
+                    if (audioFile?.cloudfrontUrl) {
+                      audioUrl = audioFile.cloudfrontUrl;
+                      fileDetails = audioFile;
+                      console.log(`Found audio URL for track ${trackId} via trackId query:`, audioUrl);
+                    }
+                  }
+                }
+                
+                // If still no audioUrl, log that track has no audio file attached
+                if (!audioUrl) {
+                  console.log(`Track ${trackId} has no audio file attached (audioFileId: ${audioFileId})`);
+                }
+              } catch (fileError) {
+                console.warn(`Failed to fetch audio file for track ${trackId}:`, fileError);
+              }
+            }
             
             return {
               id: trackId,
               trackId: trackId,
+              audioFileId: audioFileId,
               title: track.title || `Track ${index + 1}`,
               audioUrl: audioUrl,
+              fileDetails: fileDetails, // Include file details if fetched
               duration: durationSeconds 
                 ? `${Math.floor(durationSeconds / 60)}:${String(Math.floor(durationSeconds % 60)).padStart(2, "0")}`
                 : track.duration || "00:00",
               durationSeconds: durationSeconds,
               isrc: track.isrc || track.isrcCode || "",
-              trackNumber: track.trackNumber || track.trackNumber || index + 1,
+              trackNumber: track.trackNumber || index + 1,
+              language: track.language || "",
+              trackVersion: track.trackVersion || "",
+              isExplicit: track.isExplicit || track.explicitFlag || false,
+              isInstrumental: track.isInstrumental || false,
               ...track, // Include all other track fields
             };
           });
           
-          console.log(`Mapped ${mappedTracks.length} tracks:`, mappedTracks);
-          setTracks(mappedTracks);
-        } catch (trackError) {
-          console.error("Error fetching tracks:", trackError);
-          console.error("Track error details:", {
-            message: trackError.message,
-            response: trackError.response?.data,
-            status: trackError.response?.status,
-            url: trackError.config?.url,
-          });
-          // Don't show error toast for tracks, just set empty array
-          setTracks([]);
+            const mappedTracks = await Promise.all(mappedTracksPromises);
+            console.log(`Mapped ${mappedTracks.length} tracks with audio URLs:`, mappedTracks);
+            setTracks(mappedTracks);
+          } else {
+            // No tracks found - set empty array
+            console.log("No tracks found for this release");
+            setTracks([]);
+          }
         }
         
         // Set publishers if available
@@ -261,6 +732,9 @@ export default function QCDetailPage() {
       ...prev,
       [field]: value,
     }));
+    // Track that this field was edited
+    setEditedFields((prev) => new Set(prev).add(field));
+    setHasChanges(true);
   };
 
   const handleFileChange = (e) => {
@@ -273,12 +747,108 @@ export default function QCDetailPage() {
       if (img.width === 3000 && img.height === 3000) {
         setCoverArtwork(file);
         setCoverPreview(URL.createObjectURL(file));
+        // Track that cover art was edited
+        setEditedFields((prev) => new Set(prev).add("coverArt"));
+        setHasChanges(true);
+        toast.dark("Cover art uploaded successfully! Click Update to save.", {
+          position: "bottom-center",
+          autoClose: 3000,
+        });
       } else {
-        alert("Image must be exactly 3000px by 3000px.");
+        toast.dark(`Image must be exactly 3000px by 3000px. Current size: ${img.width}x${img.height}px`, {
+          position: "bottom-center",
+          autoClose: 5000,
+        });
       }
       URL.revokeObjectURL(img.src);
     };
+    img.onerror = function () {
+      toast.dark("Failed to load image. Please try a different file.", {
+        position: "bottom-center",
+        autoClose: 3000,
+      });
+      URL.revokeObjectURL(img.src);
+    };
   };
+
+  // Audio player functions (similar to Home.jsx)
+  const handlePlay = (track) => {
+    if (!track.audioUrl) {
+      toast.error("No audio file available for this track");
+      return;
+    }
+
+    // If clicking the same track again → toggle play/pause
+    if (currentTrack?.trackId === track.trackId) {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        audio.play();
+        setIsPlaying(true);
+      }
+      return;
+    }
+
+    // Stop and cleanup previous audio
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = "";
+    }
+
+    // Create new audio instance
+    const newAudio = new Audio(track.audioUrl);
+
+    // Event listeners for metadata and progress
+    newAudio.addEventListener("loadedmetadata", () => {
+      setDuration(newAudio.duration);
+    });
+
+    newAudio.addEventListener("timeupdate", () => {
+      setCurrentTime(newAudio.currentTime);
+    });
+
+    // When song ends, reset player state
+    newAudio.addEventListener("ended", () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    });
+
+    // Start playback
+    newAudio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+      })
+      .catch((err) => {
+        console.error("Audio play failed:", err);
+        toast.error("Failed to play audio. Please check the file URL.");
+        setIsPlaying(false);
+      });
+
+    // Save references in state
+    setAudio(newAudio);
+    setCurrentTrack(track);
+  };
+
+  const formatTime = (time) => {
+    if (!time) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = "";
+      }
+    };
+  }, [audio]);
 
   const handleAction = (action) => {
     const actionMessages = {
@@ -311,64 +881,7 @@ export default function QCDetailPage() {
     try {
       setLoading(true);
       
-      // Try to update release details if we have form data changes (optional - don't block on failure)
-      if (originalReleaseData || formData.title) {
-        try {
-          let currentReleaseData = originalReleaseData;
-          
-          if (!currentReleaseData) {
-            try {
-              const releaseResponse = await axios.get(`/api/releases/${releaseId}`, {
-                headers: getAuthHeaders(),
-              });
-              currentReleaseData = releaseResponse.data || {};
-            } catch (error) {
-              console.warn("Could not fetch release data for update, proceeding with QC action only");
-              currentReleaseData = {};
-            }
-          }
-          
-          // Merge form data with existing release data (preserve all fields)
-          const mergedReleaseData = {
-            ...currentReleaseData,
-            releaseId: releaseId,
-            title: formData.title || currentReleaseData.title,
-            artistName: formData.artist || currentReleaseData.artistName,
-            labelName: formData.label || currentReleaseData.labelName,
-            language: formData.language || currentReleaseData.language,
-            primaryGenre: formData.primaryGenre || currentReleaseData.primaryGenre,
-            secondaryGenre: formData.secondaryGenre || currentReleaseData.secondaryGenre,
-            explicitLyrics: formData.explicitLyrics === "Yes",
-            digitalReleaseDate: formData.digitalReleaseDate || currentReleaseData.digitalReleaseDate,
-            originalReleaseDate: formData.originalReleaseDate || currentReleaseData.originalReleaseDate,
-            isrcCode: formData.isrcCode || currentReleaseData.isrcCode,
-            upcCode: formData.upcCode || currentReleaseData.upcCode,
-            stores: Array.isArray(formData.stores) && formData.stores.length > 0 
-              ? formData.stores 
-              : currentReleaseData.stores || [],
-          };
-          
-          // Handle cover art upload if changed
-          if (coverArtwork) {
-            mergedReleaseData.coverArt = coverArtwork;
-          }
-          
-          // Update release via POST /api/releases/{releaseId} (optional - don't block on failure)
-          try {
-            await axios.post(`/api/releases/${releaseId}`, mergedReleaseData, {
-              headers: getAuthHeaders(),
-            });
-            console.log("Release updated successfully");
-          } catch (updateError) {
-            console.warn("Release update failed, but continuing with QC action:", updateError);
-            // Don't show error - just continue with QC action
-          }
-        } catch (updateError) {
-          console.warn("Could not update release, proceeding with QC action only");
-        }
-      }
-      
-      // Perform QC action (this is the main action - should work even if details didn't load)
+      // Perform QC action only (no updates here - updates are handled by handleUpdate)
       // Use the correct endpoint format: /api/qc/{role}/{releaseId}/approve
       const baseEndpoint = getQCActionEndpoint();
       let actionEndpoint = "";
@@ -471,14 +984,226 @@ export default function QCDetailPage() {
     setNotes(""); // Clear notes when canceling
   };
 
+  // Handle Update - Update only edited fields, preserve all previous data
+  const handleUpdate = async () => {
+    if (!releaseId) {
+      toast.dark("Release ID not found.");
+      return;
+    }
+
+    if (!hasChanges) {
+      toast.dark("No changes to update.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Check if we need to update release or tracks
+      const hasReleaseChanges = editedFields.size > 0 || editedStores !== null || coverArtwork !== null;
+      const hasTrackChanges = editedTracks.length > 0;
+
+      if (!hasReleaseChanges && !hasTrackChanges) {
+        toast.dark("No changes to update.");
+        setLoading(false);
+        return;
+      }
+
+      // Fetch current release data to preserve all fields
+      let currentReleaseData = originalReleaseData;
+      if (!currentReleaseData) {
+        try {
+          const releaseResponse = await axios.get(`/api/releases/${releaseId}`, {
+            headers: getAuthHeaders(),
+          });
+          currentReleaseData = releaseResponse.data?.release || releaseResponse.data || {};
+        } catch (error) {
+          console.error("Failed to fetch release data:", error);
+          toast.dark("Failed to fetch release data. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Update release if there are release changes
+      if (hasReleaseChanges) {
+        // Start with original release data to preserve all fields
+        const updatePayload = {
+          ...currentReleaseData,
+          releaseId: releaseId,
+        };
+
+        // Update only fields that were edited, preserving all other fields
+        if (editedFields.has("title")) {
+          updatePayload.title = formData.title;
+        }
+        if (editedFields.has("artist")) {
+          // Update contributors array while preserving structure
+          if (updatePayload.contributors && updatePayload.contributors.length > 0) {
+            updatePayload.contributors = updatePayload.contributors.map((contrib, idx) => {
+              if (idx === 0) {
+                return { ...contrib, artistName: formData.artist };
+              }
+              return contrib;
+            });
+          } else {
+            updatePayload.contributors = [{ artistId: 0, role: null, artistName: formData.artist }];
+          }
+        }
+        if (editedFields.has("label")) {
+          updatePayload.labelName = formData.label;
+        }
+        if (editedFields.has("language")) {
+          updatePayload.language = formData.language;
+        }
+        if (editedFields.has("primaryGenre")) {
+          updatePayload.primaryGenre = formData.primaryGenre;
+        }
+        if (editedFields.has("secondaryGenre")) {
+          updatePayload.secondaryGenre = formData.secondaryGenre;
+        }
+        if (editedFields.has("explicitLyrics")) {
+          updatePayload.isExplicit = formData.explicitLyrics === "Yes";
+        }
+        if (editedFields.has("digitalReleaseDate")) {
+          updatePayload.digitalReleaseDate = formData.digitalReleaseDate;
+        }
+        if (editedFields.has("originalReleaseDate")) {
+          updatePayload.originalReleaseDate = formData.originalReleaseDate;
+        }
+        if (editedFields.has("upcCode")) {
+          updatePayload.upcCode = formData.upcCode;
+        }
+        if (editedFields.has("coverArt") && coverArtwork) {
+          // For now, use blob URL. In production, upload to S3 first
+          updatePayload.coverArtUrl = URL.createObjectURL(coverArtwork);
+        }
+
+        // Update distribution stores if edited, preserving existing distributionOption structure
+        if (editedStores !== null) {
+          updatePayload.distributionOption = {
+            ...(currentReleaseData.distributionOption || {}),
+            selectedStoreIds: editedStores,
+            distributionType: currentReleaseData.distributionOption?.distributionType || "pending",
+          };
+        }
+
+        // Update release via POST /api/releases/{releaseId}
+        try {
+          await axios.post(`/api/releases/${releaseId}`, updatePayload, {
+            headers: getAuthHeaders(),
+          });
+          console.log("Release updated successfully");
+        } catch (updateError) {
+          console.error("Release update failed:", updateError);
+          const errorMessage =
+            updateError.response?.data?.message ||
+            updateError.response?.data?.error ||
+            "Failed to update release.";
+          toast.dark(errorMessage);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Update tracks if any were edited
+      if (hasTrackChanges) {
+        for (const editedTrack of editedTracks) {
+          if (editedTrack.trackId) {
+            try {
+              // Fetch current track data to preserve all fields
+              const currentTrackResponse = await axios.get(`/api/tracks/${editedTrack.trackId}`, {
+                headers: getAuthHeaders(),
+              });
+              const currentTrackData = currentTrackResponse.data || {};
+
+              // Merge edited fields with current track data
+              const trackUpdatePayload = {
+                ...currentTrackData,
+                ...editedTrack,
+                trackId: editedTrack.trackId,
+              };
+
+              await axios.post(`/api/tracks/${editedTrack.trackId}`, trackUpdatePayload, {
+                headers: getAuthHeaders(),
+              });
+              console.log(`Track ${editedTrack.trackId} updated successfully`);
+            } catch (trackError) {
+              console.error(`Failed to update track ${editedTrack.trackId}:`, trackError);
+              toast.dark(`Failed to update track ${editedTrack.trackId}. Please try again.`);
+            }
+          }
+        }
+      }
+
+      // Refresh original data after successful update
+      try {
+        const refreshResponse = await axios.get(`/api/releases/${releaseId}`, {
+          headers: getAuthHeaders(),
+        });
+        const refreshedData = refreshResponse.data?.release || refreshResponse.data || {};
+        setOriginalReleaseData(refreshedData);
+
+        // Update form data with refreshed data
+        const refreshedFormData = {
+          title: refreshedData.title || formData.title,
+          artist: refreshedData.contributors?.[0]?.artistName || formData.artist,
+          label: refreshedData.labelName || refreshedData.label || formData.label,
+          language: refreshedData.language || formData.language,
+          primaryGenre: refreshedData.primaryGenre || formData.primaryGenre,
+          secondaryGenre: refreshedData.secondaryGenre || formData.secondaryGenre,
+          explicitLyrics: refreshedData.isExplicit ? "Yes" : "No",
+          digitalReleaseDate: refreshedData.digitalReleaseDate || formData.digitalReleaseDate,
+          originalReleaseDate: refreshedData.originalReleaseDate || formData.originalReleaseDate,
+          upcCode: refreshedData.upcCode || formData.upcCode,
+          stores: refreshedData.distributionOption?.selectedStoreIds || formData.stores || [],
+        };
+        setFormData(refreshedFormData);
+      } catch (refreshError) {
+        console.warn("Failed to refresh data after update:", refreshError);
+      }
+
+      // Reset edited fields
+      setEditedFields(new Set());
+      setEditedTracks([]);
+      setEditedStores(null);
+      setHasChanges(false);
+      setCoverArtwork(null);
+
+      toast.dark("Update successful!");
+    } catch (error) {
+      console.error("Error updating:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to update. Please try again.";
+      toast.dark(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Determine which buttons to show based on role
   const getActionButtons = () => {
+    // Show Update button ONLY if there are changes
+    const updateButton = hasChanges ? (
+      <button
+        className="btn-gradient"
+        onClick={handleUpdate}
+        disabled={loading}
+        style={{ marginRight: "10px" }}
+      >
+        Update
+      </button>
+    ) : null;
+
     if (actualRole === "LabelAdmin" || actualRole?.toLowerCase() === "labeladmin") {
       return (
         <>
           <button className="btn-cancel" onClick={() => navigate(-1)}>
             Back
           </button>
+          {updateButton}
           <button
             className="btn-capsule btn-reject"
             onClick={() => handleAction("reject")}
@@ -492,13 +1217,6 @@ export default function QCDetailPage() {
             disabled={loading}
           >
             Approve
-          </button>
-          <button 
-            className="btn-gradient" 
-            onClick={() => handleAction("submit")}
-            disabled={loading}
-          >
-            Submit
           </button>
         </>
       );
@@ -508,6 +1226,7 @@ export default function QCDetailPage() {
           <button className="btn-cancel" onClick={() => navigate(-1)}>
             Back
           </button>
+          {updateButton}
           <button
             className="btn-capsule btn-reject"
             onClick={() => handleAction("reject")}
@@ -522,13 +1241,6 @@ export default function QCDetailPage() {
           >
             Approve
           </button>
-          <button 
-            className="btn-gradient" 
-            onClick={() => handleAction("submit")}
-            disabled={loading}
-          >
-            Submit
-          </button>
         </>
       );
     } else if (actualRole === "SuperAdmin" || actualRole?.toLowerCase() === "superadmin") {
@@ -537,6 +1249,7 @@ export default function QCDetailPage() {
           <button className="btn-cancel" onClick={() => navigate(-1)}>
             Back
           </button>
+          {updateButton}
           <button
             className="btn-capsule btn-reject"
             onClick={() => handleAction("reject")}
@@ -562,9 +1275,12 @@ export default function QCDetailPage() {
       );
     }
     return (
-      <button className="btn-cancel" onClick={() => navigate(-1)}>
-        Back
-      </button>
+      <>
+        <button className="btn-cancel" onClick={() => navigate(-1)}>
+          Back
+        </button>
+        {updateButton}
+      </>
     );
   };
 
@@ -645,15 +1361,20 @@ export default function QCDetailPage() {
                       <span className="meta-label">{track.trackNumber || track.id}</span>
                       <span className="meta-value">{track.title}</span>
                     </div>
-                    <div className="duration-player-row">
+                    <div className="duration-player-row" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <span>{track.duration}</span>
                       {track.audioUrl ? (
-                        <audio controls style={{ width: "260px", height: "40px" }}>
-                          <source src={track.audioUrl} type="audio/mpeg" />
-                          <source src={track.audioUrl} type="audio/wav" />
-                          <source src={track.audioUrl} type="audio/flac" />
-                          Your browser does not support the audio element.
-                        </audio>
+                        <button
+                          className="btn-gradient"
+                          onClick={() => handlePlay(track)}
+                          style={{
+                            padding: "6px 12px",
+                            fontSize: "14px",
+                            minWidth: "60px",
+                          }}
+                        >
+                          {currentTrack?.trackId === track.trackId && isPlaying ? "⏸" : "▶"}
+                        </button>
                       ) : (
                         <span style={{ color: "#999", fontSize: "14px" }}>No audio available</span>
                       )}
@@ -912,6 +1633,102 @@ export default function QCDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Music Player (similar to Home.jsx) */}
+      {currentTrack && (
+        <div className="music-player">
+          <div className="player-content">
+            {/* Left: Album Art */}
+            <div className="player-left">
+              <div className="album-art-wrapper">
+                <img
+                  src={coverPreview || previewImg}
+                  alt={currentTrack.title}
+                  className="player-img"
+                />
+                <button
+                  className="img-play-btn"
+                  onClick={() => {
+                    if (isPlaying) audio.pause();
+                    else audio.play();
+                    setIsPlaying(!isPlaying);
+                  }}
+                >
+                  {isPlaying ? "⏸" : "▶"}
+                </button>
+              </div>
+            </div>
+
+            {/* Middle: Progress + Track Info */}
+            <div className="player-middle">
+              <div className="player-progress-container">
+                <span className="time">{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration}
+                  value={currentTime}
+                  onChange={(e) => {
+                    const newTime = e.target.value;
+                    audio.currentTime = newTime;
+                    setCurrentTime(newTime);
+                  }}
+                  className="progress-bar"
+                  style={{ "--progress": `${(currentTime / duration) * 100}%` }}
+                />
+                <span className="time">{formatTime(duration)}</span>
+              </div>
+
+              <div className="track-info">
+                <div className="music-track-title">{currentTrack.title}</div>
+                <div className="music-track-subtitle">{formData.artist || "N/A"}</div>
+              </div>
+            </div>
+
+            {/* Right: Volume + Close */}
+            <button
+              className="mute-btn"
+              onClick={() => {
+                if (audio) audio.muted = !audio.muted;
+                setIsPlaying((prev) => prev);
+              }}
+            >
+              {audio?.muted ? "🔇" : "🔊"}
+            </button>
+            <div className="player-right">
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={audio?.volume || 1}
+                onChange={(e) => {
+                  audio.volume = e.target.value;
+                }}
+                className="volume-bar"
+              />
+
+              <button
+                className="close-play"
+                onClick={() => {
+                  audio.pause();
+                  audio.currentTime = 0;
+                  setAudio(null);
+                  setCurrentTrack(null);
+                  setIsPlaying(false);
+                  setCurrentTime(0);
+                  setDuration(0);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Container for notifications */}
+      <ToastContainer position="bottom-center" autoClose={3000} theme="dark" />
     </div>
   );
 }

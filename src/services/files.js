@@ -55,6 +55,67 @@ export const completeFileUpload = async (completeData) => {
 };
 
 /**
+ * Upload file directly to API (not using S3 presigned URLs)
+ * @param {Object} uploadData - Upload data
+ * @param {number} uploadData.releaseId - Release ID (required)
+ * @param {number} uploadData.trackId - Track ID (required)
+ * @param {string} uploadData.fileType - File type (e.g., "Audio") (required)
+ * @param {File} uploadData.file - File object to upload (required)
+ * @returns {Promise<Object>} Upload response with fileId
+ */
+export const uploadFileDirectly = async ({ releaseId, trackId, fileType, file }) => {
+  const token = localStorage.getItem("jwtToken");
+  const formData = new FormData();
+  formData.append('releaseId', releaseId);
+  formData.append('trackId', trackId);
+  formData.append('fileType', fileType);
+  formData.append('file', file);
+  
+  const response = await axios.post(`${API_BASE}`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 600000, // 10 minutes timeout for large files
+  });
+  return response.data;
+};
+
+/**
+ * Get files with optional filters
+ * @param {Object} filters - Optional filters
+ * @param {number} filters.releaseId - Filter by release ID
+ * @param {number} filters.trackId - Filter by track ID
+ * @param {string} filters.fileType - Filter by file type (e.g., "Audio")
+ * @param {string} filters.status - Filter by status (e.g., "AVAILABLE", "UPLOADING")
+ * @returns {Promise<Object>} Files response with totalFiles and files array
+ */
+export const getFiles = async (filters = {}) => {
+  // Build query params - only include provided filters
+  const params = new URLSearchParams();
+  if (filters.releaseId !== undefined && filters.releaseId !== null) {
+    params.append("releaseId", filters.releaseId);
+  }
+  if (filters.trackId !== undefined && filters.trackId !== null) {
+    params.append("trackId", filters.trackId);
+  }
+  if (filters.fileType) {
+    params.append("fileType", filters.fileType);
+  }
+  if (filters.status) {
+    params.append("status", filters.status);
+  }
+  
+  const queryString = params.toString();
+  const url = queryString ? `${API_BASE}?${queryString}` : API_BASE;
+  
+  const response = await axios.get(url, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+/**
  * Get file by ID
  * @param {number} fileId - File ID
  * @returns {Promise<Object>} File object
@@ -82,6 +143,8 @@ export const deleteFile = async (fileId) => {
 export default {
   initiateFileUpload,
   completeFileUpload,
+  uploadFileDirectly,
+  getFiles,
   getFileById,
   deleteFile,
 };
