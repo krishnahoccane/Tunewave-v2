@@ -180,6 +180,94 @@ function CreateRelease() {
   const [upcCode, setUpcCode] = useState("");
   const [profile, setProfileModel] = useState("");
 
+  // Load form data from localStorage on component mount
+  useEffect(() => {
+    const loadFormData = () => {
+      try {
+        // Always try to restore form data from localStorage
+        // This allows users to navigate back and see their previous input
+        const savedData = localStorage.getItem("createReleaseFormData");
+        if (savedData) {
+          const formData = JSON.parse(savedData);
+          
+          console.log("Restoring form data from localStorage:", formData);
+          
+          // Restore form fields
+          if (formData.releaseTitle !== undefined) setReleaseTitle(formData.releaseTitle);
+          if (formData.titleVersion !== undefined) setTitleVersion(formData.titleVersion);
+          if (formData.localizations && Array.isArray(formData.localizations)) {
+            setLocalizations(formData.localizations);
+          }
+          if (formData.primaryGenre !== undefined) setPrimaryGenre(formData.primaryGenre);
+          if (formData.secondaryGenre !== undefined) setSecondaryGenre(formData.secondaryGenre);
+          if (formData.digitalReleaseDate !== undefined) setDigitalReleaseDate(formData.digitalReleaseDate);
+          if (formData.originalReleaseDate !== undefined) setOriginalReleaseDate(formData.originalReleaseDate);
+          if (formData.hasUPC !== undefined && formData.hasUPC !== null) setHasUPC(formData.hasUPC);
+          if (formData.upcCode !== undefined) setUpcCode(formData.upcCode);
+          if (formData.contributors && Array.isArray(formData.contributors)) {
+            setContributors(formData.contributors);
+          }
+          
+          // Handle cover art - if there's a saved coverArtUrl, we can't restore the File object
+          // User will need to re-upload cover art if they navigate back
+          if (formData.hasCoverArt) {
+            console.log("Cover art was previously uploaded. User needs to re-upload.");
+          }
+          
+          console.log("✅ Form data restored from localStorage");
+        } else {
+          console.log("No saved form data found in localStorage");
+        }
+      } catch (error) {
+        console.warn("Failed to load form data from localStorage:", error);
+      }
+    };
+    
+    loadFormData();
+  }, []);
+
+  // Save form data to localStorage whenever form fields change
+  useEffect(() => {
+    const saveFormData = () => {
+      try {
+        const formDataToSave = {
+          releaseTitle,
+          titleVersion,
+          localizations,
+          primaryGenre,
+          secondaryGenre,
+          digitalReleaseDate,
+          originalReleaseDate,
+          hasUPC,
+          upcCode,
+          contributors,
+          hasCoverArt: coverArtwork !== null, // Track if cover art was uploaded
+        };
+        
+        localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
+        console.log("💾 Auto-saved form data to localStorage");
+      } catch (error) {
+        console.warn("Failed to save form data to localStorage:", error);
+      }
+    };
+    
+    // Debounce saves to avoid too many writes
+    const timeoutId = setTimeout(saveFormData, 500);
+    return () => clearTimeout(timeoutId);
+  }, [
+    releaseTitle,
+    titleVersion,
+    localizations,
+    primaryGenre,
+    secondaryGenre,
+    digitalReleaseDate,
+    originalReleaseDate,
+    hasUPC,
+    upcCode,
+    contributors,
+    coverArtwork,
+  ]);
+
   // Fetch user's enterprise and label on component mount
   useEffect(() => {
     const fetchUserEntities = async () => {
@@ -534,6 +622,24 @@ function CreateRelease() {
       
       // Save to localStorage as backup
       localStorage.setItem("releaseMetadata", JSON.stringify(releaseMetadata));
+      
+      // Save form data before navigating (so user can see it if they come back)
+      // Don't clear it - let user see their data if they navigate back
+      const formDataToSave = {
+        releaseTitle,
+        titleVersion,
+        localizations,
+        primaryGenre,
+        secondaryGenre,
+        digitalReleaseDate,
+        originalReleaseDate,
+        hasUPC,
+        upcCode,
+        contributors,
+        hasCoverArt: coverArtwork !== null,
+      };
+      localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
+      console.log("✅ Form data saved to localStorage before navigation");
       
       // Verify localStorage save
       const savedMetadata = JSON.parse(localStorage.getItem("releaseMetadata") || "{}");

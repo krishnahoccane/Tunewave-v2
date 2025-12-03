@@ -42,7 +42,25 @@ export const getEnterprises = async (params = {}) => {
   const response = await axios.get(url, {
     headers: getAuthHeaders(),
   });
-  return response.data;
+  
+  const responseData = response.data;
+  
+  // Handle different response formats
+  // API might return: array directly, or object with data/enterprises/items property
+  if (Array.isArray(responseData)) {
+    return responseData;
+  } else if (responseData && typeof responseData === 'object') {
+    // Try common property names
+    return responseData.data || 
+           responseData.enterprises || 
+           responseData.items || 
+           responseData.results ||
+           [];
+  }
+  
+  // Fallback: return empty array if unexpected format
+  console.warn("[EnterprisesService] Unexpected response format:", responseData);
+  return [];
 };
 
 /**

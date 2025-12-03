@@ -102,10 +102,13 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
 
         if (enterprisesArray && Array.isArray(enterprisesArray)) {
           // Map API status to display format
+          // API can return: "active", "suspend", "disable", "disabled", "suspended"
           const statusDisplayMap = {
             "active": "Active",
             "suspend": "Suspended",
             "disable": "Disabled",
+            "disabled": "Disabled", // Handle variation
+            "suspended": "Suspended", // Handle variation
             "Active": "Active",
             "Suspended": "Suspended",
             "Disabled": "Disabled",
@@ -113,20 +116,47 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
           
           // Map API response to component format
           const mappedData = enterprisesArray.map((enterprise) => {
+            // Handle status - API returns: "active", "suspend", "disable", "disabled", "suspended"
             const apiStatus = enterprise.status || "active";
-            const displayStatus = statusDisplayMap[apiStatus] || "Active";
+            // Normalize status values
+            let normalizedStatus = apiStatus.toLowerCase();
+            if (normalizedStatus === "disabled") normalizedStatus = "disable";
+            if (normalizedStatus === "suspended") normalizedStatus = "suspend";
+            
+            const displayStatus = statusDisplayMap[normalizedStatus] || statusDisplayMap[apiStatus] || "Active";
+            
+            // Handle domain - API can return empty object {} instead of string
+            let domainValue = "";
+            if (typeof enterprise.domain === "string") {
+              domainValue = enterprise.domain;
+            } else if (enterprise.domain && typeof enterprise.domain === "object") {
+              // Skip empty objects
+              domainValue = "";
+            }
+            
+            // Handle owner - API returns object with userId, fullName, email
+            let ownerValue = null;
+            if (enterprise.owner) {
+              if (typeof enterprise.owner === "object" && enterprise.owner.email) {
+                ownerValue = enterprise.owner.email;
+              } else if (typeof enterprise.owner === "string") {
+                ownerValue = enterprise.owner;
+              }
+            } else if (enterprise.ownerEmail) {
+              ownerValue = enterprise.ownerEmail;
+            }
             
             return {
               id: enterprise.enterpriseId || enterprise.id || 0,
               enterpriseid: `ENT-${String(enterprise.enterpriseId || enterprise.id || 0).padStart(3, '0')}`,
               enterprise: enterprise.enterpriseName || enterprise.name || "",
-              domain: enterprise.domain || "",
+              domain: domainValue,
               revenueShare: enterprise.revenueSharePercent || enterprise.revenueShare 
                 ? `${enterprise.revenueSharePercent || enterprise.revenueShare}%` 
                 : "10%",
               qcRequired: enterprise.qcRequired ? "Required" : "Not required",
               status: displayStatus,
-              owner: enterprise.owner || enterprise.ownerEmail || null,
+              owner: ownerValue,
               createdBy: enterprise.createdBy || "",
               createdAt: enterprise.createdAt || "",
             };
@@ -336,30 +366,61 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
               }
               
               if (enterprisesArray && Array.isArray(enterprisesArray)) {
+                // Map API status to display format
+                // API can return: "active", "suspend", "disable", "disabled", "suspended"
                 const statusDisplayMap = {
                   "active": "Active",
                   "suspend": "Suspended",
                   "disable": "Disabled",
+                  "disabled": "Disabled", // Handle variation
+                  "suspended": "Suspended", // Handle variation
                   "Active": "Active",
                   "Suspended": "Suspended",
                   "Disabled": "Disabled",
                 };
                 
                 const mappedData = enterprisesArray.map((enterprise) => {
+                  // Handle status - API returns: "active", "suspend", "disable", "disabled", "suspended"
                   const apiStatus = enterprise.status || "active";
-                  const displayStatus = statusDisplayMap[apiStatus] || "Active";
+                  // Normalize status values
+                  let normalizedStatus = apiStatus.toLowerCase();
+                  if (normalizedStatus === "disabled") normalizedStatus = "disable";
+                  if (normalizedStatus === "suspended") normalizedStatus = "suspend";
+                  
+                  const displayStatus = statusDisplayMap[normalizedStatus] || statusDisplayMap[apiStatus] || "Active";
+                  
+                  // Handle domain - API can return empty object {} instead of string
+                  let domainValue = "";
+                  if (typeof enterprise.domain === "string") {
+                    domainValue = enterprise.domain;
+                  } else if (enterprise.domain && typeof enterprise.domain === "object") {
+                    // Skip empty objects
+                    domainValue = "";
+                  }
+                  
+                  // Handle owner - API returns object with userId, fullName, email
+                  let ownerValue = null;
+                  if (enterprise.owner) {
+                    if (typeof enterprise.owner === "object" && enterprise.owner.email) {
+                      ownerValue = enterprise.owner.email;
+                    } else if (typeof enterprise.owner === "string") {
+                      ownerValue = enterprise.owner;
+                    }
+                  } else if (enterprise.ownerEmail) {
+                    ownerValue = enterprise.ownerEmail;
+                  }
                   
                   return {
                     id: enterprise.enterpriseId || enterprise.id || 0,
                     enterpriseid: `ENT-${String(enterprise.enterpriseId || enterprise.id || 0).padStart(3, '0')}`,
                     enterprise: enterprise.enterpriseName || enterprise.name || "",
-                    domain: enterprise.domain || "",
+                    domain: domainValue,
                     revenueShare: enterprise.revenueSharePercent || enterprise.revenueShare 
                       ? `${enterprise.revenueSharePercent || enterprise.revenueShare}%` 
                       : "10%",
                     qcRequired: enterprise.qcRequired ? "Required" : "Not required",
                     status: displayStatus,
-                    owner: enterprise.owner || enterprise.ownerEmail || null,
+                    owner: ownerValue,
                     createdBy: enterprise.createdBy || "",
                     createdAt: enterprise.createdAt || "",
                   };
