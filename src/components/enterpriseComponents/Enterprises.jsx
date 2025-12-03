@@ -79,8 +79,28 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
         }
 
         const responseData = await EnterprisesService.getEnterprises(params);
+        
+        // Debug logging
+        console.log("[Enterprises] API Response:", responseData);
+        console.log("[Enterprises] Response type:", typeof responseData);
+        console.log("[Enterprises] Is array:", Array.isArray(responseData));
 
-        if (responseData && Array.isArray(responseData)) {
+        // Handle different response formats
+        // API might return: array directly, or object with data/enterprises/items property
+        let enterprisesArray = null;
+        
+        if (Array.isArray(responseData)) {
+          enterprisesArray = responseData;
+        } else if (responseData && typeof responseData === 'object') {
+          // Try common property names
+          enterprisesArray = responseData.data || 
+                            responseData.enterprises || 
+                            responseData.items || 
+                            responseData.results ||
+                            (Array.isArray(responseData) ? responseData : null);
+        }
+
+        if (enterprisesArray && Array.isArray(enterprisesArray)) {
           // Map API status to display format
           const statusDisplayMap = {
             "active": "Active",
@@ -92,19 +112,21 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
           };
           
           // Map API response to component format
-          const mappedData = responseData.map((enterprise) => {
+          const mappedData = enterprisesArray.map((enterprise) => {
             const apiStatus = enterprise.status || "active";
             const displayStatus = statusDisplayMap[apiStatus] || "Active";
             
             return {
-              id: enterprise.enterpriseId || 0,
-              enterpriseid: `ENT-${String(enterprise.enterpriseId || 0).padStart(3, '0')}`,
-              enterprise: enterprise.enterpriseName || "",
+              id: enterprise.enterpriseId || enterprise.id || 0,
+              enterpriseid: `ENT-${String(enterprise.enterpriseId || enterprise.id || 0).padStart(3, '0')}`,
+              enterprise: enterprise.enterpriseName || enterprise.name || "",
               domain: enterprise.domain || "",
-              revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "10%",
+              revenueShare: enterprise.revenueSharePercent || enterprise.revenueShare 
+                ? `${enterprise.revenueSharePercent || enterprise.revenueShare}%` 
+                : "10%",
               qcRequired: enterprise.qcRequired ? "Required" : "Not required",
               status: displayStatus,
-              owner: enterprise.owner || null,
+              owner: enterprise.owner || enterprise.ownerEmail || null,
               createdBy: enterprise.createdBy || "",
               createdAt: enterprise.createdAt || "",
             };
@@ -112,8 +134,14 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
           
           setEnterprisesData(mappedData);
         } else {
-          console.warn("Unexpected API response format:", responseData);
+          console.warn("Unexpected API response format. Expected array but got:", responseData);
+          console.warn("Response type:", typeof responseData);
+          console.warn("Is array:", Array.isArray(responseData));
           setEnterprisesData([]);
+          toast.dark("Unexpected response format from server. Please contact support.", {
+            transition: Slide,
+            autoClose: 5000,
+          });
         }
       } catch (error) {
         // Only log error details in development
@@ -294,7 +322,20 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
                 params.search = searchItem.trim();
               }
               const resData = await EnterprisesService.getEnterprises(params);
-              if (resData && Array.isArray(resData)) {
+              
+              // Handle different response formats
+              let enterprisesArray = null;
+              if (Array.isArray(resData)) {
+                enterprisesArray = resData;
+              } else if (resData && typeof resData === 'object') {
+                enterprisesArray = resData.data || 
+                                  resData.enterprises || 
+                                  resData.items || 
+                                  resData.results ||
+                                  (Array.isArray(resData) ? resData : null);
+              }
+              
+              if (enterprisesArray && Array.isArray(enterprisesArray)) {
                 const statusDisplayMap = {
                   "active": "Active",
                   "suspend": "Suspended",
@@ -304,19 +345,21 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
                   "Disabled": "Disabled",
                 };
                 
-                const mappedData = resData.map((enterprise) => {
+                const mappedData = enterprisesArray.map((enterprise) => {
                   const apiStatus = enterprise.status || "active";
                   const displayStatus = statusDisplayMap[apiStatus] || "Active";
                   
                   return {
-                    id: enterprise.enterpriseId || 0,
-                    enterpriseid: `ENT-${String(enterprise.enterpriseId || 0).padStart(3, '0')}`,
-                    enterprise: enterprise.enterpriseName || "",
+                    id: enterprise.enterpriseId || enterprise.id || 0,
+                    enterpriseid: `ENT-${String(enterprise.enterpriseId || enterprise.id || 0).padStart(3, '0')}`,
+                    enterprise: enterprise.enterpriseName || enterprise.name || "",
                     domain: enterprise.domain || "",
-                    revenueShare: enterprise.revenueShare ? `${enterprise.revenueShare}%` : "10%",
+                    revenueShare: enterprise.revenueSharePercent || enterprise.revenueShare 
+                      ? `${enterprise.revenueSharePercent || enterprise.revenueShare}%` 
+                      : "10%",
                     qcRequired: enterprise.qcRequired ? "Required" : "Not required",
                     status: displayStatus,
-                    owner: enterprise.owner || null,
+                    owner: enterprise.owner || enterprise.ownerEmail || null,
                     createdBy: enterprise.createdBy || "",
                     createdAt: enterprise.createdAt || "",
                   };

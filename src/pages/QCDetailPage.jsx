@@ -1028,27 +1028,53 @@ export default function QCDetailPage() {
       // Update release if there are release changes
       if (hasReleaseChanges) {
         // Start with original release data to preserve all fields
+        // Exclude fields that shouldn't be sent in update (tracks, createdAt, contributors unless edited, etc.)
+        const {
+          tracks,
+          createdAt,
+          updatedAt,
+          status,
+          contributors, // Exclude contributors - only include if artist was edited
+          ...releaseDataToUpdate
+        } = currentReleaseData;
+        
         const updatePayload = {
-          ...currentReleaseData,
+          ...releaseDataToUpdate,
           releaseId: releaseId,
         };
+
+        // Only include contributors if artist field was edited
+        // This prevents backend from trying to delete/recreate contributors when only other fields change
+        if (editedFields.has("artist")) {
+          // Update contributors array while preserving structure
+          let contributorsToUpdate = [];
+          if (currentReleaseData.contributors && Array.isArray(currentReleaseData.contributors) && currentReleaseData.contributors.length > 0) {
+            contributorsToUpdate = currentReleaseData.contributors.map((contrib, idx) => {
+              if (idx === 0) {
+                return { 
+                  ...contrib, 
+                  artistName: formData.artist,
+                  role: contrib.role || "Main Primary Artist" // Ensure role is never null
+                };
+              }
+              return {
+                ...contrib,
+                role: contrib.role || "Main Primary Artist" // Ensure role is never null
+              };
+            });
+          } else {
+            contributorsToUpdate = [{ 
+              artistId: 0, 
+              role: "Main Primary Artist", // Use valid role instead of null
+              artistName: formData.artist 
+            }];
+          }
+          updatePayload.contributors = contributorsToUpdate;
+        }
 
         // Update only fields that were edited, preserving all other fields
         if (editedFields.has("title")) {
           updatePayload.title = formData.title;
-        }
-        if (editedFields.has("artist")) {
-          // Update contributors array while preserving structure
-          if (updatePayload.contributors && updatePayload.contributors.length > 0) {
-            updatePayload.contributors = updatePayload.contributors.map((contrib, idx) => {
-              if (idx === 0) {
-                return { ...contrib, artistName: formData.artist };
-              }
-              return contrib;
-            });
-          } else {
-            updatePayload.contributors = [{ artistId: 0, role: null, artistName: formData.artist }];
-          }
         }
         if (editedFields.has("label")) {
           updatePayload.labelName = formData.label;
@@ -1092,8 +1118,9 @@ export default function QCDetailPage() {
         }
 
         // Update release via POST /api/releases/{releaseId}
+        // Same update logic works for all roles: SuperAdmin, EnterpriseAdmin, and LabelAdmin
         try {
-          console.log(`[QCDetailPage] Updating release ${releaseId}...`);
+          console.log(`[QCDetailPage] Updating release ${releaseId} for role: ${actualRole}...`);
           console.log(`[QCDetailPage] Update payload keys:`, Object.keys(updatePayload));
           console.log(`[QCDetailPage] Update payload (excluding large fields):`, {
             ...updatePayload,
@@ -1105,7 +1132,7 @@ export default function QCDetailPage() {
           const updateResponse = await axios.post(`/api/releases/${releaseId}`, updatePayload, {
             headers: getAuthHeaders(),
           });
-          console.log(`[QCDetailPage] ✅ Release updated successfully:`, updateResponse.data);
+          console.log(`[QCDetailPage] ✅ Release updated successfully for ${actualRole}:`, updateResponse.data);
         } catch (updateError) {
           console.error(`[QCDetailPage] ❌ Release update failed:`, updateError);
           console.error(`[QCDetailPage] Error status:`, updateError.response?.status);
