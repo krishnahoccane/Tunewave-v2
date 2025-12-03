@@ -198,12 +198,42 @@ import EnterpriseCatalogPage from "./pages/EnterpriseCatalogPage.jsx";
 import CreateEnterprise from "./pages/CreateEnterprise.jsx";
 import CreateLabel from "./pages/CreateLabel.jsx";
 import CreateArtist from "./pages/CreateArtist.jsx";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 function AppWrapper() {
   return (
     <Router>
       <App />
     </Router>
   );
+}
+
+// Component to protect Create Release route for LabelAdmin and Artist/ArtistAdmin only
+function CreateReleaseProtected() {
+  const { actualRole } = useRole();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const role = actualRole?.toLowerCase() || "";
+    const isLabelAdmin = role === "labeladmin";
+    const isArtist = role === "artist" || role === "artistadmin" || role === "artist admin";
+    
+    if (!isLabelAdmin && !isArtist) {
+      toast.error("Access denied. Only Label Admins and Artists can create releases.");
+      navigate("/dashboard");
+    }
+  }, [actualRole, navigate]);
+  
+  const role = actualRole?.toLowerCase() || "";
+  const isLabelAdmin = role === "labeladmin";
+  const isArtist = role === "artist" || role === "artistadmin" || role === "artist admin";
+  
+  if (!isLabelAdmin && !isArtist) {
+    return null; // Will redirect in useEffect
+  }
+  
+  return <CreateRelease />;
 }
 
 function App() {
@@ -288,7 +318,7 @@ function App() {
         />
         <Route
           path="/create-release"
-          element={isLoggedIn ? <CreateRelease /> : <Navigate to="/login" />}
+          element={isLoggedIn ? <CreateReleaseProtected /> : <Navigate to="/login" />}
         />
         <Route
           path="/releases"

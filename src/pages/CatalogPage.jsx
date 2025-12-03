@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useRole } from "../context/RoleContext";
 
 //components
 import CatalogSidebar from "../components/CatalogSidebar";
@@ -34,8 +35,15 @@ function CatalogPage() {
   const [showMode, setShowMode] = useState("list");
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
+  const { actualRole } = useRole();
 
   const location = useLocation();
+  
+  // Check if user can create releases (LabelAdmin or Artist/ArtistAdmin only)
+  const canCreateRelease = () => {
+    const role = actualRole?.toLowerCase() || "";
+    return role === "labeladmin" || role === "artist" || role === "artistadmin" || role === "artist admin";
+  };
   const navigate = useNavigate();
 
   // Placeholder state for table data (replace with real data from each tab)
@@ -278,13 +286,15 @@ function CatalogPage() {
             )}
           </div>
 
-          {/* Create Release */}
-          <button
-            className="btn-gradient"
-            onClick={() => navigate("/create-release")}
-          >
-            Create Release
-          </button>
+          {/* Create Release - Only for LabelAdmin and Artist */}
+          {canCreateRelease() && (
+            <button
+              className="btn-gradient"
+              onClick={() => navigate("/create-release")}
+            >
+              Create Release
+            </button>
+          )}
         </div>
       </div>
 

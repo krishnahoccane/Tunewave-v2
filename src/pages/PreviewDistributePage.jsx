@@ -386,6 +386,7 @@ export default function PreviewDistributePage() {
 
     // Proceed with submission if validation passes
     try {
+      console.log(`[PreviewDistributePage] Submitting release ${releaseId} for QC...`);
       const response = await axios.post(
         `/api/releases/${releaseId}/submit`,
         {},
@@ -394,8 +395,15 @@ export default function PreviewDistributePage() {
         }
       );
 
+      console.log(`[PreviewDistributePage] Submit response:`, response.data);
+      console.log(`[PreviewDistributePage] Response status:`, response.status);
+
       if (response.status === 200) {
-        toast.dark(response.data.message || "Release submitted for QC successfully");
+        const successMessage = response.data?.message || "Release submitted for QC successfully";
+        console.log(`[PreviewDistributePage] ✅ Release submitted successfully. Message: ${successMessage}`);
+        console.log(`[PreviewDistributePage] Release should now be in label QC queue at /api/qc/queue/label`);
+        
+        toast.dark(successMessage);
         setStatus("Submitted");
         setShowPopup(false);
         // Navigate to dashboard after a short delay
@@ -404,7 +412,9 @@ export default function PreviewDistributePage() {
         }, 1500);
       }
     } catch (error) {
-      console.error("Error submitting release:", error);
+      console.error(`[PreviewDistributePage] ❌ Error submitting release:`, error);
+      console.error(`[PreviewDistributePage] Error status:`, error.response?.status);
+      console.error(`[PreviewDistributePage] Error response:`, error.response?.data);
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.error ||

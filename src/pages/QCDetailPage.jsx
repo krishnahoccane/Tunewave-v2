@@ -1075,8 +1075,11 @@ export default function QCDetailPage() {
           updatePayload.upcCode = formData.upcCode;
         }
         if (editedFields.has("coverArt") && coverArtwork) {
-          // For now, use blob URL. In production, upload to S3 first
-          updatePayload.coverArtUrl = URL.createObjectURL(coverArtwork);
+          // Send cover art blob URL in update payload (same as CreateRelease does)
+          // The backend should accept blob URLs for cover art updates
+          const coverArtBlobUrl = URL.createObjectURL(coverArtwork);
+          updatePayload.coverArtUrl = coverArtBlobUrl;
+          console.log(`[QCDetailPage] ✅ Cover art updated. Blob URL: ${coverArtBlobUrl.substring(0, 50)}...`);
         }
 
         // Update distribution stores if edited, preserving existing distributionOption structure
@@ -1090,17 +1093,32 @@ export default function QCDetailPage() {
 
         // Update release via POST /api/releases/{releaseId}
         try {
-          await axios.post(`/api/releases/${releaseId}`, updatePayload, {
+          console.log(`[QCDetailPage] Updating release ${releaseId}...`);
+          console.log(`[QCDetailPage] Update payload keys:`, Object.keys(updatePayload));
+          console.log(`[QCDetailPage] Update payload (excluding large fields):`, {
+            ...updatePayload,
+            contributors: updatePayload.contributors?.length || 0,
+            trackIds: updatePayload.trackIds?.length || 0,
+            coverArtUrl: updatePayload.coverArtUrl ? 'present' : 'not present',
+          });
+          
+          const updateResponse = await axios.post(`/api/releases/${releaseId}`, updatePayload, {
             headers: getAuthHeaders(),
           });
-          console.log("Release updated successfully");
+          console.log(`[QCDetailPage] ✅ Release updated successfully:`, updateResponse.data);
         } catch (updateError) {
-          console.error("Release update failed:", updateError);
+          console.error(`[QCDetailPage] ❌ Release update failed:`, updateError);
+          console.error(`[QCDetailPage] Error status:`, updateError.response?.status);
+          console.error(`[QCDetailPage] Error response:`, updateError.response?.data);
+          console.error(`[QCDetailPage] Request payload keys:`, Object.keys(updatePayload));
+          
           const errorMessage =
             updateError.response?.data?.message ||
             updateError.response?.data?.error ||
-            "Failed to update release.";
-          toast.dark(errorMessage);
+            updateError.response?.data?.title ||
+            (updateError.response?.data?.errors ? JSON.stringify(updateError.response.data.errors) : null) ||
+            "Failed to update release. Please check console for details.";
+          toast.dark(errorMessage, { autoClose: 6000 });
           setLoading(false);
           return;
         }
@@ -1124,13 +1142,32 @@ export default function QCDetailPage() {
                 trackId: editedTrack.trackId,
               };
 
-              await axios.post(`/api/tracks/${editedTrack.trackId}`, trackUpdatePayload, {
-                headers: getAuthHeaders(),
-              });
-              console.log(`Track ${editedTrack.trackId} updated successfully`);
+              // Try POST first, fallback to PUT if needed
+              try {
+                console.log(`[QCDetailPage] Updating track ${editedTrack.trackId} via POST...`);
+                await axios.post(`/api/tracks/${editedTrack.trackId}`, trackUpdatePayload, {
+                  headers: getAuthHeaders(),
+                });
+                console.log(`[QCDetailPage] ✅ Track ${editedTrack.trackId} updated successfully via POST`);
+              } catch (postError) {
+                if (postError.response?.status === 405) {
+                  console.warn(`[QCDetailPage] POST failed with 405, trying PUT...`);
+                  await axios.put(`/api/tracks/${editedTrack.trackId}`, trackUpdatePayload, {
+                    headers: getAuthHeaders(),
+                  });
+                  console.log(`[QCDetailPage] ✅ Track ${editedTrack.trackId} updated successfully via PUT`);
+                } else {
+                  throw postError;
+                }
+              }
             } catch (trackError) {
-              console.error(`Failed to update track ${editedTrack.trackId}:`, trackError);
-              toast.dark(`Failed to update track ${editedTrack.trackId}. Please try again.`);
+              console.error(`[QCDetailPage] ❌ Failed to update track ${editedTrack.trackId}:`, trackError);
+              console.error(`[QCDetailPage] Error status:`, trackError.response?.status);
+              console.error(`[QCDetailPage] Error response:`, trackError.response?.data);
+              const errorMsg = trackError.response?.data?.message || 
+                              trackError.response?.data?.error || 
+                              `Failed to update track ${editedTrack.trackId}`;
+              toast.dark(errorMsg, { autoClose: 5000 });
             }
           }
         }

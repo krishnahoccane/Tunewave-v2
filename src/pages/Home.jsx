@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
+import { useRole } from "../context/RoleContext";
 
 //styles
 import "../styles/Home.css";
@@ -12,8 +13,15 @@ import live from "../assets/Live.svg";
 function Home() {
   const [userdata, setUserData] = useState({});
   const [userId, setUserId] = useState("");
+  const { actualRole } = useRole();
 
   const navigate = useNavigate();
+  
+  // Check if user can create releases (LabelAdmin or Artist/ArtistAdmin only)
+  const canCreateRelease = () => {
+    const role = actualRole?.toLowerCase() || "";
+    return role === "labeladmin" || role === "artist" || role === "artistadmin" || role === "artist admin";
+  };
 
   //jwt token
   // const token = localStorage.getItem("jwtToken");
@@ -26,7 +34,7 @@ function Home() {
     }
 
     try {
-      const response = await fetch("/main/wp-json/wp/v2/users/me", {
+      const response = await fetch("/api/users/me", {
         method: "GET",
         headers: {
           "Content-type": "application/json",
@@ -46,22 +54,23 @@ function Home() {
         return;
       }
 
-      setUserId(String(data.id));
+      setUserId(String(data.id || data.userId || ""));
       // store id in local storage in base64 (guard against encoding errors)
-      if (data?.id !== undefined) {
+      const userIdValue = data?.id || data?.userId;
+      if (userIdValue !== undefined) {
         try {
-          const encoded = btoa(String(data.id));
+          const encoded = btoa(String(userIdValue));
           localStorage.setItem("userId", encoded);
         } catch (e) {
           // If encoding fails, fall back to plain string
           console.warn("btoa failed, storing plain id", e);
-          localStorage.setItem("userId", String(data.id));
+          localStorage.setItem("userId", String(userIdValue));
         }
       }
       console.log("User Details:", data);
       setUserData(data);
     } catch (error) {
-      console.error("Network error:", error);
+      console.error("Error fetching user details:", error);
     }
   };
 
@@ -309,12 +318,14 @@ function Home() {
           </h1>
           <p className="greeting-role">{user.role}</p>
         </div>
-        <button
-          className="btn-gradient"
-          onClick={() => navigate("/create-release")}
-        >
-          Create Release
-        </button>
+        {canCreateRelease() && (
+          <button
+            className="btn-gradient"
+            onClick={() => navigate("/create-release")}
+          >
+            Create Release
+          </button>
+        )}
       </div>
       {/* Dynamic Cards Section */}
       <div className="cards">
