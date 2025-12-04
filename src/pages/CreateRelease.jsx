@@ -164,6 +164,7 @@ function CreateRelease() {
 
   // Step 2: Cover Artwork
   const [coverArtwork, setCoverArtwork] = useState(null); // File object
+  const [coverArtPreviewUrl, setCoverArtPreviewUrl] = useState(null); // Preview URL for display
   const [fileError, setFileError] = useState("");
   const [fileValid, setFileValid] = useState(null); // null = no file, true = valid, false = invalid
 
@@ -174,6 +175,15 @@ function CreateRelease() {
   // Step 5: Dates
   const [digitalReleaseDate, setDigitalReleaseDate] = useState("");
   const [originalReleaseDate, setOriginalReleaseDate] = useState("");
+  const [originalReleaseDateError, setOriginalReleaseDateError] = useState("");
+  
+  // Calculate minimum date for original release date (today + 2 days)
+  const getMinOriginalReleaseDate = () => {
+    const today = new Date();
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() + 2); // Add 2 days
+    return minDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  };
 
   // Step 6: UPC
   const [hasUPC, setHasUPC] = useState(null); // 'yes' or 'no'
@@ -205,13 +215,34 @@ function CreateRelease() {
           if (formData.hasUPC !== undefined && formData.hasUPC !== null) setHasUPC(formData.hasUPC);
           if (formData.upcCode !== undefined) setUpcCode(formData.upcCode);
           if (formData.contributors && Array.isArray(formData.contributors)) {
+            console.log("Restoring contributors:", formData.contributors);
             setContributors(formData.contributors);
           }
           
-          // Handle cover art - if there's a saved coverArtUrl, we can't restore the File object
-          // User will need to re-upload cover art if they navigate back
-          if (formData.hasCoverArt) {
-            console.log("Cover art was previously uploaded. User needs to re-upload.");
+          // Handle cover art - restore preview URL if available
+          if (formData.coverArtDataUrl) {
+            console.log("Restoring cover art preview from data URL");
+            // Create a blob URL from the data URL for preview
+            fetch(formData.coverArtDataUrl)
+              .then(res => res.blob())
+              .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                setCoverArtPreviewUrl(blobUrl);
+                // Create a File object from the blob for form submission
+                const file = new File([blob], "cover-art.jpg", { type: blob.type || "image/jpeg" });
+                setCoverArtwork(file);
+                setFileValid(true);
+                setFileUploaded(file);
+                console.log("✅ Cover art restored successfully");
+              })
+              .catch(error => {
+                console.warn("Failed to restore cover art:", error);
+                setCoverArtPreviewUrl(null);
+                setCoverArtwork(null);
+                setFileValid(null);
+              });
+          } else if (formData.hasCoverArt) {
+            console.log("Cover art was previously uploaded but data URL not found. User needs to re-upload.");
           }
           
           console.log("✅ Form data restored from localStorage");
@@ -228,8 +259,23 @@ function CreateRelease() {
 
   // Save form data to localStorage whenever form fields change
   useEffect(() => {
-    const saveFormData = () => {
+    const saveFormData = async () => {
       try {
+        // Convert cover art file to base64 data URL for storage
+        let coverArtDataUrl = null;
+        if (coverArtwork instanceof File) {
+          try {
+            coverArtDataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(coverArtwork);
+            });
+          } catch (error) {
+            console.warn("Failed to convert cover art to data URL:", error);
+          }
+        }
+        
         const formDataToSave = {
           releaseTitle,
           titleVersion,
@@ -240,12 +286,13 @@ function CreateRelease() {
           originalReleaseDate,
           hasUPC,
           upcCode,
-          contributors,
-          hasCoverArt: coverArtwork !== null, // Track if cover art was uploaded
+          contributors: contributors || [], // Ensure it's always an array
+          hasCoverArt: coverArtwork !== null,
+          coverArtDataUrl, // Store base64 data URL
         };
         
         localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
-        console.log("💾 Auto-saved form data to localStorage");
+        console.log("💾 Auto-saved form data to localStorage (contributors:", contributors.length, "cover art:", !!coverArtDataUrl, ")");
       } catch (error) {
         console.warn("Failed to save form data to localStorage:", error);
       }
@@ -257,15 +304,16 @@ function CreateRelease() {
   }, [
     releaseTitle,
     titleVersion,
-    localizations,
+    JSON.stringify(localizations), // Stringify for proper array comparison
     primaryGenre,
     secondaryGenre,
     digitalReleaseDate,
     originalReleaseDate,
     hasUPC,
     upcCode,
-    contributors,
-    coverArtwork,
+    JSON.stringify(contributors), // Stringify for proper array comparison
+    coverArtwork?.name, // Use file name as dependency since File object reference changes
+    coverArtwork?.size, // Also check size
   ]);
 
   // Fetch user's enterprise and label on component mount
@@ -472,6 +520,31 @@ function CreateRelease() {
       });
       return false;
     }
+    
+    // Validate original release date
+    if (!originalReleaseDate) {
+      toast.dark("Please select an Original Release Date.", {
+        transition: Slide,
+      });
+      return false;
+    }
+    
+    // Validate original release date is at least 2 days from today
+    if (originalReleaseDate) {
+      const selectedDate = new Date(originalReleaseDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+      const minDate = new Date(today);
+      minDate.setDate(today.getDate() + 2); // Today + 2 days
+      
+      if (selectedDate < minDate) {
+        toast.dark("Original Release Date must be at least 2 days from today.", {
+          transition: Slide,
+        });
+        setOriginalReleaseDateError("Original Release Date must be at least 2 days from today");
+        return false;
+      }
+    }
     // if (contributors.length === 0) {
     //   toast.dark("Please add at least one Main Primary Artist.", {transition: Slide});
     //   return;
@@ -624,7 +697,21 @@ function CreateRelease() {
       localStorage.setItem("releaseMetadata", JSON.stringify(releaseMetadata));
       
       // Save form data before navigating (so user can see it if they come back)
-      // Don't clear it - let user see their data if they navigate back
+      // Convert cover art to base64 data URL
+      let coverArtDataUrl = null;
+      if (coverArtwork instanceof File) {
+        try {
+          coverArtDataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(coverArtwork);
+          });
+        } catch (error) {
+          console.warn("Failed to convert cover art to data URL:", error);
+        }
+      }
+      
       const formDataToSave = {
         releaseTitle,
         titleVersion,
@@ -635,11 +722,12 @@ function CreateRelease() {
         originalReleaseDate,
         hasUPC,
         upcCode,
-        contributors,
+        contributors: contributors || [],
         hasCoverArt: coverArtwork !== null,
+        coverArtDataUrl,
       };
       localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
-      console.log("✅ Form data saved to localStorage before navigation");
+      console.log("✅ Form data saved to localStorage before navigation (contributors:", contributors?.length || 0, "cover art:", !!coverArtDataUrl, ")");
       
       // Verify localStorage save
       const savedMetadata = JSON.parse(localStorage.getItem("releaseMetadata") || "{}");
@@ -803,9 +891,9 @@ function CreateRelease() {
                 accept="image/png, image/jpeg, image/jpg, image/jfif"
                 onChange={handleFileChange} // <-- use new handler
               />
-              {fileUploaded ? (
+              {(fileUploaded || coverArtPreviewUrl) ? (
                 <img
-                  src={URL.createObjectURL(fileUploaded)}
+                  src={coverArtPreviewUrl || (fileUploaded ? URL.createObjectURL(fileUploaded) : "")}
                   alt="Preview"
                   className="upload-preview"
                 />
@@ -961,9 +1049,34 @@ function CreateRelease() {
               type="date"
               placeholder="DD/MM/YYYY"
               value={originalReleaseDate}
+              min={getMinOriginalReleaseDate()}
               style={{ width: "300px" }}
-              onChange={(e) => setOriginalReleaseDate(e.target.value)}
+              onChange={(e) => {
+                const selectedDate = e.target.value;
+                if (selectedDate) {
+                  const selected = new Date(selectedDate);
+                  const today = new Date();
+                  const minDate = new Date(today);
+                  minDate.setDate(today.getDate() + 2); // Today + 2 days
+                  
+                  if (selected < minDate) {
+                    setOriginalReleaseDateError("Original Release Date must be at least 2 days from today");
+                    setOriginalReleaseDate(selectedDate); // Still set it so user can see their selection
+                  } else {
+                    setOriginalReleaseDateError("");
+                    setOriginalReleaseDate(selectedDate);
+                  }
+                } else {
+                  setOriginalReleaseDateError("");
+                  setOriginalReleaseDate(selectedDate);
+                }
+              }}
             />
+            {originalReleaseDateError && (
+              <div style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+                {originalReleaseDateError}
+              </div>
+            )}
           </div>
         </div>
       </div>
