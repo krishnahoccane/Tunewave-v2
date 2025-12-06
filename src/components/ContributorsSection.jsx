@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/s.css";
 import { FaSoundcloud, FaSpotify, FaMusic } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
@@ -12,14 +12,34 @@ const initialOptions = {
   lyricist: ["Lyricist1", "Lyricist2"],
 };
 
-const ContributorsSection = () => {
-  const [contributors, setContributors] = useState({
+const ContributorsSection = ({ contributors: externalContributors, onContributorsChange }) => {
+  // Use external contributors if provided, otherwise use internal state
+  const [internalContributors, setInternalContributors] = useState({
     primaryArtist: [],
     producer: [],
     director: [],
     composer: [],
     lyricist: [],
   });
+  
+  // Use external contributors if provided, otherwise use internal
+  const contributors = externalContributors || internalContributors;
+  
+  // Wrapper function to update both internal and external state
+  const setContributors = (newContributors) => {
+    if (onContributorsChange) {
+      onContributorsChange(newContributors);
+    } else {
+      setInternalContributors(newContributors);
+    }
+  };
+
+  // Sync internal state when external contributors change (for restoration)
+  useEffect(() => {
+    if (externalContributors) {
+      setInternalContributors(externalContributors);
+    }
+  }, [externalContributors]);
 
   const [platformBeingEdited, setPlatformBeingEdited] = useState(null);
   const [showModal, setShowModal] = useState(false);

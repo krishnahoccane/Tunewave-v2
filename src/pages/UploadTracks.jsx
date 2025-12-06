@@ -575,7 +575,7 @@ const UploadTracks = () => {
   };
 
   return (
-    <div className="pages-layout-container">
+    <div className="pages-layout-container pages-layout-container-full-height">
       <h2 className="pages-main-title">Upload Tracks</h2>
       <div className="upload-layout">
         {/* LEFT SIDE — PREVIEW SECTION */}

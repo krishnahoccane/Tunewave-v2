@@ -345,6 +345,16 @@ export const getFileById = async (fileId) => {
 };
 
 /**
+ * Get play URL for a file
+ * @param {number} fileId - File ID
+ * @returns {string} Play URL that can be used directly in audio/video elements
+ */
+export const getFilePlayUrl = (fileId) => {
+  if (!fileId) return "";
+  return `${API_BASE}/play/${fileId}`;
+};
+
+/**
  * Delete a file
  * @param {number} fileId - File ID
  * @returns {Promise<Object>} Response data
@@ -364,6 +374,7 @@ export default {
   uploadAudio,
   getFiles,
   getFileById,
+  getFilePlayUrl,
   deleteFile,
 };
 

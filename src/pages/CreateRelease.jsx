@@ -45,7 +45,14 @@ function CreateRelease() {
   // const [showSecondDropdown, setShowSecondDropdown] = useState(false);
   // const [showthirdDropdown, setthirdDropDown] = useState(false);
 
-  const [contributors, setContributors] = useState([]);
+  // Contributors state - using object format to match ContributorsSection component
+  const [contributors, setContributors] = useState({
+    primaryArtist: [],
+    producer: [],
+    director: [],
+    composer: [],
+    lyricist: [],
+  });
   const [artistdropDownName, setArtistdropDownName] = useState("");
   const [linkedProfiles, setLinkedProfiles] = useState({
     Spotify: "",
@@ -214,9 +221,36 @@ function CreateRelease() {
           if (formData.originalReleaseDate !== undefined) setOriginalReleaseDate(formData.originalReleaseDate);
           if (formData.hasUPC !== undefined && formData.hasUPC !== null) setHasUPC(formData.hasUPC);
           if (formData.upcCode !== undefined) setUpcCode(formData.upcCode);
-          if (formData.contributors && Array.isArray(formData.contributors)) {
-            console.log("Restoring contributors:", formData.contributors);
-            setContributors(formData.contributors);
+          // Restore contributors - handle both array and object formats for backward compatibility
+          if (formData.contributors) {
+            if (Array.isArray(formData.contributors)) {
+              // Convert array format to object format for ContributorsSection
+              const contributorsObj = {
+                primaryArtist: [],
+                producer: [],
+                director: [],
+                composer: [],
+                lyricist: [],
+              };
+              
+              formData.contributors.forEach((contrib) => {
+                const category = contrib.type === "Main Primary Artist" ? "primaryArtist" : 
+                                contrib.type?.toLowerCase() || "primaryArtist";
+                if (contributorsObj.hasOwnProperty(category)) {
+                  contributorsObj[category].push({
+                    name: contrib.name,
+                    profiles: contrib.linkedProfiles || contrib.profiles || {},
+                  });
+                }
+              });
+              
+              console.log("Restoring contributors (converted from array):", contributorsObj);
+              setContributors(contributorsObj);
+            } else if (typeof formData.contributors === 'object' && !Array.isArray(formData.contributors)) {
+              // Already in object format
+              console.log("Restoring contributors (object format):", formData.contributors);
+              setContributors(formData.contributors);
+            }
           }
           
           // Handle cover art - restore preview URL if available
@@ -292,7 +326,8 @@ function CreateRelease() {
         };
         
         localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
-        console.log("💾 Auto-saved form data to localStorage (contributors:", contributors.length, "cover art:", !!coverArtDataUrl, ")");
+        const totalContributors = Object.values(contributors).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+        console.log("💾 Auto-saved form data to localStorage (contributors:", totalContributors, "cover art:", !!coverArtDataUrl, ")");
       } catch (error) {
         console.warn("Failed to save form data to localStorage:", error);
       }
@@ -311,7 +346,7 @@ function CreateRelease() {
     originalReleaseDate,
     hasUPC,
     upcCode,
-    JSON.stringify(contributors), // Stringify for proper array comparison
+    JSON.stringify(contributors), // Stringify for proper object comparison
     coverArtwork?.name, // Use file name as dependency since File object reference changes
     coverArtwork?.size, // Also check size
   ]);
@@ -564,18 +599,47 @@ function CreateRelease() {
       return date.toISOString();
     };
 
-    // Map contributors to API format - try to match with user's artists
-    const mappedContributors = contributors.map((contributor) => {
-      // Try to find matching artist by name
-      const matchingArtist = userArtists.find(
-        (artist) => artist.artistName?.toLowerCase() === contributor.name?.toLowerCase()
-      );
-      
-      return {
-        artistId: matchingArtist?.artistId || 0, // Use actual artistId if found
-        role: contributor.type || "Main Primary Artist",
-      };
+    // Convert contributors from object format to array format for API
+    // ContributorsSection uses: {primaryArtist: [{name, profiles}], producer: [...], ...}
+    // API expects: [{artistId, role}]
+    const contributorsArray = [];
+    
+    // Process primaryArtist (Main Primary Artist)
+    if (contributors.primaryArtist && Array.isArray(contributors.primaryArtist)) {
+      contributors.primaryArtist.forEach((contrib) => {
+        const matchingArtist = userArtists.find(
+          (artist) => artist.artistName?.toLowerCase() === contrib.name?.toLowerCase()
+        );
+        contributorsArray.push({
+          artistId: matchingArtist?.artistId || 0,
+          role: "Main Primary Artist",
+        });
+      });
+    }
+    
+    // Process other categories
+    const categoryRoleMap = {
+      producer: "Producer",
+      director: "Director",
+      composer: "Composer",
+      lyricist: "Lyricist",
+    };
+    
+    Object.keys(categoryRoleMap).forEach((category) => {
+      if (contributors[category] && Array.isArray(contributors[category])) {
+        contributors[category].forEach((contrib) => {
+          const matchingArtist = userArtists.find(
+            (artist) => artist.artistName?.toLowerCase() === contrib.name?.toLowerCase()
+          );
+          contributorsArray.push({
+            artistId: matchingArtist?.artistId || 0,
+            role: categoryRoleMap[category],
+          });
+        });
+      }
     });
+    
+    const mappedContributors = contributorsArray;
 
     // Validate enterpriseId and labelId
     if (!labelId) {
@@ -686,7 +750,9 @@ function CreateRelease() {
         upcCode: hasUPC === "yes" ? upcCode : "",
         localizations,
         contributors,
-        mainPrimaryArtist: contributors.length > 0 ? contributors[0].name : "",
+        mainPrimaryArtist: contributors.primaryArtist && contributors.primaryArtist.length > 0 
+          ? contributors.primaryArtist[0].name 
+          : "",
         labelName: labelName || "N/A",
       };
       
@@ -727,7 +793,8 @@ function CreateRelease() {
         coverArtDataUrl,
       };
       localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
-      console.log("✅ Form data saved to localStorage before navigation (contributors:", contributors?.length || 0, "cover art:", !!coverArtDataUrl, ")");
+      const totalContributors = Object.values(contributors).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+      console.log("✅ Form data saved to localStorage before navigation (contributors:", totalContributors, "cover art:", !!coverArtDataUrl, ")");
       
       // Verify localStorage save
       const savedMetadata = JSON.parse(localStorage.getItem("releaseMetadata") || "{}");
@@ -964,7 +1031,10 @@ function CreateRelease() {
       {/* ----------------------------------------------------------------Now---------------------------------- */}
       {/* contributors */}
 
-      <ContributorsSection />
+      <ContributorsSection 
+        contributors={contributors}
+        onContributorsChange={setContributors}
+      />
 
       {/* ---------------------------------------------------------------------------------------------------------------------------------- */}
       {/* Step 4 */}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router-dom";
 import { useRole } from "../context/RoleContext";
+import * as ReleasesService from "../services/releases";
+import * as AuthService from "../services/auth";
 
 //styles
 import "../styles/Home.css";
@@ -13,6 +15,8 @@ import live from "../assets/Live.svg";
 function Home() {
   const [userdata, setUserData] = useState({});
   const [userId, setUserId] = useState("");
+  const [releases, setReleases] = useState([]);
+  const [loadingReleases, setLoadingReleases] = useState(true);
   const { actualRole } = useRole();
 
   const navigate = useNavigate();
@@ -78,6 +82,373 @@ function Home() {
     fetchUserDetails();
   }, []);
 
+  // Fetch releases for the logged-in artist
+  useEffect(() => {
+    const fetchReleases = async () => {
+      try {
+        setLoadingReleases(true);
+        
+        // Get artistId from localStorage (stored during login)
+        let artistId = null;
+        let labelId = null;
+        let enterpriseId = null;
+        
+        try {
+          const storedArtistId = localStorage.getItem("artistId");
+          if (storedArtistId) {
+            // Try to decode if it's base64 encoded
+            try {
+              artistId = parseInt(atob(storedArtistId));
+            } catch (e) {
+              // If decoding fails, try parsing directly
+              artistId = parseInt(storedArtistId);
+            }
+          }
+        } catch (e) {
+          console.warn("[Home] Failed to get artistId from localStorage:", e);
+        }
+
+        // If artistId not found in localStorage, try to get from user entities
+        if (!artistId || isNaN(artistId)) {
+          try {
+            const userEntities = await AuthService.getUserEntities();
+            console.log("[Home] User entities:", userEntities);
+            
+            // Check for artists - try both direct property and memberships
+            const artists = userEntities?.artists || userEntities?.memberships?.artists || [];
+            if (Array.isArray(artists) && artists.length > 0) {
+              const artist = artists[0];
+              const foundArtistId = artist.artistId || artist.artistID || artist.id;
+              if (foundArtistId) {
+                artistId = parseInt(foundArtistId);
+                console.log("[Home] Found artistId from user entities:", artistId);
+              }
+              // Try to get labelId from artist if available
+              if (artist.labelId || artist.labelID) {
+                labelId = parseInt(artist.labelId || artist.labelID);
+              }
+            }
+            
+            // Check for labels - try both direct property and memberships
+            const labels = userEntities?.labels || userEntities?.memberships?.labels || [];
+            if (Array.isArray(labels) && labels.length > 0) {
+              const label = labels[0];
+              const foundLabelId = label.labelId || label.labelID || label.id;
+              if (foundLabelId && !labelId) {
+                labelId = parseInt(foundLabelId);
+                console.log("[Home] Found labelId from user entities:", labelId);
+              }
+              // Try to get enterpriseId from label if available
+              if (label.enterpriseId || label.enterpriseID) {
+                enterpriseId = parseInt(label.enterpriseId || label.enterpriseID);
+              }
+            }
+            
+            // Check for enterprises - try both direct property and memberships
+            const enterprises = userEntities?.enterprises || userEntities?.memberships?.enterprises || [];
+            if (Array.isArray(enterprises) && enterprises.length > 0) {
+              const enterprise = enterprises[0];
+              const foundEnterpriseId = enterprise.enterpriseId || enterprise.enterpriseID || enterprise.id;
+              if (foundEnterpriseId && !enterpriseId) {
+                enterpriseId = parseInt(foundEnterpriseId);
+                console.log("[Home] Found enterpriseId from user entities:", enterpriseId);
+              }
+            }
+          } catch (error) {
+            console.warn("[Home] Failed to get user entities:", error);
+          }
+        }
+
+        console.log("[Home] Identified IDs - artistId:", artistId, "labelId:", labelId, "enterpriseId:", enterpriseId);
+
+        let releasesData = [];
+        
+        // Try multiple approaches to fetch releases
+        // Approach 1: Fetch by ArtistId
+        if (artistId && !isNaN(artistId)) {
+          try {
+            console.log("[Home] Attempting to fetch releases by ArtistId:", artistId);
+            releasesData = await ReleasesService.getReleasesByArtistId(artistId);
+            console.log("[Home] Releases fetched by ArtistId:", releasesData);
+          } catch (error) {
+            console.warn("[Home] Failed to fetch by ArtistId:", error);
+          }
+        }
+        
+        // Approach 2: If no releases found, try fetching by LabelId
+        if (releasesData.length === 0 && labelId && !isNaN(labelId)) {
+          try {
+            console.log("[Home] Attempting to fetch releases by LabelId:", labelId);
+            const labelReleases = await ReleasesService.getReleases({ LabelId: labelId });
+            console.log("[Home] Releases fetched by LabelId:", labelReleases);
+            
+            // Filter releases where artistId is in contributors
+            if (artistId && labelReleases.length > 0) {
+              const beforeFilter = labelReleases.length;
+              const filtered = labelReleases.filter((release) => {
+                const contributors = release.contributors || [];
+                // Check multiple possible formats: {artistId}, {artistID}, {id}, or nested artist object
+                return contributors.some((contrib) => {
+                  const contribArtistId = contrib.artistId || 
+                                          contrib.artistID || 
+                                          contrib.id ||
+                                          contrib.artist?.artistId ||
+                                          contrib.artist?.artistID ||
+                                          contrib.artist?.id;
+                  return contribArtistId === artistId || contribArtistId === String(artistId);
+                });
+              });
+              console.log(`[Home] Filtered ${beforeFilter} releases to ${filtered.length} by artistId in contributors`);
+              
+              // If filtering removed all releases, show all label releases anyway
+              if (filtered.length === 0 && labelReleases.length > 0) {
+                console.log("[Home] No releases found for artist, showing all label releases");
+                releasesData = labelReleases;
+              } else {
+                releasesData = filtered;
+              }
+            } else {
+              // If no artistId, show all releases from the label
+              releasesData = labelReleases;
+              console.log("[Home] No artistId available, showing all releases from label");
+            }
+          } catch (error) {
+            console.warn("[Home] Failed to fetch by LabelId:", error);
+          }
+        }
+        
+        // Approach 3: If still no releases, try fetching all releases and filter
+        if (releasesData.length === 0 && (labelId || enterpriseId)) {
+          try {
+            console.log("[Home] Attempting to fetch all releases");
+            const allReleases = await ReleasesService.getReleases({
+              ...(labelId && { LabelId: labelId }),
+              ...(enterpriseId && { EnterpriseId: enterpriseId }),
+            });
+            console.log("[Home] All releases fetched:", allReleases);
+            
+            // Filter by artistId in contributors
+            if (artistId && allReleases.length > 0) {
+              const beforeFilter = allReleases.length;
+              releasesData = allReleases.filter((release) => {
+                const contributors = release.contributors || [];
+                // Check multiple possible formats: {artistId}, {artistID}, {id}, or nested artist object
+                return contributors.some((contrib) => {
+                  const contribArtistId = contrib.artistId || 
+                                          contrib.artistID || 
+                                          contrib.id ||
+                                          contrib.artist?.artistId ||
+                                          contrib.artist?.artistID ||
+                                          contrib.artist?.id;
+                  return contribArtistId === artistId || contribArtistId === String(artistId);
+                });
+              });
+              console.log(`[Home] Filtered ${beforeFilter} releases to ${releasesData.length} by artistId`);
+            } else {
+              releasesData = allReleases;
+              console.log("[Home] No artistId filter applied, showing all releases");
+            }
+          } catch (error) {
+            console.warn("[Home] Failed to fetch all releases:", error);
+          }
+        }
+
+        console.log("[Home] Final releases data:", releasesData);
+        console.log("[Home] Number of releases found:", releasesData.length);
+
+        // Fetch full details for each release to get cover art and audio URLs
+        const mappedReleasesPromises = releasesData.map(async (release) => {
+          const releaseId = release.releaseId || release.id;
+          
+          // Fetch full release details to get tracks with audio URLs and cover art
+          let fullReleaseData = release;
+          if (releaseId) {
+            try {
+              console.log(`[Home] Fetching full details for release ${releaseId}`);
+              const fullRelease = await ReleasesService.getReleaseById(releaseId);
+              fullReleaseData = fullRelease.release || fullRelease;
+              console.log(`[Home] Full release data for ${releaseId}:`, fullReleaseData);
+            } catch (error) {
+              console.warn(`[Home] Failed to fetch full details for release ${releaseId}:`, error);
+              // Use original release data if fetch fails
+            }
+          }
+
+          // Get cover art URL - check multiple sources
+          let coverArtUrl = fullReleaseData.coverArtUrl || 
+                           fullReleaseData.coverArt || 
+                           SampleIcon;
+          
+          // Check if coverArtUrl is an example/invalid URL
+          const isExampleUrl = coverArtUrl && (
+            coverArtUrl.includes("example.com") || 
+            coverArtUrl.includes("placeholder") ||
+            coverArtUrl === SampleIcon
+          );
+          
+          // If coverArtFileId exists, try to fetch file details (especially if URL is example)
+          if ((isExampleUrl || !coverArtUrl || coverArtUrl === SampleIcon) 
+              && fullReleaseData.coverArtFileId && fullReleaseData.coverArtFileId > 0) {
+            try {
+              const { getFileById } = await import("../services/files");
+              const coverFile = await getFileById(fullReleaseData.coverArtFileId);
+              if (coverFile?.cloudfrontUrl) {
+                coverArtUrl = coverFile.cloudfrontUrl;
+                console.log(`[Home] Fetched cover art URL from file:`, coverArtUrl);
+              }
+            } catch (error) {
+              console.warn(`[Home] Failed to fetch cover art file:`, error);
+              // Keep example URL or fallback to SampleIcon
+              if (isExampleUrl) {
+                coverArtUrl = SampleIcon;
+              }
+            }
+          } else if (coverArtUrl && !isExampleUrl && coverArtUrl !== SampleIcon) {
+            console.log(`[Home] Using cover art URL from release:`, coverArtUrl);
+          } else if (isExampleUrl) {
+            console.log(`[Home] Cover art URL is example/placeholder, using default icon`);
+            coverArtUrl = SampleIcon;
+          }
+          
+          // Get first track's audio URL - check multiple sources
+          let audioUrl = "";
+          let tracks = fullReleaseData.tracks || [];
+          
+          // If tracks not in release data, fetch them using trackIds
+          if (tracks.length === 0 && fullReleaseData.trackIds && fullReleaseData.trackIds.length > 0) {
+            try {
+              console.log(`[Home] Fetching tracks for release ${releaseId}, trackIds:`, fullReleaseData.trackIds);
+              const { getTracksByReleaseId } = await import("../services/tracks");
+              tracks = await getTracksByReleaseId(releaseId);
+              console.log(`[Home] Fetched ${tracks.length} tracks for release ${releaseId}:`, tracks);
+            } catch (error) {
+              console.warn(`[Home] Failed to fetch tracks for release ${releaseId}:`, error);
+              // Try fetching individual tracks by trackId
+              try {
+                const { getTrackById } = await import("../services/tracks");
+                const trackPromises = fullReleaseData.trackIds.map(trackId => 
+                  getTrackById(trackId).catch(() => null)
+                );
+                tracks = (await Promise.all(trackPromises)).filter(t => t !== null);
+                console.log(`[Home] Fetched ${tracks.length} tracks individually:`, tracks);
+              } catch (individualError) {
+                console.warn(`[Home] Failed to fetch tracks individually:`, individualError);
+              }
+            }
+          }
+          
+          if (tracks.length > 0) {
+            const firstTrack = tracks[0];
+            // Check multiple possible audio URL fields
+            audioUrl = firstTrack.audioUrl || 
+                      firstTrack.audioFileUrl || 
+                      firstTrack.fileUrl || 
+                      firstTrack.url ||
+                      firstTrack.audioFile?.url ||
+                      "";
+            
+            // If no audioUrl in track, try fetching by audioFileId
+            if (!audioUrl && firstTrack.audioFileId && firstTrack.audioFileId > 0) {
+              try {
+                const { getFileById } = await import("../services/files");
+                const audioFile = await getFileById(firstTrack.audioFileId);
+                if (audioFile?.cloudfrontUrl) {
+                  audioUrl = audioFile.cloudfrontUrl;
+                  console.log(`[Home] Fetched audio URL from file:`, audioUrl);
+                }
+              } catch (error) {
+                console.warn(`[Home] Failed to fetch audio file:`, error);
+              }
+            }
+          }
+
+          // Format release date
+          const releaseDate = fullReleaseData.digitalReleaseDate || 
+                            fullReleaseData.originalReleaseDate || 
+                            fullReleaseData.releaseDate || 
+                            fullReleaseData.createdAt || 
+                            "";
+          const formattedDate = releaseDate 
+            ? new Date(releaseDate).getFullYear() 
+            : "";
+
+          // Get artist name from contributors
+          let artistName = "Artist";
+          const contributors = fullReleaseData.contributors || [];
+          if (contributors.length > 0) {
+            const primaryArtist = contributors.find(
+              c => c.role === "Main Primary Artist" || c.type === "Main Primary Artist"
+            );
+            if (primaryArtist) {
+              artistName = primaryArtist.artistName || primaryArtist.name || "Artist";
+            } else {
+              artistName = contributors[0].artistName || contributors[0].name || "Artist";
+            }
+          } else if (fullReleaseData.artistName) {
+            artistName = fullReleaseData.artistName;
+          }
+
+          // Determine release type (Single, Album, EP)
+          const trackCount = tracks.length || fullReleaseData.trackIds?.length || 0;
+          let releaseType = "Single";
+          if (trackCount > 1 && trackCount <= 6) {
+            releaseType = "EP";
+          } else if (trackCount > 6) {
+            releaseType = "Album";
+          }
+
+          return {
+            id: releaseId || fullReleaseData.releaseId || fullReleaseData.id,
+            title: fullReleaseData.title || "Untitled",
+            album: releaseType,
+            artist: artistName,
+            subtitle: formattedDate ? `${formattedDate} – ${releaseType}` : releaseType,
+            img: coverArtUrl,
+            audio: audioUrl,
+            release: fullReleaseData, // Store full release object for navigation
+          };
+        });
+
+        // Wait for all release details to be fetched
+        const mappedReleases = await Promise.all(mappedReleasesPromises);
+        console.log("[Home] Mapped releases with cover art and audio:", mappedReleases);
+
+        // Sort by date (most recent first) and limit to 12 for display
+        const sortedReleases = mappedReleases
+          .sort((a, b) => {
+            const dateA = new Date(a.release?.digitalReleaseDate || a.release?.createdAt || 0);
+            const dateB = new Date(b.release?.digitalReleaseDate || b.release?.createdAt || 0);
+            return dateB - dateA;
+          })
+          .slice(0, 12); // Show only 12 most recent releases
+
+        setReleases(sortedReleases);
+      } catch (error) {
+        console.error("[Home] Error fetching releases:", error);
+        // On error, show empty array (no releases)
+        setReleases([]);
+      } finally {
+        setLoadingReleases(false);
+      }
+    };
+
+    fetchReleases();
+    
+    // Refresh releases when component becomes visible (user navigates back)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("[Home] Page became visible, refreshing releases...");
+        fetchReleases();
+      }
+    };
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [userId, userdata]);
+
   // Dynamic User
   const user = {
     name: userdata?.name || localStorage.getItem("displayName") || "User",
@@ -104,119 +475,7 @@ function Home() {
     },
   ];
 
-  const releases = [
-    {
-      title: "Dangerous Days",
-      album: "Single",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Night Sky",
-      album: "Album",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Lost Dreams",
-      album: "EP",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Ocean Waves",
-      album: "Single",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Skyline",
-      album: "Album",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Abdi Abdi",
-      album: "EP",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/katyayani_little_s.wav",
-    },
-    {
-      title: "org gngstr",
-      album: "Single",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/katyayani_little_s.wav",
-    }, {
-      title: "Dangerous Days",
-      album: "Single",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Night Sky",
-      album: "Album",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Lost Dreams",
-      album: "EP",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Ocean Waves",
-      album: "Single",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Skyline",
-      album: "Album",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/audio.wav",
-    },
-    {
-      title: "Abdi Abdi",
-      album: "EP",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/katyayani_little_s.wav",
-    },
-    {
-      title: "org gngstr",
-      album: "Single",
-      artist: "Artist",
-      subtitle: "2014 – Single",
-      img: SampleIcon,
-      audio: "/katyayani_little_s.wav",
-    },
-  ];
+  // Releases are now fetched from API (see useEffect above)
 
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -358,9 +617,16 @@ function Home() {
       <div className="releases-container">
         {releases.map((release, i) => (
           <div
-            key={i}
+            key={release.id || i}
             className="release-card"
-            onClick={() => navigate("/preview-distribute")}
+            onClick={() => {
+              // Navigate to release detail page if releaseId exists
+              if (release.id) {
+                navigate(`/qc-detail/${release.id}`);
+              } else {
+                navigate("/catalog?tab=releases");
+              }
+            }}
           >
             <div className="album-art">
               <div className="live-tag">

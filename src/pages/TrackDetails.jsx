@@ -95,6 +95,13 @@ const TrackDetails = () => {
 
   // Contributors states
   const [showicons, setShowIcons] = useState(true);
+  const [contributors, setContributors] = useState({
+    primaryArtist: [],
+    producer: [],
+    director: [],
+    composer: [],
+    lyricist: [],
+  });
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -109,8 +116,57 @@ const TrackDetails = () => {
 
   useEffect(() => {
     const locationState = window.history.state?.usr || {};
-    const { track } = locationState;
+    const { track, trackIdx } = locationState;
 
+    // First, try to restore from localStorage (for navigation back)
+    try {
+      const savedTrackData = localStorage.getItem(`trackDetails_${trackIdx}`);
+      if (savedTrackData) {
+        const savedData = JSON.parse(savedTrackData);
+        console.log(`[TrackDetails] Restoring all fields from localStorage for trackIdx ${trackIdx}:`, savedData);
+        
+        // Restore all fields from localStorage
+        if (savedData.trackTitle !== undefined) setTrackTitle(savedData.trackTitle);
+        if (savedData.catalogId !== undefined) setCatalogId(savedData.catalogId);
+        if (savedData.lyricsLanguage !== undefined) setLyricsLanguage(savedData.lyricsLanguage);
+        if (savedData.lyricsLanguageOption !== undefined) setLyricsLanguageOption(savedData.lyricsLanguageOption);
+        if (savedData.explicitStatus !== undefined) setExplicitStatus(savedData.explicitStatus);
+        if (savedData.crbts && Array.isArray(savedData.crbts)) setCrbts(savedData.crbts);
+        if (savedData.isrcOption !== undefined) setIsrcOption(savedData.isrcOption);
+        if (savedData.isrcCode !== undefined) setIsrcCode(savedData.isrcCode);
+        if (savedData.contributors) {
+          if (typeof savedData.contributors === 'object' && !Array.isArray(savedData.contributors)) {
+            setContributors(savedData.contributors);
+          } else if (Array.isArray(savedData.contributors)) {
+            // Convert array format to object format
+            const contributorsObj = {
+              primaryArtist: [],
+              producer: [],
+              director: [],
+              composer: [],
+              lyricist: [],
+            };
+            savedData.contributors.forEach((contrib) => {
+              const category = contrib.type === "Main Primary Artist" ? "primaryArtist" : 
+                              contrib.type?.toLowerCase() || "primaryArtist";
+              if (contributorsObj.hasOwnProperty(category)) {
+                contributorsObj[category].push({
+                  name: contrib.name,
+                  profiles: contrib.linkedProfiles || contrib.profiles || {},
+                });
+              }
+            });
+            setContributors(contributorsObj);
+          }
+        }
+        console.log(`[TrackDetails] ✅ All fields restored from localStorage`);
+        return; // Use localStorage data, don't override with track data
+      }
+    } catch (error) {
+      console.warn("[TrackDetails] Failed to load track details from localStorage:", error);
+    }
+
+    // If no localStorage data, use track data from navigation state
     if (track) {
       setTrackTitle(track.trackTitle || track.name || "");
       setCatalogId(track.catalogId || "");
@@ -120,8 +176,78 @@ const TrackDetails = () => {
       setCrbts(track.crbts || [{ hours: "00", minutes: "00", seconds: "00" }]);
       setIsrcOption(track.isrcOption || "no");
       setIsrcCode(track.isrcCode || "");
+      
+      // Restore contributors if available
+      if (track.contributors) {
+        if (typeof track.contributors === 'object' && !Array.isArray(track.contributors)) {
+          setContributors(track.contributors);
+        } else if (Array.isArray(track.contributors)) {
+          // Convert array format to object format
+          const contributorsObj = {
+            primaryArtist: [],
+            producer: [],
+            director: [],
+            composer: [],
+            lyricist: [],
+          };
+          track.contributors.forEach((contrib) => {
+            const category = contrib.type === "Main Primary Artist" ? "primaryArtist" : 
+                            contrib.type?.toLowerCase() || "primaryArtist";
+            if (contributorsObj.hasOwnProperty(category)) {
+              contributorsObj[category].push({
+                name: contrib.name,
+                profiles: contrib.linkedProfiles || contrib.profiles || {},
+              });
+            }
+          });
+          setContributors(contributorsObj);
+        }
+      }
     }
   }, []);
+
+  // Save form data to localStorage whenever fields change
+  useEffect(() => {
+    const locationState = window.history.state?.usr || {};
+    const { trackIdx } = locationState;
+    
+    if (trackIdx === undefined || trackIdx === null) return;
+    
+    const saveTrackData = () => {
+      try {
+        const trackDataToSave = {
+          trackTitle,
+          catalogId,
+          lyricsLanguage,
+          lyricsLanguageOption,
+          explicitStatus,
+          crbts,
+          isrcOption,
+          isrcCode,
+          contributors,
+        };
+        
+        localStorage.setItem(`trackDetails_${trackIdx}`, JSON.stringify(trackDataToSave));
+        console.log("💾 Auto-saved track details to localStorage for trackIdx:", trackIdx);
+      } catch (error) {
+        console.warn("Failed to save track details to localStorage:", error);
+      }
+    };
+    
+    // Debounce saves
+    const timeoutId = setTimeout(saveTrackData, 500);
+    return () => clearTimeout(timeoutId);
+  }, [
+    trackTitle,
+    catalogId,
+    lyricsLanguage,
+    lyricsLanguageOption,
+    explicitStatus,
+    JSON.stringify(crbts),
+    isrcOption,
+    isrcCode,
+    JSON.stringify(contributors),
+  ]);
 
   const handleInputFocus = () => {
     setFilteredLanguages(allLanguages);
@@ -160,6 +286,13 @@ const TrackDetails = () => {
     setIsrcOption("no");
     setIsrcCode("");
     setExplicitStatus("");
+    setContributors({
+      primaryArtist: [],
+      producer: [],
+      director: [],
+      composer: [],
+      lyricist: [],
+    });
   };
 
   //   const handleSaveAndContinue = () => {
@@ -246,6 +379,7 @@ const TrackDetails = () => {
       crbts,
       isrcOption,
       isrcCode: isrcOption === "yes" ? isrcCode.trim() : "",
+      contributors, // Include contributors in track data
       detailsCompleted: true,
     };
 
@@ -258,6 +392,22 @@ const TrackDetails = () => {
     }
 
     localStorage.setItem("uploadedTracks", JSON.stringify(tracks));
+    
+    // Also save to track-specific localStorage for restoration
+    if (typeof trackIdx === "number") {
+      const trackDataToSave = {
+        trackTitle: trackTitle.trim(),
+        catalogId: catalogId.trim(),
+        lyricsLanguage,
+        lyricsLanguageOption,
+        explicitStatus,
+        crbts,
+        isrcOption,
+        isrcCode: isrcOption === "yes" ? isrcCode.trim() : "",
+        contributors,
+      };
+      localStorage.setItem(`trackDetails_${trackIdx}`, JSON.stringify(trackDataToSave));
+    }
 
     toast.dark("Track details saved successfully!", { position: "top-center" });
     resetForm();
@@ -329,7 +479,10 @@ const TrackDetails = () => {
           </div>
         )}
       </div> */}
-        <ContributorsSection />
+        <ContributorsSection 
+          contributors={contributors}
+          onContributorsChange={setContributors}
+        />
       {/* Lyrics Language */}
       <div className="section-container section">
         <label className="section-title">Language of Lyrics <span className="required">*</span></label>

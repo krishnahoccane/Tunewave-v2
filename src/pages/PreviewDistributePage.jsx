@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import previewImg from "../assets/lsi.jpeg";
 import "../styles/styled.css";
 import "../styles/Home.css";
-import { getFiles, getFileById } from "../services/files";
+import { getFiles, getFileById, getFilePlayUrl } from "../services/files";
 
 export default function PreviewDistributePage() {
   const navigate = useNavigate();
@@ -27,7 +27,20 @@ export default function PreviewDistributePage() {
   
   // Extract data from merged state
   const stores = mergedReleaseData.selectedStores || mergedReleaseData.stores || [];
-  const [tracks, setTracks] = useState(mergedReleaseData.tracks || []);
+  
+  // Initialize tracks - prioritize localStorage tracks (they have blob URLs) over state tracks
+  const [tracks, setTracks] = useState(() => {
+    try {
+      const uploadedTracksFromStorage = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
+      if (uploadedTracksFromStorage.length > 0) {
+        console.log(`[PreviewDistributePage] Initializing with ${uploadedTracksFromStorage.length} tracks from localStorage`);
+        return uploadedTracksFromStorage;
+      }
+    } catch (error) {
+      console.warn("[PreviewDistributePage] Failed to load tracks from localStorage on init:", error);
+    }
+    return mergedReleaseData.tracks || [];
+  });
   const releaseTitle = mergedReleaseData.releaseTitle || mergedReleaseData.title || "N/A";
   const titleVersion = mergedReleaseData.titleVersion || "";
   const coverArt = mergedReleaseData.coverArt || previewImg;
@@ -133,20 +146,97 @@ export default function PreviewDistributePage() {
     };
   };
 
-  // Fetch audio files for tracks on mount
+  // Fetch audio files for tracks on mount and when tracks/releaseId changes
   useEffect(() => {
     const fetchAudioFiles = async () => {
-      if (!releaseId || tracks.length === 0) return;
+      // First, check if current tracks already have blob URLs (from initialization)
+      const hasBlobUrls = tracks.some(t => (t.url && t.url.startsWith('blob:')) || (t.audioUrl && t.audioUrl.startsWith('blob:')));
+      if (hasBlobUrls) {
+        console.log(`[PreviewDistributePage] Tracks already have blob URLs, ensuring audioUrl is set`);
+        // Ensure audioUrl is set for all tracks with blob URLs
+        const updatedTracks = tracks.map(track => ({
+          ...track,
+          audioUrl: track.audioUrl || track.url,
+          url: track.url || track.audioUrl,
+        }));
+        setTracks(updatedTracks);
+        return; // Use existing blob URLs, don't fetch from API
+      }
+      
+      // Try to load tracks from localStorage and match with current tracks
+      try {
+        const uploadedTracksFromStorage = JSON.parse(localStorage.getItem("uploadedTracks") || "[]");
+        if (uploadedTracksFromStorage.length > 0) {
+          console.log(`[PreviewDistributePage] Found ${uploadedTracksFromStorage.length} tracks in localStorage, trying to match`);
+          
+          // Match tracks by name, trackTitle, trackId, or id
+          const tracksWithBlobUrls = tracks.map((track) => {
+            const matchingStorageTrack = uploadedTracksFromStorage.find(
+              (st) => (st.name && track.name && st.name === track.name) || 
+                      (st.trackTitle && track.trackTitle && st.trackTitle === track.trackTitle) ||
+                      (st.trackId && (st.trackId === (track.trackId || track.id))) ||
+                      (st.id && (st.id === (track.id || track.trackId)))
+            );
+            
+            if (matchingStorageTrack && matchingStorageTrack.url && matchingStorageTrack.url.startsWith('blob:')) {
+              console.log(`[PreviewDistributePage] Matched and restoring blob URL for track: ${track.trackTitle || track.name || track.id}`);
+              return {
+                ...track,
+                url: matchingStorageTrack.url,
+                audioUrl: matchingStorageTrack.url,
+                duration: matchingStorageTrack.duration || track.duration,
+              };
+            }
+            // If track already has a blob URL, keep it
+            if (track.url && track.url.startsWith('blob:')) {
+              return {
+                ...track,
+                audioUrl: track.url,
+              };
+            }
+            return track;
+          });
+          
+          const hasAnyBlobUrls = tracksWithBlobUrls.some(t => (t.url && t.url.startsWith('blob:')) || (t.audioUrl && t.audioUrl.startsWith('blob:')));
+          if (hasAnyBlobUrls) {
+            console.log(`[PreviewDistributePage] Using tracks with blob URLs from localStorage`);
+            setTracks(tracksWithBlobUrls);
+            return; // Use localStorage tracks, don't fetch from API
+          }
+        }
+      } catch (storageError) {
+        console.warn("[PreviewDistributePage] Failed to load tracks from localStorage:", storageError);
+      }
+      
+      if (!releaseId) {
+        console.log("[PreviewDistributePage] No releaseId, skipping audio fetch");
+        return;
+      }
+      
+      if (tracks.length === 0) {
+        console.log("[PreviewDistributePage] No tracks, skipping audio fetch");
+        return;
+      }
+
+      console.log(`[PreviewDistributePage] Fetching audio files for ${tracks.length} tracks, releaseId: ${releaseId}`);
+      console.log(`[PreviewDistributePage] Current tracks:`, tracks);
 
       try {
         // Fetch all audio files for this release
         const filesResponse = await getFiles({ releaseId: releaseId, fileType: "Audio" });
         const audioFiles = filesResponse?.files || [];
         
-        console.log(`Fetched ${audioFiles.length} audio files for release ${releaseId}:`, audioFiles);
+        console.log(`[PreviewDistributePage] Fetched ${audioFiles.length} audio files for release ${releaseId}:`, audioFiles);
 
         if (audioFiles.length === 0) {
-          console.log("No audio files found for this release");
+          console.log("[PreviewDistributePage] No audio files found for this release");
+          // Still update tracks to ensure they have proper structure
+          const updatedTracks = tracks.map(track => ({
+            ...track,
+            audioUrl: track.audioUrl || track.url || "",
+            url: track.url || track.audioUrl || "",
+          }));
+          setTracks(updatedTracks);
           return;
         }
 
@@ -154,59 +244,140 @@ export default function PreviewDistributePage() {
         const filesByTrackId = {};
         audioFiles.forEach(file => {
           const trackId = file.trackId;
-          if (!filesByTrackId[trackId]) {
-            filesByTrackId[trackId] = [];
+          if (trackId) {
+            if (!filesByTrackId[trackId]) {
+              filesByTrackId[trackId] = [];
+            }
+            filesByTrackId[trackId].push(file);
           }
-          filesByTrackId[trackId].push(file);
         });
 
+        console.log(`[PreviewDistributePage] Files mapped by trackId:`, filesByTrackId);
+
         // Update tracks with audio URLs
-        const updatedTracks = await Promise.all(tracks.map(async (track) => {
+        const updatedTracks = await Promise.all(tracks.map(async (track, idx) => {
           const trackId = track.trackId || track.id;
-          if (!trackId) return track;
-
-          const trackFiles = filesByTrackId[trackId] || [];
-          // Get the best file (prefer AVAILABLE status with non-null cloudfrontUrl)
-          const hasValidCloudfrontUrl = (f) => f.cloudfrontUrl !== null && f.cloudfrontUrl !== undefined && f.cloudfrontUrl !== "" && f.cloudfrontUrl !== "null";
           
-          const bestFile = trackFiles.find(f => f.status === "AVAILABLE" && hasValidCloudfrontUrl(f)) || 
-                          trackFiles.find(f => hasValidCloudfrontUrl(f)) || 
-                          trackFiles.find(f => f.status === "AVAILABLE") ||
-                          trackFiles[0];
+          console.log(`[PreviewDistributePage] Processing track ${idx + 1}:`, {
+            trackId,
+            trackTitle: track.trackTitle || track.name,
+            hasUrl: !!(track.url || track.audioUrl),
+            existingUrl: track.url || track.audioUrl,
+          });
 
-          let audioUrl = "";
-          if (bestFile && hasValidCloudfrontUrl(bestFile)) {
-            audioUrl = bestFile.cloudfrontUrl;
-          } else if (bestFile?.fileId) {
-            // If cloudfrontUrl is null, try fetching file status
-            try {
-              const fileStatus = await getFileById(bestFile.fileId);
-              if (fileStatus?.cloudfrontUrl && fileStatus.cloudfrontUrl !== "null" && fileStatus.cloudfrontUrl !== null) {
-                audioUrl = fileStatus.cloudfrontUrl;
-              }
-            } catch (statusError) {
-              console.warn(`Failed to fetch file status for fileId ${bestFile.fileId}:`, statusError);
+          if (!trackId) {
+            console.warn(`[PreviewDistributePage] Track ${idx + 1} has no trackId`);
+            // If no trackId but has blob URL, use it as fallback
+            if (track.url && track.url.startsWith('blob:')) {
+              console.log(`[PreviewDistributePage] Track ${idx + 1} has no trackId, using blob URL:`, track.url);
+              return {
+                ...track,
+                audioUrl: track.url,
+                url: track.url,
+              };
+            }
+            return {
+              ...track,
+              audioUrl: track.audioUrl || track.url || "",
+              url: track.url || track.audioUrl || "",
+            };
+          }
+
+          // Always check for API files first (prefer API URLs over blob URLs)
+          const trackFiles = filesByTrackId[trackId] || [];
+          console.log(`[PreviewDistributePage] Found ${trackFiles.length} files for trackId ${trackId}`);
+          
+          // If no API files available, use blob URL if it exists
+          if (trackFiles.length === 0) {
+            if (track.url && (track.url.startsWith('blob:') || track.url.startsWith('http'))) {
+              console.log(`[PreviewDistributePage] Track ${idx + 1} has no API files, using blob URL:`, track.url);
+              return {
+                ...track,
+                audioUrl: track.url,
+                url: track.url,
+              };
             }
           }
 
+          // Get the best file (prefer AVAILABLE status)
+          const bestFile = trackFiles.find(f => f.status === "AVAILABLE") || trackFiles[0];
+
+          let audioUrl = "";
+          
+          // Priority 1: Use cloudfrontUrl if available (no auth needed, works directly in audio element)
+          const hasValidCloudfrontUrl = (f) => f.cloudfrontUrl !== null && f.cloudfrontUrl !== undefined && f.cloudfrontUrl !== "" && f.cloudfrontUrl !== "null";
+          
+          if (bestFile && hasValidCloudfrontUrl(bestFile)) {
+            audioUrl = bestFile.cloudfrontUrl;
+            console.log(`[PreviewDistributePage] Using cloudfrontUrl from bestFile for trackId ${trackId}:`, audioUrl);
+          } else if (bestFile?.fileId) {
+            // Try fetching file status to get cloudfrontUrl
+            try {
+              console.log(`[PreviewDistributePage] Fetching file status for fileId ${bestFile.fileId}`);
+              const fileStatus = await getFileById(bestFile.fileId);
+              if (fileStatus?.cloudfrontUrl && fileStatus.cloudfrontUrl !== "null" && fileStatus.cloudfrontUrl !== null) {
+                audioUrl = fileStatus.cloudfrontUrl;
+                console.log(`[PreviewDistributePage] Got cloudfrontUrl from file status:`, audioUrl);
+              }
+            } catch (statusError) {
+              console.warn(`[PreviewDistributePage] Failed to fetch file status for fileId ${bestFile.fileId}:`, statusError);
+            }
+          }
+          
+          // Priority 2: Use /api/files/play/{fileId} only if cloudfrontUrl not available
+          // Note: This endpoint requires auth, so we'll use previous method (cloudfrontUrl/blob) instead
+          // Only use play endpoint if no other URL is available
+          if (!audioUrl) {
+            const fileId = bestFile?.fileId || track.audioFileId;
+            if (fileId && fileId > 0) {
+              // Try to fetch file details to get cloudfrontUrl
+              try {
+                const fileDetails = await getFileById(fileId);
+                if (fileDetails?.cloudfrontUrl && fileDetails.cloudfrontUrl !== "null" && fileDetails.cloudfrontUrl !== null) {
+                  audioUrl = fileDetails.cloudfrontUrl;
+                  console.log(`[PreviewDistributePage] Got cloudfrontUrl from file details for fileId ${fileId}:`, audioUrl);
+                } else {
+                  // If no cloudfrontUrl, use play endpoint (will require auth handling)
+                  audioUrl = getFilePlayUrl(fileId);
+                  console.log(`[PreviewDistributePage] Using /api/files/play/${fileId} (requires auth):`, audioUrl);
+                }
+              } catch (fileError) {
+                console.warn(`[PreviewDistributePage] Failed to fetch file details for fileId ${fileId}:`, fileError);
+                // Fallback to play endpoint
+                audioUrl = getFilePlayUrl(fileId);
+                console.log(`[PreviewDistributePage] Using /api/files/play/${fileId} as fallback:`, audioUrl);
+              }
+            }
+            
+            // Also try to use playUrl if available
+            if (!audioUrl && bestFile?.playUrl) {
+              audioUrl = bestFile.playUrl;
+              console.log(`[PreviewDistributePage] Using playUrl for trackId ${trackId}:`, audioUrl);
+            }
+          }
+
+          // Final fallback: Use blob URL if no API URL available
+          const finalUrl = audioUrl || (track.url && track.url.startsWith('blob:') ? track.url : "") || track.audioUrl || "";
+          console.log(`[PreviewDistributePage] Final URL for track ${idx + 1} (trackId ${trackId}):`, finalUrl, `(Play API: ${!!audioUrl && audioUrl.includes('/play/')}, Blob: ${track.url?.startsWith('blob:')})`);
+
           return {
             ...track,
-            url: audioUrl || track.url, // Use fetched URL or keep existing
-            audioUrl: audioUrl,
+            url: finalUrl,
+            audioUrl: finalUrl,
             audioFileId: bestFile?.fileId || track.audioFileId,
           };
         }));
 
         setTracks(updatedTracks);
-        console.log("Updated tracks with audio URLs:", updatedTracks);
+        console.log("[PreviewDistributePage] Updated tracks with audio URLs:", updatedTracks);
       } catch (error) {
-        console.error("Error fetching audio files:", error);
+        console.error("[PreviewDistributePage] Error fetching audio files:", error);
         // Don't show error toast - tracks might not have audio files yet
       }
     };
 
     fetchAudioFiles();
-  }, [releaseId]); // Only run when releaseId changes
+  }, [releaseId, tracks.length]); // Run when releaseId or tracks count changes
 
   // Audio player state (similar to Home.jsx)
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -403,6 +574,25 @@ export default function PreviewDistributePage() {
         console.log(`[PreviewDistributePage] ✅ Release submitted successfully. Message: ${successMessage}`);
         console.log(`[PreviewDistributePage] Release should now be in label QC queue at /api/qc/queue/label`);
         
+        // Clear all create release form data from localStorage after successful QC submission
+        try {
+          localStorage.removeItem("createReleaseFormData");
+          localStorage.removeItem("releaseMetadata");
+          localStorage.removeItem("selectStoresFormData");
+          localStorage.removeItem("uploadedTracks");
+          
+          // Clear track details data (if stored with pattern trackDetails_*)
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("trackDetails_")) {
+              localStorage.removeItem(key);
+            }
+          });
+          
+          console.log(`[PreviewDistributePage] ✅ Cleared all create release form data from localStorage`);
+        } catch (error) {
+          console.warn(`[PreviewDistributePage] Failed to clear localStorage:`, error);
+        }
+        
         toast.dark(successMessage);
         setStatus("Submitted");
         setShowPopup(false);
@@ -476,20 +666,109 @@ export default function PreviewDistributePage() {
                         {track.catalogId ? ` (${track.catalogId})` : ""}
                       </span>
                     </div>
-                    <div className="duration-player-row" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div className="duration-player-row" style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                       <span>{formatDuration(track.duration)}</span>
                       {(track.audioUrl || track.url) && (
-                        <button
-                          className="btn-gradient"
-                          onClick={() => handlePlay(track)}
-                          style={{
-                            padding: "6px 12px",
-                            fontSize: "14px",
-                            minWidth: "60px",
-                          }}
-                        >
-                          {currentTrack?.id === (track.id || track.trackId) && isPlaying ? "⏸" : "▶"}
-                        </button>
+                        <>
+                          {/* Simple audio controls like UploadTracks */}
+                          <audio 
+                            key={`audio-${track.id || track.trackId}-${track.audioUrl || track.url}`}
+                            controls 
+                            src={track.audioUrl || track.url || ""}
+                            preload="metadata"
+                            crossOrigin="anonymous"
+                            style={{ maxWidth: "200px", height: "32px" }}
+                            onPlay={(e) => {
+                              const audioEl = e.target;
+                              // Update state when audio plays
+                              const trackData = {
+                                title: track.trackTitle || track.name || "Track",
+                                album: releaseTitle || "Release",
+                                artist: mainPrimaryArtist || "Artist",
+                                audio: track.audioUrl || track.url,
+                                id: track.id || track.trackId,
+                              };
+                              setCurrentTrack(trackData);
+                              setIsPlaying(true);
+                              // Update duration if available
+                              if (audioEl.duration && isFinite(audioEl.duration) && audioEl.duration > 0) {
+                                setDuration(audioEl.duration);
+                                // Update track duration in state
+                                setTracks(prevTracks => {
+                                  const updated = [...prevTracks];
+                                  if (updated[index] && (!updated[index].duration || updated[index].duration === 0)) {
+                                    updated[index] = {
+                                      ...updated[index],
+                                      duration: audioEl.duration,
+                                    };
+                                  }
+                                  return updated;
+                                });
+                              }
+                            }}
+                            onPause={() => setIsPlaying(false)}
+                            onEnded={() => {
+                              setIsPlaying(false);
+                              setCurrentTime(0);
+                            }}
+                            onTimeUpdate={(e) => {
+                              const audioEl = e.target;
+                              if (audioEl.currentTime && isFinite(audioEl.currentTime)) {
+                                setCurrentTime(audioEl.currentTime);
+                              }
+                              if (audioEl.duration && isFinite(audioEl.duration) && audioEl.duration > 0) {
+                                setDuration(audioEl.duration);
+                              }
+                            }}
+                            onLoadedMetadata={(e) => {
+                              const audioEl = e.target;
+                              console.log(`[PreviewDistributePage] Audio metadata loaded for track ${index + 1}:`, {
+                                duration: audioEl.duration,
+                                src: audioEl.src,
+                                readyState: audioEl.readyState,
+                                trackId: track.id || track.trackId,
+                              });
+                              if (audioEl.duration && isFinite(audioEl.duration) && audioEl.duration > 0) {
+                                setDuration(audioEl.duration);
+                                // Update track duration in state
+                                setTracks(prevTracks => {
+                                  const updated = [...prevTracks];
+                                  if (updated[index]) {
+                                    updated[index] = {
+                                      ...updated[index],
+                                      duration: audioEl.duration,
+                                    };
+                                  }
+                                  return updated;
+                                });
+                              } else {
+                                console.warn(`[PreviewDistributePage] Invalid duration for track ${index + 1}:`, audioEl.duration);
+                              }
+                            }}
+                            onError={(e) => {
+                              console.error(`[PreviewDistributePage] Audio error for track ${index + 1}:`, {
+                                error: e.target.error,
+                                errorCode: e.target.error?.code,
+                                errorMessage: e.target.error?.message,
+                                src: e.target.src,
+                                track: track,
+                              });
+                              toast.dark(`Failed to load audio for "${track.trackTitle || track.name || `Track ${index + 1}`}". Check console for details.`);
+                            }}
+                          />
+                          {/* Custom play button (alternative) */}
+                          <button
+                            className="btn-gradient"
+                            onClick={() => handlePlay(track)}
+                            style={{
+                              padding: "6px 12px",
+                              fontSize: "14px",
+                              minWidth: "60px",
+                            }}
+                          >
+                            {currentTrack?.id === (track.id || track.trackId) && isPlaying ? "⏸" : "▶"}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

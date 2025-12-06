@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 
@@ -32,6 +32,45 @@ const SelectStoresPage = () => {
 
   const [distributionOption, setDistributionOption] = useState("");
   const [selectedStores, setSelectedStores] = useState([]);
+
+  // Load store selection from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedStoreData = localStorage.getItem("selectStoresFormData");
+      if (savedStoreData) {
+        const storeData = JSON.parse(savedStoreData);
+        if (storeData.distributionOption) {
+          setDistributionOption(storeData.distributionOption);
+        }
+        if (storeData.selectedStores && Array.isArray(storeData.selectedStores)) {
+          setSelectedStores(storeData.selectedStores);
+        }
+        console.log("✅ Restored store selection from localStorage");
+      }
+    } catch (error) {
+      console.warn("Failed to load store selection from localStorage:", error);
+    }
+  }, []);
+
+  // Save store selection to localStorage whenever it changes
+  useEffect(() => {
+    const saveStoreData = () => {
+      try {
+        const storeDataToSave = {
+          distributionOption,
+          selectedStores,
+        };
+        localStorage.setItem("selectStoresFormData", JSON.stringify(storeDataToSave));
+        console.log("💾 Auto-saved store selection to localStorage");
+      } catch (error) {
+        console.warn("Failed to save store selection to localStorage:", error);
+      }
+    };
+
+    // Debounce saves
+    const timeoutId = setTimeout(saveStoreData, 500);
+    return () => clearTimeout(timeoutId);
+  }, [distributionOption, JSON.stringify(selectedStores)]);
 
   const handleRadioChange = (option) => {
     setDistributionOption(option);
@@ -68,6 +107,18 @@ const SelectStoresPage = () => {
       return;
     }
 
+    // Save to localStorage before navigation (redundant but ensures it's saved)
+    try {
+      const storeDataToSave = {
+        distributionOption,
+        selectedStores,
+      };
+      localStorage.setItem("selectStoresFormData", JSON.stringify(storeDataToSave));
+      console.log("✅ Saved store selection to localStorage before navigation");
+    } catch (error) {
+      console.warn("Failed to save store selection:", error);
+    }
+
     navigate("/preview-distribute", {
       state: {
         ...releaseData,
@@ -86,7 +137,7 @@ const SelectStoresPage = () => {
   };
 
   return (
-    <div className="pages-layout-container">
+    <div className="pages-layout-container pages-layout-container-full-height">
       <div class="content">
         <h2 className="pages-main-title">Select Distribution / Stores</h2>
         <div className="stores-card">
