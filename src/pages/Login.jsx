@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import lsiImage from "../assets/lsi.jpeg";
-import axios from "axios";
+// import axios from "axios";
 import thunderbolt from "../assets/thunderbolt.png";
 import { useRole } from "../context/RoleContext";
 import * as AuthService from "../services/auth";
