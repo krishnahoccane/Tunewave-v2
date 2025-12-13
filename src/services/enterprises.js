@@ -1,4 +1,8 @@
-import axios from "axios";
+// import axios from "axios";
+import axios from "../config/api";
+// import api from "../config/api";
+
+// const API_BASE = "/api/auth";
 
 /**
  * Enterprises Service

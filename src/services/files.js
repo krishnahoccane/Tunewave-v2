@@ -1,4 +1,7 @@
 import axios from "axios";
+import api from "../config/api";
+
+// const API_BASE = "/api/auth";
 
 /**
  * Files Service
