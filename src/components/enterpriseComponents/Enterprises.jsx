@@ -468,7 +468,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
       key: "status",
       label: "Status",
       render: (item) => {
-        const currentStatus = item.status || "Activess";
+        const currentStatus = item.status || "Active";
         const pillClass = getStatusPillClass(currentStatus);
         
         if (actualRole === "SuperAdmin") {
