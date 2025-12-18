@@ -43,11 +43,11 @@ export const getEnterprises = async (params = {}) => {
   }
   
   const url = `${API_BASE}${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
-  const response = await axios.get(url, {
+  const responseData = await axios.get(url, {
     headers: getAuthHeaders(),
   });
   
-  const responseData = response.data;
+  console.log("[EnterprisesService] API response:", responseData);
   
   // Handle different response formats
   // API might return: array directly, or object with data/enterprises/items property
@@ -76,7 +76,7 @@ export const getEnterpriseById = async (enterpriseId) => {
   const response = await axios.get(`${API_BASE}/${enterpriseId}`, {
     headers: getAuthHeaders(),
   });
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 /**
@@ -106,7 +106,7 @@ export const createEnterprise = async (data) => {
   const response = await axios.post(API_BASE, requestData, {
     headers: getAuthHeaders(),
   });
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 /**
@@ -124,7 +124,7 @@ export const updateEnterprise = async (enterpriseId, data) => {
   const response = await axios.put(`${API_BASE}/${enterpriseId}`, data, {
     headers: getAuthHeaders(),
   });
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 /**
@@ -141,7 +141,7 @@ export const changeEnterpriseStatus = async (enterpriseId, status) => {
       headers: getAuthHeaders(),
     }
   );
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 /**
@@ -158,7 +158,7 @@ export const updateEnterpriseStatus = async (id, status) => {
       headers: getAuthHeaders(),
     }
   );
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 /**
@@ -170,7 +170,7 @@ export const getEnterpriseLabels = async (enterpriseId) => {
   const response = await axios.get(`${API_BASE}/${enterpriseId}/labels`, {
     headers: getAuthHeaders(),
   });
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 /**
@@ -188,7 +188,7 @@ export const transferLabel = async ({ labelId, toEnterpriseId }) => {
       headers: getAuthHeaders(),
     }
   );
-  return response.data;
+  return response;  // axios instance returns unwrapped response data
 };
 
 // Export all enterprise functions as default object for convenience
