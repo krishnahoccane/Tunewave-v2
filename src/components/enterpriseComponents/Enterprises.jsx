@@ -561,6 +561,17 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
     );
   }
 
+  // Custom actions for the kebab menu (only for SuperAdmin)
+  const customActions = actualRole === "SuperAdmin" ? [
+    {
+      label: "View / Edit",
+      onClick: (item) => {
+        navigate(`/enterprise-catalog/edit-enterprise/${item.id || item.enterpriseId}`);
+      },
+      showCondition: () => true, // Always show for SuperAdmin
+    },
+  ] : [];
+
   return (
     <>
       <div className="tab-content">
@@ -571,6 +582,7 @@ function Enterprises({ searchItem, showMode, setTable, onSelectionChange, select
           data={filteredData}
           columns={columns}
           onSelectionChange={onSelectionChange}
+          customActions={customActions}
         />
         )}
         <ToastContainer position="bottom-center" transition={Slide} />

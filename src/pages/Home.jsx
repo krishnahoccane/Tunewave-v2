@@ -3,6 +3,7 @@ import { data, useNavigate } from "react-router-dom";
 import { useRole } from "../context/RoleContext";
 import * as ReleasesService from "../services/releases";
 import * as AuthService from "../services/auth";
+import api from "../config/api";
 // top of src/pages/Home.jsx
 // import { getFileById } from "../services/files";
 // import * as TracksService from "../services/tracks";
@@ -16,8 +17,25 @@ import "../styles/style.css";
 import SampleIcon from "../assets/samplIcon.png";
 
 import live from "../assets/Live.svg";
+
+const getApiBaseUrl = () => {
+  const base = import.meta.env.VITE_API_BASE_URL;
+  if (base && String(base).trim() !== "") return String(base).trim();
+  return "https://spacestation.tunewave.in";
+};
+
+const STATUS_LABEL = {
+  Draft: "Draft",
+  Pending: "Pending",
+  Live: "Live",
+  TakenDown: "Taken Down",
+  Rejected: "Rejected",
+};
+
 function Home() {
-  const [userdata, setUserData] = useState({});
+  const [userdata, setUserData] = useState(null);
+  // Initialize fullName as null - will be loaded from localStorage in useEffect (client-side only)
+  const [fullName, setFullName] = useState(null); // Never use email fallback
   const [userId, setUserId] = useState("");
   const [releases, setReleases] = useState([]);
   const [loadingReleases, setLoadingReleases] = useState(true);
@@ -35,6 +53,12 @@ function Home() {
   // const token = localStorage.getItem("jwtToken");
 
   const fetchUserDetails = async () => {
+    // Guard against SSR/build-time execution
+    if (typeof window === 'undefined') {
+      console.warn("[Home] fetchUserDetails called in non-browser environment, skipping");
+      return;
+    }
+
     const token = localStorage.getItem("jwtToken");
     if (!token) {
       console.error("No JWT token found");
@@ -42,23 +66,15 @@ function Home() {
     }
 
     try {
-      const response = await fetch("/api/users/me", {
-        method: "GET",
+      // Use configured API instance which handles baseURL correctly in production
+      const data = await api.get("/api/users/me", {
         headers: {
-          "Content-type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) {
-        console.error("Error fetching user details:", response.status, response.statusText);
-        return;
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Error fetching user details:", data.message || data);
+      if (!data) {
+        console.error("Error fetching user details: No data returned");
         return;
       }
 
@@ -76,6 +92,19 @@ function Home() {
         }
       }
       console.log("User Details:", data);
+      console.log("User fullName:", data.fullName);
+      console.log("User role:", data.role);
+      
+      // Set fullName directly from API response - never use email as fallback
+      if (data.fullName) {
+        setFullName(data.fullName);
+        // Update localStorage with the latest fullName from API (client-side only)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("userFullName", data.fullName);
+          console.log("✅ Updated userFullName in localStorage:", data.fullName);
+        }
+      }
+      
       setUserData(data);
     } catch (error) {
       console.error("Error fetching user details:", error);
@@ -83,6 +112,16 @@ function Home() {
   };
 
   useEffect(() => {
+    // Initialize fullName from localStorage on client-side only (guard against SSR/build-time execution)
+    if (typeof window !== 'undefined') {
+      const storedFullName = localStorage.getItem("userFullName");
+      if (storedFullName) {
+        setFullName(storedFullName);
+        console.log("✅ Loaded userFullName from localStorage:", storedFullName);
+      }
+    }
+    
+    // Fetch user details from API
     fetchUserDetails();
   }, []);
 
@@ -278,41 +317,28 @@ function Home() {
             }
           }
 
-          // Get cover art URL - check multiple sources
-          let coverArtUrl = fullReleaseData.coverArtUrl || 
-                           fullReleaseData.coverArt || 
-                           SampleIcon;
-          
-          // Check if coverArtUrl is an example/invalid URL
+          // Get cover art URL - check multiple sources; relative paths must use API base URL
+          let coverArtUrl = fullReleaseData.coverArtUrl || fullReleaseData.coverArt || "";
           const isExampleUrl = coverArtUrl && (
-            coverArtUrl.includes("example.com") || 
-            coverArtUrl.includes("placeholder") ||
-            coverArtUrl === SampleIcon
+            typeof coverArtUrl === "string" &&
+            (coverArtUrl.includes("example.com") || coverArtUrl.includes("placeholder"))
           );
-          
-          // If coverArtFileId exists, try to fetch file details (especially if URL is example)
-          if ((isExampleUrl || !coverArtUrl || coverArtUrl === SampleIcon) 
-              && fullReleaseData.coverArtFileId && fullReleaseData.coverArtFileId > 0) {
+          if (isExampleUrl) coverArtUrl = "";
+
+          if (coverArtUrl && typeof coverArtUrl === "string" && coverArtUrl.trim() !== "") {
+            if (coverArtUrl.startsWith("http://") || coverArtUrl.startsWith("https://")) {
+              // Already absolute
+            } else {
+              coverArtUrl = `${getApiBaseUrl()}${coverArtUrl.startsWith("/") ? coverArtUrl : `/${coverArtUrl}`}`;
+            }
+          } else if (fullReleaseData.coverArtFileId && fullReleaseData.coverArtFileId > 0) {
             try {
               const { getFileById } = await import("../services/files");
               const coverFile = await getFileById(fullReleaseData.coverArtFileId);
-              if (coverFile?.cloudfrontUrl) {
-                coverArtUrl = coverFile.cloudfrontUrl;
-                console.log(`[Home] Fetched cover art URL from file:`, coverArtUrl);
-              }
-            } catch (error) {
-              console.warn(`[Home] Failed to fetch cover art file:`, error);
-              // Keep example URL or fallback to SampleIcon
-              if (isExampleUrl) {
-                coverArtUrl = SampleIcon;
-              }
-            }
-          } else if (coverArtUrl && !isExampleUrl && coverArtUrl !== SampleIcon) {
-            console.log(`[Home] Using cover art URL from release:`, coverArtUrl);
-          } else if (isExampleUrl) {
-            console.log(`[Home] Cover art URL is example/placeholder, using default icon`);
-            coverArtUrl = SampleIcon;
+              if (coverFile?.cloudfrontUrl) coverArtUrl = coverFile.cloudfrontUrl;
+            } catch (_) {}
           }
+          if (!coverArtUrl || coverArtUrl === SampleIcon) coverArtUrl = SampleIcon;
           
           // Get first track's audio URL - check multiple sources
           let audioUrl = "";
@@ -401,6 +427,7 @@ function Home() {
             releaseType = "Album";
           }
 
+          const status = fullReleaseData.status || "";
           return {
             id: releaseId || fullReleaseData.releaseId || fullReleaseData.id,
             title: fullReleaseData.title || "Untitled",
@@ -409,7 +436,8 @@ function Home() {
             subtitle: formattedDate ? `${formattedDate} – ${releaseType}` : releaseType,
             img: coverArtUrl,
             audio: audioUrl,
-            release: fullReleaseData, // Store full release object for navigation
+            status,
+            release: fullReleaseData,
           };
         });
 
@@ -453,10 +481,11 @@ function Home() {
     };
   }, [userId, userdata]);
 
-  // Dynamic User
+  // Dynamic User - map from API response
+  // Only use fullName from API - never show email or fallback values
   const user = {
-    name: userdata?.name || localStorage.getItem("displayName") || "User",
-    role: "Artist",
+    name: fullName || null, // Only display when fullName is loaded from API
+    role: userdata?.role || actualRole || "User",
     profilePic: SampleIcon,
   };
 
@@ -464,18 +493,18 @@ function Home() {
   const cardsData = [
     {
       heading: "Account Balance",
-      value: "$300.29",
-      meta: "Account Balance <br/> Approx ₹25,093.12",
+      value: "$0.00",
+      meta: "Account Balance <br/> Approx ₹0.00",
     },
     {
       heading: "Last Statement",
-      value: "$300.29",
-      meta: "May 2024 <br/> Orpin Music",
+      value: "$0.00",
+      meta: "May 2025 <br/> Tunewave Music",
     },
     {
       heading: "Last Payout",
-      value: "$300.29",
-      meta: "May 23, 2024 <br/> ₹25,093.12",
+      value: "$0.00",
+      meta: "May 23, 2025 <br/> ₹0.00",
     },
   ];
 
@@ -572,12 +601,8 @@ function Home() {
           onClick={() => navigate("/settings")}
         />
         <div className="greeting-info">
-          <h1
-            className="greeting-name"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/settings")}
-          >
-            {user.name}
+          <h1 className="greeting-name">
+            {fullName || ""}
           </h1>
           <p className="greeting-role">{user.role}</p>
         </div>
@@ -624,28 +649,30 @@ function Home() {
             key={release.id || i}
             className="release-card"
             onClick={() => {
-              // Navigate to release detail page if releaseId exists
               if (release.id) {
-                navigate(`/qc-detail/${release.id}`);
+                navigate("/preview-distribute", { state: release.release || { releaseId: release.id, id: release.id } });
               } else {
                 navigate("/catalog?tab=releases");
               }
             }}
           >
             <div className="album-art">
-              <div className="live-tag">
-                <img
-                  style={{
-                    height: "10px",
-                    width: "11px",
-                    marginRight: "5px",
-                    marginTop: "1px",
-                  }}
-                  src={live}
-                />
-                Live
+              <div className={`release-status-tag release-status-${(release.status || "").toLowerCase()}`}>
+                {release.status === "Live" && (
+                  <img
+                    style={{ height: "10px", width: "11px", marginRight: "5px", marginTop: "1px" }}
+                    src={live}
+                    alt=""
+                  />
+                )}
+                {STATUS_LABEL[release.status] || release.status || "—"}
               </div>
-              <img src={release.img} alt={release.title} />
+              <img
+                src={release.img}
+                alt={release.title}
+                loading="lazy"
+                style={{ aspectRatio: "1/1", objectFit: "cover" }}
+              />
               <div className="overlay">
                 <button
                   className="btn-gradient"

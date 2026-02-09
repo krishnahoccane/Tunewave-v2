@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import lsiImage from "../assets/lsi.jpeg";
 // import axios from "axios";
 import thunderbolt from "../assets/thunderbolt.png";
 import { useRole } from "../context/RoleContext";
+import { useBranding } from "../context/BrandingContext";
+import { getCurrentDomain, isOwnerOrLocalhost, isOrbitDomain, getDomainByBrandingId } from "../services/branding";
+import RedirectScreen from "../components/RedirectScreen";
 import * as AuthService from "../services/auth";
+import api from "../config/api";
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -33,8 +37,141 @@ export default function Login({ onLogin }) {
 
   const [displayName, setDisplayName] = useState("");
   const { setRole } = useRole();
+  const { branding, loading: brandingLoading } = useBranding();
   // Dynamic Image
   const [cardImage, setCardImage] = useState(lsiImage); // default fallback
+
+  // Refs for auto-focusing inputs
+  const emailInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
+  
+  // Ref to track if autoverify has been processed
+  const autoverifyProcessedRef = useRef(false);
+  
+  // Redirect state (for orbit domain access control)
+  const [showRedirect, setShowRedirect] = useState(false);
+  const [redirectDomain, setRedirectDomain] = useState("");
+  const [redirectEmail, setRedirectEmail] = useState("");
+
+  // Debug: Log branding changes
+  useEffect(() => {
+    console.log("[Login] Branding updated:", {
+      loading: brandingLoading,
+      siteName: branding?.site?.name,
+      fullBranding: branding,
+    });
+  }, [branding, brandingLoading]);
+
+  // Handle autoverify query param (for cross-domain redirects)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (autoverifyProcessedRef.current) return; // Prevent multiple runs
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const autoverify = searchParams.get("autoverify");
+    const emailParam = searchParams.get("email");
+
+    if (autoverify === "true" && emailParam) {
+      console.log("[Login] Autoverify detected, email:", emailParam);
+      autoverifyProcessedRef.current = true; // Mark as processed
+      
+      // Decode email from URL
+      const decodedEmail = decodeURIComponent(emailParam);
+      
+      // Set email and auto-verify
+      setEmail(decodedEmail);
+      
+      // Auto-verify email (trust redirect from correct domain)
+      // We'll call checkEmail to get user data, but skip branding validation
+      const autoVerifyEmail = async () => {
+        setLoading(true);
+        setError("");
+        setSuccessMessage("");
+        
+        try {
+          const data = await AuthService.checkEmail(decodedEmail);
+          console.log("[Login] Auto-verify email check response:", data);
+
+          if (data.exists) {
+            // Auto-verify and proceed to password step
+            setEmailVerified(true);
+            setSuccessMessage(`Please enter your password.`);
+            setDisplayName(data.displayName || data.display_name || "noUserName");
+            
+            // Store role if available
+            if (data.role) {
+              console.log("🔐 Setting role from auto-verify email check:", data.role);
+              localStorage.setItem("role", data.role);
+              window.dispatchEvent(new Event("roleChanged"));
+              setTimeout(() => {
+                console.log("🔐 Role after auto-verify:", localStorage.getItem("role"));
+              }, 100);
+            }
+            
+            // Clean up URL params
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, "", newUrl);
+          } else {
+            setError("User not found. Check the email ID you've entered.");
+          }
+        } catch (error) {
+          console.error("[Login] Auto-verify email check error:", error);
+          if (error.response) {
+            setError(error.response.data?.message || "Failed to verify email. Please try again.");
+          } else {
+            setError("Network error. Try again.");
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      // Wait for branding to load before auto-verifying (if not owner domain)
+      const currentDomain = getCurrentDomain();
+      const isOwnerDomain = isOwnerOrLocalhost(currentDomain);
+      
+      if (isOwnerDomain || !brandingLoading) {
+        autoVerifyEmail();
+      } else {
+        // Wait for branding to load
+        let checkInterval = null;
+        let timeoutId = null;
+        
+        checkInterval = setInterval(() => {
+          if (!brandingLoading) {
+            if (checkInterval) clearInterval(checkInterval);
+            if (timeoutId) clearTimeout(timeoutId);
+            autoVerifyEmail();
+          }
+        }, 100);
+        
+        // Cleanup interval after 5 seconds (timeout)
+        timeoutId = setTimeout(() => {
+          if (checkInterval) clearInterval(checkInterval);
+          autoVerifyEmail(); // Proceed anyway after timeout
+        }, 5000);
+      }
+    }
+  }, [brandingLoading]);
+
+  // Get login heading text based on branding and domain
+  const getLoginHeading = () => {
+    // Guard against SSR/build-time execution
+    if (typeof window === "undefined") {
+      return "Login";
+    }
+
+    // Branding API is the single source of truth for tenant name.
+    // Always display: "Login to <branding.site.name>", otherwise fallback to "Login".
+    if (brandingLoading) return "Login";
+
+    const siteName = branding?.site?.name;
+    if (typeof siteName === "string" && siteName.trim() !== "") {
+      return `Login to ${siteName.trim()}`;
+    }
+
+    return "Login";
+  };
 
   // ------------------------------------Email Validation-----------------------------
   const validateEmail = (email) => {
@@ -77,25 +214,166 @@ export default function Login({ onLogin }) {
       const data = await AuthService.checkEmail(email);
       console.log("Email check response:", data);
 
-      if (data.exists) {
-        setEmailVerified(true);
-        setSuccessMessage(`Please enter your password.`);
-        setDisplayName(data.displayName || data.display_name || "noUserName");
+      // Check if email exists
+      if (!data.exists) {
+        setError("User not found. Check the email ID you've entered.");
+        return;
+      }
+
+      // Orbit domain access control: Only SuperAdmin can login on orbit.tunewave.in
+      const currentDomain = getCurrentDomain();
+      const isOrbit = isOrbitDomain(currentDomain);
+      
+      if (isOrbit) {
+        const userRole = data.role;
+        const isSuperAdmin = userRole === "SuperAdmin" || userRole?.toLowerCase() === "superadmin";
         
-        // Store role if available in email check response
-        // This ensures role is available immediately for Navbar rendering
-        if (data.role) {
-          console.log("🔐 Setting role from email check:", data.role);
-          localStorage.setItem("role", data.role);
-          // Dispatch custom event to notify RoleContext of role change
-          window.dispatchEvent(new Event("roleChanged"));
-          // Small delay to ensure RoleContext updates
-          setTimeout(() => {
-            console.log("🔐 Role after email check:", localStorage.getItem("role"));
-          }, 100);
+        console.log("[Login] Orbit domain access check:", {
+          userRole,
+          isSuperAdmin,
+          domain: currentDomain,
+        });
+        
+        if (!isSuperAdmin) {
+          // Non-SuperAdmin user on orbit domain - redirect to tenant domain
+          console.log("[Login] Non-SuperAdmin user on orbit domain, redirecting to tenant domain");
+          
+          try {
+            // Get the correct domain for this brandingId
+            const userBrandingId = data.brandingId;
+            if (!userBrandingId) {
+              console.error("[Login] No brandingId found for user, cannot redirect");
+              setError("User not found. Check the email ID you've entered.");
+              return;
+            }
+            
+            const domainInfo = await getDomainByBrandingId(userBrandingId);
+            const correctDomain = domainInfo.domainName;
+            
+            if (correctDomain) {
+              // Show redirect screen and redirect after 3 seconds
+              setLoading(false); // Stop loading state
+              setRedirectDomain(correctDomain);
+              setRedirectEmail(email);
+              setShowRedirect(true);
+              
+              // Redirect after 3 seconds
+              setTimeout(() => {
+                const encodedEmail = encodeURIComponent(email);
+                const redirectUrl = `https://${correctDomain}/login?email=${encodedEmail}&autoverify=true`;
+                console.log("[Login] Redirecting to tenant domain:", redirectUrl);
+                window.location.replace(redirectUrl);
+              }, 3000);
+              
+              return; // Don't proceed further
+            } else {
+              console.error("[Login] Failed to get domain for brandingId:", userBrandingId);
+              setError("User not found. Check the email ID you've entered.");
+              return;
+            }
+          } catch (redirectError) {
+            console.error("[Login] Error redirecting to tenant domain:", redirectError);
+            setError("User not found. Check the email ID you've entered.");
+            return;
+          }
+        } else {
+          // SuperAdmin on orbit domain - allow login to continue
+          console.log("[Login] SuperAdmin user on orbit domain, allowing login");
+        }
+      }
+
+      // Branding validation: Ensure user belongs to the same tenant as the current domain
+      // Exception: Skip validation for owner/localhost domains
+      const isOwnerDomain = isOwnerOrLocalhost(currentDomain);
+      
+      if (!isOwnerDomain) {
+        // Wait for branding to load if still loading
+        if (brandingLoading) {
+          setError("Please wait while we verify your access...");
+          return;
+        }
+        
+        // Get brandingId from check-email API response
+        const userBrandingId = data.brandingId;
+        
+        // Get brandingId from current domain's branding context
+        const currentBrandingId = branding?.brandingId;
+        
+        console.log("[Login] Branding validation:", {
+          userBrandingId,
+          currentBrandingId,
+          domain: currentDomain,
+          isOwnerDomain,
+          brandingLoading,
+        });
+        
+        // Validate branding match - both must be present and match
+        if (userBrandingId === undefined || currentBrandingId === undefined) {
+          // If either is missing, we can't validate - block for security
+          console.warn("[Login] Incomplete branding data for validation:", {
+            userBrandingId,
+            currentBrandingId,
+          });
+          setError("User not found. Check the email ID you've entered.");
+          return;
+        }
+        
+        if (userBrandingId !== currentBrandingId) {
+          // Branding mismatch - redirect to correct domain
+          console.log("[Login] Branding mismatch detected, redirecting to correct domain:", {
+            userBrandingId,
+            currentBrandingId,
+          });
+          
+          try {
+            // Get the correct domain for this brandingId
+            const domainInfo = await getDomainByBrandingId(userBrandingId);
+            const correctDomain = domainInfo.domainName;
+            
+            if (correctDomain) {
+              // Encode email for URL
+              const encodedEmail = encodeURIComponent(email);
+              
+              // Redirect to correct domain with email and autoverify flag
+              const redirectUrl = `https://${correctDomain}/login?email=${encodedEmail}&autoverify=true`;
+              console.log("[Login] Redirecting to:", redirectUrl);
+              
+              // Use replace to prevent back button navigation
+              window.location.replace(redirectUrl);
+              return; // Don't proceed further
+            } else {
+              // If domain lookup fails, show generic error
+              console.error("[Login] Failed to get domain for brandingId:", userBrandingId);
+              setError("User not found. Check the email ID you've entered.");
+              return;
+            }
+          } catch (redirectError) {
+            console.error("[Login] Error redirecting to correct domain:", redirectError);
+            // Fallback to generic error if redirect fails
+            setError("User not found. Check the email ID you've entered.");
+            return;
+          }
         }
       } else {
-        setError("Email does not exist. Please check your email.");
+        console.log("[Login] Owner/localhost domain detected, skipping branding validation");
+      }
+
+      // All validations passed - proceed with login
+      setEmailVerified(true);
+      setSuccessMessage(`Please enter your password.`);
+      setDisplayName(data.displayName || data.display_name || "noUserName");
+      
+      // Store role if available in email check response
+      // This ensures role is available immediately for Navbar rendering
+      if (data.role) {
+        console.log("🔐 Setting role from email check:", data.role);
+        localStorage.setItem("role", data.role);
+        // Dispatch custom event to notify RoleContext of role change
+        window.dispatchEvent(new Event("roleChanged"));
+        // Small delay to ensure RoleContext updates
+        setTimeout(() => {
+          console.log("🔐 Role after email check:", localStorage.getItem("role"));
+        }, 100);
       }
     } catch (error) {
       console.error("Email check error:", error);
@@ -167,7 +445,28 @@ const handleLogin = async (e) => {
     if (data.token) {
       localStorage.setItem("jwtToken", data.token);
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("displayName", data.fullName || data.user?.fullName || payload.email);
+      
+      // Fetch user details from /api/users/me to get fullName (client-side only)
+      if (typeof window !== 'undefined') {
+        try {
+          // Use configured API instance which handles baseURL correctly in production
+          const userData = await api.get("/api/users/me", {
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+            },
+          });
+
+          if (userData && userData.fullName) {
+            localStorage.setItem("userFullName", userData.fullName);
+            console.log("✅ Stored userFullName in localStorage:", userData.fullName);
+          } else {
+            console.warn("Failed to fetch user details or fullName missing, will retry on Home page");
+          }
+        } catch (error) {
+          console.warn("Error fetching user details during login:", error);
+          // Continue with login even if user details fetch fails
+        }
+      }
       
       // Extract artistId and role from login response or JWT token
       let artistId = data.artistId || data.artistID || data.artist_id;
@@ -643,6 +942,7 @@ const handleLogin = async (e) => {
           localStorage.removeItem("jwtToken");
           localStorage.removeItem("isLoggedIn");
           localStorage.removeItem("displayName");
+          localStorage.removeItem("userFullName"); // Clear stored fullName on logout
           localStorage.removeItem("role");
           navigate("/login");
         }
@@ -656,6 +956,7 @@ const handleLogin = async (e) => {
           localStorage.removeItem("jwtToken");
           localStorage.removeItem("isLoggedIn");
           localStorage.removeItem("displayName");
+          localStorage.removeItem("userFullName"); // Clear stored fullName on logout
           localStorage.removeItem("role");
           navigate("/login");
         }
@@ -688,8 +989,39 @@ const handleLogin = async (e) => {
     fetchCardImage();
   }, []);
 
+  // Auto-focus email input when component mounts and email is not verified
+  useEffect(() => {
+    if (!emailVerified && forgotStage === "none" && emailInputRef.current) {
+      // Small delay to ensure the input is rendered and enabled
+      const timer = setTimeout(() => {
+        if (emailInputRef.current && !loading) {
+          emailInputRef.current.focus();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [emailVerified, forgotStage, loading]);
+
+  // Auto-focus password input when email is verified and password step is shown
+  useEffect(() => {
+    if (emailVerified && forgotStage === "none" && passwordInputRef.current) {
+      // Small delay to ensure the input is rendered and enabled
+      const timer = setTimeout(() => {
+        if (passwordInputRef.current && !loading) {
+          passwordInputRef.current.focus();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [emailVerified, forgotStage, loading]);
+
   // UI Rendering
   // --------------------------
+
+  // Show redirect screen if redirecting to tenant domain
+  if (showRedirect) {
+    return <RedirectScreen domainName={redirectDomain} email={redirectEmail} />;
+  }
 
   return (
     <div className="connected-container">
@@ -700,7 +1032,7 @@ const handleLogin = async (e) => {
         ) : (
           <>
             <h1 className="login-title">HELLO THERE</h1>
-            <p className="login-subtitle">Login to Tunewave</p>
+            <p className="login-subtitle">{getLoginHeading()}</p>
           </>
         )}
 
@@ -741,6 +1073,7 @@ const handleLogin = async (e) => {
               <label className="login-label-txt">
                 Email Address
                 <input
+                  ref={emailInputRef}
                   className="login-input-box"
                   type="email"
                   value={email}
@@ -776,6 +1109,7 @@ const handleLogin = async (e) => {
               <label className="login-label-txt">
                 Password
                 <input
+                  ref={passwordInputRef}
                   className="login-input-box"
                   type="password"
                   value={password}

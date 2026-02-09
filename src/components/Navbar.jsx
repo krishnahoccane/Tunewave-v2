@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
 import Tunewavelogo from "../assets/Tunewave Media Logo Final-01 1.png";
+import { useBranding } from "../context/BrandingContext";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import { FaYoutube } from "react-icons/fa";
 import NavProfile from "../assets/NavProfile.png";
@@ -26,11 +27,15 @@ import { useContext } from "react";
 import { useRole } from "../context/RoleContext";
 const Navbar = () => {
   const { role, actualRole } = useRole();
+  const { branding } = useBranding();
   
   // Debug: Log role values
   React.useEffect(() => {
     console.log("Navbar - role:", role, "actualRole:", actualRole);
   }, [role, actualRole]);
+  
+  // Get logo URL from branding, fallback to default
+  const logoUrl = branding?.logoUrl || Tunewavelogo;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -114,13 +119,19 @@ const Navbar = () => {
 
   return (
     <div className="navbar">
-      {/* Logo */}
+      {/* Logo - Uses branding logo if available */}
       <img
-        src={Tunewavelogo}
-        alt="logo"
+        src={logoUrl}
+        alt={branding?.site?.name || "Logo"}
         className="logo"
         onClick={() => {
           navigate("/");
+        }}
+        onError={(e) => {
+          // Fallback to default logo if branding logo fails to load
+          if (e.target.src !== Tunewavelogo) {
+            e.target.src = Tunewavelogo;
+          }
         }}
       />
 

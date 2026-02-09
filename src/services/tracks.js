@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from "../config/api";
 
 // const API_BASE = "/api/auth";
@@ -38,10 +37,7 @@ const getAuthHeaders = () => {
  * @returns {Promise<Object>} Created track object
  */
 export const createTrack = async (trackData) => {
-  const response = await axios.post(API_BASE, trackData, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.post(API_BASE, trackData, { headers: getAuthHeaders() });
 };
 
 /**
@@ -50,10 +46,7 @@ export const createTrack = async (trackData) => {
  * @returns {Promise<Object>} Track object
  */
 export const getTrackById = async (trackId) => {
-  const response = await axios.get(`${API_BASE}/${trackId}`, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.get(`${API_BASE}/${trackId}`, { headers: getAuthHeaders() });
 };
 
 /**
@@ -65,24 +58,11 @@ export const getTrackById = async (trackId) => {
 export const updateTrack = async (trackId, trackData) => {
   // Try POST first (as used in QCDetailPage), fallback to PUT if needed
   try {
-    console.log(`[TracksService] Calling POST ${API_BASE}/${trackId} with data:`, trackData);
-    const response = await axios.post(`${API_BASE}/${trackId}`, trackData, {
-      headers: getAuthHeaders(),
-    });
-    console.log(`[TracksService] POST ${API_BASE}/${trackId} response status: ${response.status}`);
-    return response.data;
+    return await api.post(`${API_BASE}/${trackId}`, trackData, { headers: getAuthHeaders() });
   } catch (postError) {
-    // If POST fails with 405, try PUT
     if (postError.response?.status === 405) {
-      console.warn(`[TracksService] POST failed with 405, trying PUT instead...`);
-      console.log(`[TracksService] Calling PUT ${API_BASE}/${trackId} with data:`, trackData);
-      const response = await axios.put(`${API_BASE}/${trackId}`, trackData, {
-        headers: getAuthHeaders(),
-      });
-      console.log(`[TracksService] PUT ${API_BASE}/${trackId} response status: ${response.status}`);
-      return response.data;
+      return api.put(`${API_BASE}/${trackId}`, trackData, { headers: getAuthHeaders() });
     }
-    // Re-throw if not a 405 error
     throw postError;
   }
 };
@@ -93,10 +73,7 @@ export const updateTrack = async (trackId, trackData) => {
  * @returns {Promise<Object>} Response data
  */
 export const deleteTrack = async (trackId) => {
-  const response = await axios.delete(`${API_BASE}/${trackId}`, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.delete(`${API_BASE}/${trackId}`, { headers: getAuthHeaders() });
 };
 
 /**
@@ -105,12 +82,8 @@ export const deleteTrack = async (trackId) => {
  * @returns {Promise<Array>} Array of track objects
  */
 export const getTracksByReleaseId = async (releaseId) => {
-  // Use GET /api/releases/{releaseId} which includes tracks in the response
-  const response = await axios.get(`/api/releases/${releaseId}`, {
-    headers: getAuthHeaders(),
-  });
-  
-  const releaseData = response.data?.release || response.data;
+  const data = await api.get(`/api/releases/${releaseId}`, { headers: getAuthHeaders() });
+  const releaseData = data?.release ?? data;
   
   // Extract tracks from release response
   // Handle null tracks explicitly - API returns null, not empty array

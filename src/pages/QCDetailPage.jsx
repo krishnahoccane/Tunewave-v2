@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getFiles, getFileById } from "../services/files";
+import { getLabelById } from "../services/labels";
 import "../styles/styled.css";
 import "../styles/Home.css";
 import previewImg from "../assets/lsi.jpeg";
@@ -172,11 +173,8 @@ export default function QCDetailPage() {
         let labelName = releaseData.labelName || releaseData.label || "N/A";
         if (releaseData.labelId && releaseData.labelId > 0 && !labelName) {
           try {
-            const labelResponse = await axios.get(`/api/labels/${releaseData.labelId}`, {
-              headers: getAuthHeaders(),
-            });
-            const labelData = labelResponse.data || {};
-            labelName = labelData.labelName || labelData.name || "N/A";
+            const labelData = await getLabelById(releaseData.labelId);
+            labelName = labelData?.labelName || labelData?.name || "N/A";
             console.log("Fetched label name:", labelName);
           } catch (labelError) {
             console.warn("Could not fetch label details:", labelError);

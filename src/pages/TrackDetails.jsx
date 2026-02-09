@@ -5,8 +5,8 @@ import "../styles/TrackDetails.css";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 import ContributorsSection from "../components/ContributorsSection.jsx";
+import * as ArtistsService from "../services/artists";
 const allLanguages = [
   "Ahirani",
   "Arabic",
@@ -75,6 +75,59 @@ const allLanguages = [
   "Zxx",
 ];
 
+// Same categories and role names as CreateRelease / ContributorsSection
+const CONTRIBUTOR_CATEGORIES = [
+  "primaryArtist",
+  "featuredArtist",
+  "producer",
+  "director",
+  "composer",
+  "lyricist",
+];
+const EMPTY_CONTRIBUTORS = Object.fromEntries(
+  CONTRIBUTOR_CATEGORIES.map((c) => [c, []])
+);
+const ROLE_TO_CATEGORY = {
+  "Main Primary Artist": "primaryArtist",
+  "Featured Artist": "featuredArtist",
+  Producer: "producer",
+  Director: "director",
+  Composer: "composer",
+  Lyricist: "lyricist",
+};
+
+/** Normalize release or track contributors to { artistId, artistName } per category */
+function normalizeContributorsToObject(source) {
+  if (!source) return { ...EMPTY_CONTRIBUTORS };
+  if (Array.isArray(source)) {
+    const out = { ...EMPTY_CONTRIBUTORS };
+    source.forEach((c) => {
+      const role = c.role ?? c.type;
+      const category = ROLE_TO_CATEGORY[role] || (role === "Main Primary Artist" ? "primaryArtist" : null);
+      if (!category || !out[category]) return;
+      const artistId = c.artistId ?? c.artistID;
+      const artistName = c.artistName ?? c.name ?? "";
+      if (artistId != null) {
+        out[category].push({ artistId, artistName });
+      }
+    });
+    return out;
+  }
+  if (typeof source === "object" && !Array.isArray(source)) {
+    const out = { ...EMPTY_CONTRIBUTORS };
+    CONTRIBUTOR_CATEGORIES.forEach((cat) => {
+      const arr = source[cat] || [];
+      if (!Array.isArray(arr)) return;
+      out[cat] = arr.map((c) => ({
+        artistId: c.artistId ?? c.artistID,
+        artistName: c.artistName ?? c.name ?? "",
+      })).filter((c) => c.artistId != null);
+    });
+    return out;
+  }
+  return { ...EMPTY_CONTRIBUTORS };
+}
+
 const TrackDetails = () => {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -93,15 +146,20 @@ const TrackDetails = () => {
   const [isrcCode, setIsrcCode] = useState("");
   const [explicitStatus, setExplicitStatus] = useState("");
 
-  // Contributors states
+  // Contributors states – same shape as Release (ContributorsSection)
   const [showicons, setShowIcons] = useState(true);
   const [contributors, setContributors] = useState({
     primaryArtist: [],
+    featuredArtist: [],
     producer: [],
     director: [],
     composer: [],
     lyricist: [],
   });
+
+  // Artists list for contributors dropdown (same source as Release)
+  const [artistsList, setArtistsList] = useState([]);
+  const [loadingArtists, setLoadingArtists] = useState(false);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -135,29 +193,7 @@ const TrackDetails = () => {
         if (savedData.isrcOption !== undefined) setIsrcOption(savedData.isrcOption);
         if (savedData.isrcCode !== undefined) setIsrcCode(savedData.isrcCode);
         if (savedData.contributors) {
-          if (typeof savedData.contributors === 'object' && !Array.isArray(savedData.contributors)) {
-            setContributors(savedData.contributors);
-          } else if (Array.isArray(savedData.contributors)) {
-            // Convert array format to object format
-            const contributorsObj = {
-              primaryArtist: [],
-              producer: [],
-              director: [],
-              composer: [],
-              lyricist: [],
-            };
-            savedData.contributors.forEach((contrib) => {
-              const category = contrib.type === "Main Primary Artist" ? "primaryArtist" : 
-                              contrib.type?.toLowerCase() || "primaryArtist";
-              if (contributorsObj.hasOwnProperty(category)) {
-                contributorsObj[category].push({
-                  name: contrib.name,
-                  profiles: contrib.linkedProfiles || contrib.profiles || {},
-                });
-              }
-            });
-            setContributors(contributorsObj);
-          }
+          setContributors(normalizeContributorsToObject(savedData.contributors));
         }
         console.log(`[TrackDetails] ✅ All fields restored from localStorage`);
         return; // Use localStorage data, don't override with track data
@@ -176,35 +212,93 @@ const TrackDetails = () => {
       setCrbts(track.crbts || [{ hours: "00", minutes: "00", seconds: "00" }]);
       setIsrcOption(track.isrcOption || "no");
       setIsrcCode(track.isrcCode || "");
-      
-      // Restore contributors if available
-      if (track.contributors) {
-        if (typeof track.contributors === 'object' && !Array.isArray(track.contributors)) {
-          setContributors(track.contributors);
-        } else if (Array.isArray(track.contributors)) {
-          // Convert array format to object format
-          const contributorsObj = {
-            primaryArtist: [],
-            producer: [],
-            director: [],
-            composer: [],
-            lyricist: [],
-          };
-          track.contributors.forEach((contrib) => {
-            const category = contrib.type === "Main Primary Artist" ? "primaryArtist" : 
-                            contrib.type?.toLowerCase() || "primaryArtist";
-            if (contributorsObj.hasOwnProperty(category)) {
-              contributorsObj[category].push({
-                name: contrib.name,
-                profiles: contrib.linkedProfiles || contrib.profiles || {},
-              });
-            }
-          });
-          setContributors(contributorsObj);
-        }
+      if (track.contributors && (Array.isArray(track.contributors) ? track.contributors.length > 0 : true)) {
+        setContributors(normalizeContributorsToObject(track.contributors));
+      } else {
+        // Auto-copy contributors from Release (default state when track has none)
+        try {
+          const releaseMetadata = JSON.parse(localStorage.getItem("releaseMetadata") || "{}");
+          const releaseContributors = releaseMetadata.contributors;
+          if (releaseContributors && typeof releaseContributors === "object") {
+            setContributors(normalizeContributorsToObject(releaseContributors));
+          }
+        } catch (_) {}
       }
+    } else {
+      // No track (e.g. direct nav): still pre-fill from release if available
+      try {
+        const releaseMetadata = JSON.parse(localStorage.getItem("releaseMetadata") || "{}");
+        const releaseContributors = releaseMetadata.contributors;
+        if (releaseContributors && typeof releaseContributors === "object") {
+          setContributors(normalizeContributorsToObject(releaseContributors));
+        }
+      } catch (_) {}
     }
   }, []);
+
+  // Fetch artists for contributors dropdown (same as Release)
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingArtists(true);
+    ArtistsService.getArtists()
+      .then((list) => {
+        if (cancelled) return;
+        const arr = Array.isArray(list) ? list : list?.data || [];
+        setArtistsList(arr);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingArtists(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const refreshArtists = () => {
+    ArtistsService.getArtists().then((list) => {
+      const arr = Array.isArray(list) ? list : list?.data || [];
+      setArtistsList(arr);
+    });
+  };
+
+  const handleCreateArtist = (stageName, profileUrls = {}) => {
+    const tempId = `temp-${Date.now()}`;
+    const tempArtist = { artistId: tempId, artistName: stageName.trim() };
+    setArtistsList((prev) => [...(prev || []), tempArtist]);
+    const payload = {
+      publicProfileName: stageName.trim(),
+      ...(profileUrls.soundCloudUrl && { soundCloudUrl: profileUrls.soundCloudUrl }),
+      ...(profileUrls.spotifyUrl && { spotifyUrl: profileUrls.spotifyUrl }),
+      ...(profileUrls.appleMusicUrl && { appleMusicUrl: profileUrls.appleMusicUrl }),
+    };
+    ArtistsService.createArtist(payload)
+      .then((created) => {
+        const realId = created?.artistId ?? created?.artistID;
+        const realName = created?.artistName ?? created?.stageName ?? stageName.trim();
+        if (realId == null) return;
+        setArtistsList((prev) =>
+          (prev || []).map((a) =>
+            (String(a.artistId) === tempId || String(a.artistID) === tempId)
+              ? { ...a, artistId: realId, artistName: realName }
+              : a
+          )
+        );
+        setContributors((prev) => {
+          const next = { ...prev };
+          CONTRIBUTOR_CATEGORIES.forEach((cat) => {
+            next[cat] = (next[cat] || []).map((c) =>
+              String(c.artistId ?? c.artistID) === tempId
+                ? { ...c, artistId: realId, artistName: realName }
+                : c
+            );
+          });
+          return next;
+        });
+        refreshArtists();
+      })
+      .catch(() => {
+        toast.dark("Artist will be synced shortly.", { transition: Slide });
+      });
+    return Promise.resolve(tempArtist);
+  };
 
   // Save form data to localStorage whenever fields change
   useEffect(() => {
@@ -286,13 +380,7 @@ const TrackDetails = () => {
     setIsrcOption("no");
     setIsrcCode("");
     setExplicitStatus("");
-    setContributors({
-      primaryArtist: [],
-      producer: [],
-      director: [],
-      composer: [],
-      lyricist: [],
-    });
+    setContributors({ ...EMPTY_CONTRIBUTORS });
   };
 
   //   const handleSaveAndContinue = () => {
@@ -479,9 +567,13 @@ const TrackDetails = () => {
           </div>
         )}
       </div> */}
-        <ContributorsSection 
+        <ContributorsSection
+          artistsList={artistsList}
+          loadingArtists={loadingArtists}
           contributors={contributors}
           onContributorsChange={setContributors}
+          onRefreshArtists={refreshArtists}
+          onCreateArtist={handleCreateArtist}
         />
       {/* Lyrics Language */}
       <div className="section-container section">

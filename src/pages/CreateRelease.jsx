@@ -3,63 +3,44 @@ import { useState, useEffect } from "react";
 import iIcon from "../assets/material-symbols_info-outline.png";
 import cloud from "../assets/Vector@3x.png";
 import dot from "../assets/Component 22.png";
-import axios from "axios";
-
+import api from "../config/api";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// import "../styles/CreateRelease.css";
+import "../styles/CreateRelease.css";
 import "../styles/styled.css";
 
 import ContributorsSection from "../components/ContributorsSection.jsx";
 import * as AuthService from "../services/auth";
+import { getLabelById } from "../services/labels";
+import { getArtists, createArtist } from "../services/artists";
+import { useRole } from "../context/RoleContext";
 
 function CreateRelease() {
   const navigate = useNavigate();
+  const { actualRole } = useRole();
+  const roleLower = (actualRole || "").toLowerCase();
+
   const [fileUploaded, setFileUploaded] = useState(null);
   const [enterpriseId, setEnterpriseId] = useState(null);
   const [labelId, setLabelId] = useState(null);
   const [labelName, setLabelName] = useState(null);
   const [loadingEntities, setLoadingEntities] = useState(true);
-  const [userArtists, setUserArtists] = useState([]);
   const [userEntities, setUserEntities] = useState(null);
 
-  const [showArtistModal, setShowArtistModal] = useState(false);
-  // const [artistImage, setArtistImage] = useState(null);
-  // const [showLocalizeModal, setShowLocalizeModal] = useState(false);
+  const [artistsList, setArtistsList] = useState([]);
+  const [loadingArtists, setLoadingArtists] = useState(true);
 
-  // const [showLinkProfileModal, setShowLinkProfileModal] = useState(false);
-  // const [selectedProfile, setSelectedProfile] = useState("");
-  // const [artistProfileId, setArtistProfileId] = useState("");
-
-  // const [showAddArtistModal, setShowAddArtistModal] = useState(false);
-  // const [showPerformer, setShowPerformer] = useState(false);
-  // const [showProducer, setShowProducer] = useState(false);
-  // const [artist, setArtist] = useState(false);
-  // const [showicons, seticons] = useState(true);
-  // const [mainArtist, setMainArtist] = useState("");
-  // const [artistDropDownRole, setArtistDropDownRole] = useState("");
-  // const [producerDropDownRole, setproducerDropDownRole] = useState("");
-  // const [performerDropDownRole, setperformerDropDownRole] = useState("");
-  // // State to control second dropdown visibility
-  // const [showSecondDropdown, setShowSecondDropdown] = useState(false);
-  // const [showthirdDropdown, setthirdDropDown] = useState(false);
-
-  // Contributors state - using object format to match ContributorsSection component
   const [contributors, setContributors] = useState({
     primaryArtist: [],
+    featuredArtist: [],
     producer: [],
     director: [],
     composer: [],
     lyricist: [],
   });
-  const [artistdropDownName, setArtistdropDownName] = useState("");
-  const [linkedProfiles, setLinkedProfiles] = useState({
-    Spotify: "",
-    AppleMusic: "",
-    SoundCloud: "",
-  });
 
+  // Authoritative Genre → Sub-Genre taxonomy (single source of truth)
   const genres = {
     Film: [
       "Devotional",
@@ -97,7 +78,7 @@ function CreateRelease() {
       "Indie Lo-Fi",
       "Indie Pop",
       "Indie Rock",
-      "Indie Singer -Songwriter",
+      "Indie Singer-Songwriter",
     ],
     "Hip-Hop/Rap": [
       "Alternative Hip-Hop",
@@ -120,19 +101,90 @@ function CreateRelease() {
       "Basant Geet",
       "Baul Geet",
       "Bhadu Gaan",
+      "Bhagawati",
+      "Bhand",
       "Bhangra",
       "Bhatiali",
       "Bhavageete",
       "Bhawaiya",
+      "Bhuta song",
       "Bihugeet",
       "Birha",
       "Borgeet",
+      "Burrakatha",
+      "Chappeli",
+      "Daff",
       "Dandiya Raas",
+      "Dasakathia",
+      "Deijendrageeti",
+      "Deknni",
+      "Dhamal",
+      "Gadhwali",
+      "Gagor",
       "Garba",
+      "Ghasiyari Geet",
+      "Ghoomar",
+      "Gidda",
+      "Gugga",
+      "Hafiz Nagma",
+      "Heliam",
+      "Hereileu",
+      "Hori",
+      "Jaanapada Geethe",
+      "Jaita",
+      "Jhoori",
+      "Jhora",
+      "Jhumur",
+      "Jugni",
+      "Kajari",
+      "Kajari/ Kajari /Kajri",
+      "Karwa Chauth Songs",
+      "Khor",
+      "Koligeet",
+      "Kumayuni",
+      "Kummi Paatu",
+      "Lagna Geet /Marriage Song",
+      "Lalongeeti",
       "Lavani",
       "Lokgeet",
+      "Loor",
+      "Maand",
+      "Madiga Dappu",
+      "Mando",
+      "Mapilla",
+      "Naatupura Paadalgal",
+      "Naqual",
+      "Nati",
+      "Nautanki",
+      "Nazrulgeeti",
+      "Neuleu",
+      "Nyioga",
+      "Oggu Katha",
+      "Paani Hari",
+      "Pai Song",
+      "Pandavani",
+      "Pankhida",
+      "Patua Sangeet",
+      "Phag Dance",
+      "Powada",
+      "Qawwali",
+      "Rabindra Sangeet",
+      "Rajanikantageeti",
+      "Ramprasadi",
       "Rasiya",
+      "Rasiya Geet",
+      "Raslila",
+      "Raut Nacha",
+      "Saikuthi Zai",
+      "Sana Lamok",
+      "Shakunakhar-Mangalgeet",
+      "Shyama Sangeet",
+      "Sohar",
+      "Sumangali",
+      "Surma",
+      "Suvvi paatalu",
       "Tappa",
+      "Teej songs",
       "Tusu Gaan",
       "Villu Pattu",
     ],
@@ -181,21 +233,42 @@ function CreateRelease() {
 
   // Step 5: Dates
   const [digitalReleaseDate, setDigitalReleaseDate] = useState("");
+  const [digitalReleaseDateError, setDigitalReleaseDateError] = useState("");
   const [originalReleaseDate, setOriginalReleaseDate] = useState("");
-  const [originalReleaseDateError, setOriginalReleaseDateError] = useState("");
-  
-  // Calculate minimum date for original release date (today + 2 days)
-  const getMinOriginalReleaseDate = () => {
+
+  // Minimum date = today + 2 days (local date) for both Digital and Original release
+  const getMinReleaseDate = () => {
     const today = new Date();
     const minDate = new Date(today);
-    minDate.setDate(today.getDate() + 2); // Add 2 days
-    return minDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    minDate.setDate(today.getDate() + 2);
+    return minDate.toISOString().split("T")[0];
   };
 
-  // Step 6: UPC
-  const [hasUPC, setHasUPC] = useState(null); // 'yes' or 'no'
+  // Step 6: UPC — default to "No"
+  const [hasUPC, setHasUPC] = useState("no"); // 'yes' or 'no'
   const [upcCode, setUpcCode] = useState("");
+  const [upcCodeError, setUpcCodeError] = useState("");
+  const [upcCodeSuccess, setUpcCodeSuccess] = useState(false); // show "Valid UPC code" when valid
   const [profile, setProfileModel] = useState("");
+
+  // Genre dropdown open state (custom dropdowns)
+  const [primaryGenreOpen, setPrimaryGenreOpen] = useState(false);
+  const [secondaryGenreOpen, setSecondaryGenreOpen] = useState(false);
+
+  // UPC-13 check digit validation (EAN-13 algorithm)
+  const validateUPC13 = (str) => {
+    const trimmed = String(str).trim();
+    if (trimmed.length !== 13) return false;
+    if (!/^\d{13}$/.test(trimmed)) return false;
+    const digits = trimmed.split("").map(Number);
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      const position = i + 1; // 1-based
+      sum += position % 2 === 1 ? digits[i] * 1 : digits[i] * 3;
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    return checkDigit === digits[12];
+  };
 
   // Load form data from localStorage on component mount
   useEffect(() => {
@@ -221,35 +294,39 @@ function CreateRelease() {
           if (formData.originalReleaseDate !== undefined) setOriginalReleaseDate(formData.originalReleaseDate);
           if (formData.hasUPC !== undefined && formData.hasUPC !== null) setHasUPC(formData.hasUPC);
           if (formData.upcCode !== undefined) setUpcCode(formData.upcCode);
-          // Restore contributors - handle both array and object formats for backward compatibility
           if (formData.contributors) {
             if (Array.isArray(formData.contributors)) {
-              // Convert array format to object format for ContributorsSection
               const contributorsObj = {
                 primaryArtist: [],
+                featuredArtist: [],
                 producer: [],
                 director: [],
                 composer: [],
                 lyricist: [],
               };
-              
               formData.contributors.forEach((contrib) => {
-                const category = contrib.type === "Main Primary Artist" ? "primaryArtist" : 
-                                contrib.type?.toLowerCase() || "primaryArtist";
-                if (contributorsObj.hasOwnProperty(category)) {
-                  contributorsObj[category].push({
-                    name: contrib.name,
-                    profiles: contrib.linkedProfiles || contrib.profiles || {},
-                  });
+                const role = contrib.role || contrib.type || "";
+                const category = role === "Main Primary Artist" ? "primaryArtist" : role === "Featured Artist" ? "featuredArtist" : role.toLowerCase();
+                const entry = { artistId: contrib.artistId ?? contrib.artistID, artistName: contrib.artistName ?? contrib.name };
+                if (category && contributorsObj[category]) {
+                  if (category === "primaryArtist") {
+                    contributorsObj[category] = [entry];
+                  } else {
+                    contributorsObj[category].push(entry);
+                  }
                 }
               });
-              
-              console.log("Restoring contributors (converted from array):", contributorsObj);
               setContributors(contributorsObj);
-            } else if (typeof formData.contributors === 'object' && !Array.isArray(formData.contributors)) {
-              // Already in object format
-              console.log("Restoring contributors (object format):", formData.contributors);
-              setContributors(formData.contributors);
+            } else if (typeof formData.contributors === "object" && !Array.isArray(formData.contributors)) {
+              const normalized = {
+                primaryArtist: formData.contributors.primaryArtist || [],
+                featuredArtist: formData.contributors.featuredArtist || [],
+                producer: formData.contributors.producer || [],
+                director: formData.contributors.director || [],
+                composer: formData.contributors.composer || [],
+                lyricist: formData.contributors.lyricist || [],
+              };
+              setContributors(normalized);
             }
           }
           
@@ -320,9 +397,9 @@ function CreateRelease() {
           originalReleaseDate,
           hasUPC,
           upcCode,
-          contributors: contributors || [], // Ensure it's always an array
+          contributors: contributors || {},
           hasCoverArt: coverArtwork !== null,
-          coverArtDataUrl, // Store base64 data URL
+          coverArtDataUrl,
         };
         
         localStorage.setItem("createReleaseFormData", JSON.stringify(formDataToSave));
@@ -339,16 +416,16 @@ function CreateRelease() {
   }, [
     releaseTitle,
     titleVersion,
-    JSON.stringify(localizations), // Stringify for proper array comparison
+    JSON.stringify(localizations),
     primaryGenre,
     secondaryGenre,
     digitalReleaseDate,
     originalReleaseDate,
     hasUPC,
     upcCode,
-    JSON.stringify(contributors), // Stringify for proper object comparison
-    coverArtwork?.name, // Use file name as dependency since File object reference changes
-    coverArtwork?.size, // Also check size
+    JSON.stringify(contributors),
+    coverArtwork?.name,
+    coverArtwork?.size,
   ]);
 
   // Fetch user's enterprise and label on component mount
@@ -381,23 +458,15 @@ function CreateRelease() {
               setEnterpriseId(selectedLabel.enterpriseId);
             } else {
               // If label doesn't have enterpriseId, fetch label details
-              const token = localStorage.getItem("jwtToken");
-              if (token) {
-                try {
-                  const labelResponse = await axios.get(`/api/labels/${selectedLabel.labelId}`, {
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${token}`,
-                    },
-                  });
-                  
-                  if (labelResponse.data?.enterpriseId) {
-                    setEnterpriseId(labelResponse.data.enterpriseId);
-                    console.log("Fetched enterpriseId from label details:", labelResponse.data.enterpriseId);
-                  }
-                } catch (labelError) {
-                  console.warn("Could not fetch label details:", labelError);
+              try {
+                const labelData = await getLabelById(selectedLabel.labelId);
+                
+                if (labelData?.enterpriseId) {
+                  setEnterpriseId(labelData.enterpriseId);
+                  console.log("Fetched enterpriseId from label details:", labelData.enterpriseId);
                 }
+              } catch (labelError) {
+                console.warn("Could not fetch label details:", labelError);
               }
             }
           }
@@ -414,11 +483,6 @@ function CreateRelease() {
           }
         }
 
-        // Extract artists for contributor mapping
-        if (entities?.artists && entities.artists.length > 0) {
-          setUserArtists(entities.artists);
-          console.log("User artists:", entities.artists);
-        }
       } catch (error) {
         console.error("Error fetching user entities:", error);
         toast.dark("Could not load enterprise/label information. Please ensure you're assigned to an enterprise and label.", { autoClose: 5000 });
@@ -430,10 +494,76 @@ function CreateRelease() {
     fetchUserEntities();
   }, []);
 
-  // Example: adding/updating a contributor
-  const addContributor = (contributor) => {
-    setContributors([...contributors, contributor]);
-  };
+  // Fetch artists from API (single source of truth for contributors)
+  useEffect(() => {
+    let cancelled = false;
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      setLoadingArtists(false);
+      return;
+    }
+    setLoadingArtists(true);
+    getArtists()
+      .then((list) => {
+        if (!cancelled && Array.isArray(list)) setArtistsList(list);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Error fetching artists:", err);
+          toast.dark("Could not load artists.", { autoClose: 5000 });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingArtists(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Close genre dropdowns when clicking outside (each dropdown wraps trigger + menu)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      const inPrimary = e.target.closest(".genre-dropdown")?.querySelector("#primary-genre");
+      const inSecondary = e.target.closest(".genre-dropdown")?.querySelector("#second-genre");
+      if (primaryGenreOpen && !inPrimary) setPrimaryGenreOpen(false);
+      if (secondaryGenreOpen && !inSecondary) setSecondaryGenreOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [primaryGenreOpen, secondaryGenreOpen]);
+
+  // Role-based primary artist: auto-fill Primary Artist for Artist/Label roles (same structure as other contributors)
+  useEffect(() => {
+    if (!userEntities || artistsList.length === 0) return;
+
+    const isArtist = roleLower === "artist" || roleLower === "artistadmin" || roleLower === "artist admin";
+    const isLabel = roleLower === "labeladmin" || roleLower === "labeluser" || roleLower === "label admin" || roleLower === "label user";
+
+    if (isArtist && userEntities?.artists?.length > 0) {
+      const myArtist = userEntities.artists[0];
+      const artistId = myArtist.artistId ?? myArtist.artistID;
+      const artistName = myArtist.artistName ?? "";
+      if (artistId != null) {
+        setContributors((prev) => {
+          if ((prev.primaryArtist || []).length > 0) return prev;
+          return { ...prev, primaryArtist: [{ artistId, artistName }] };
+        });
+      }
+      return;
+    }
+
+    if (isLabel && labelId != null) {
+      setContributors((prev) => {
+        if ((prev.primaryArtist || []).length > 0) return prev;
+        const labelArtists = artistsList.filter((a) => Number(a.labelId) === Number(labelId));
+        const defaultArtist = labelArtists.find((a) => a.isDefault) ?? labelArtists.find((a) => (a.status || "").toLowerCase() === "active") ?? labelArtists[0];
+        if (defaultArtist?.artistId == null) return prev;
+        return {
+          ...prev,
+          primaryArtist: [{ artistId: defaultArtist.artistId, artistName: defaultArtist.artistName ?? "" }],
+        };
+      });
+    }
+  }, [userEntities, labelId, artistsList, roleLower]);
 
   const openLinkProfileModal = (a) => {
     setProfileModel(a);
@@ -539,7 +669,7 @@ function CreateRelease() {
       if (!coverArtwork) {
         toast.dark("Please upload Cover Artwork.", { transition: Slide });
       } else if (fileValid === false) {
-        toast.dark("Please upload a valid cover art (3000px x 3000px).", { transition: Slide });
+        toast.dark("Cover art must be 1:1 aspect ratio and at least 3000px × 3000px.", { transition: Slide });
       } else {
         toast.dark("Please upload Cover Artwork.", { transition: Slide });
       }
@@ -555,35 +685,50 @@ function CreateRelease() {
       });
       return false;
     }
-    
-    // Validate original release date
-    if (!originalReleaseDate) {
-      toast.dark("Please select an Original Release Date.", {
-        transition: Slide,
-      });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const minReleaseDate = new Date(today);
+    minReleaseDate.setDate(today.getDate() + 2);
+    if (new Date(digitalReleaseDate) < minReleaseDate) {
+      toast.dark("Digital release date must be at least 2 days from today.", { transition: Slide });
+      setDigitalReleaseDateError("Digital release date must be at least 2 days from today.");
       return false;
     }
-    
-    // Validate original release date is at least 2 days from today
-    if (originalReleaseDate) {
-      const selectedDate = new Date(originalReleaseDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-      const minDate = new Date(today);
-      minDate.setDate(today.getDate() + 2); // Today + 2 days
-      
-      if (selectedDate < minDate) {
-        toast.dark("Original Release Date must be at least 2 days from today.", {
-          transition: Slide,
-        });
-        setOriginalReleaseDateError("Original Release Date must be at least 2 days from today");
+
+    // Original Release Date: no validation, optional
+    const primaryArtists = contributors.primaryArtist || [];
+    if (primaryArtists.length < 1) {
+      toast.dark("Please add at least one Primary Artist.", { transition: Slide });
+      return false;
+    }
+    if (primaryArtists.length > 4) {
+      toast.dark("You can have at most 4 Primary Artists.", { transition: Slide });
+      return false;
+    }
+
+    if (hasUPC === "yes") {
+      const trimmed = String(upcCode || "").trim();
+      if (!trimmed) {
+        toast.dark("Please enter your UPC Code.", { transition: Slide });
+        setUpcCodeError("Please enter your UPC Code.");
         return false;
       }
+      if (trimmed.length !== 13 || !/^\d{13}$/.test(trimmed)) {
+        toast.dark("Invalid UPC code. Please check the last digit.", { transition: Slide });
+        setUpcCodeError("Invalid UPC code. Please check the last digit.");
+        return false;
+      }
+      if (!validateUPC13(trimmed)) {
+        toast.dark("Invalid UPC code. Please check the last digit.", { transition: Slide });
+        setUpcCodeError("Invalid UPC code. Please check the last digit.");
+        return false;
+      }
+      setUpcCodeError("");
+      setUpcCodeSuccess(true);
+    } else {
+      setUpcCodeError("");
+      setUpcCodeSuccess(false);
     }
-    // if (contributors.length === 0) {
-    //   toast.dark("Please add at least one Main Primary Artist.", {transition: Slide});
-    //   return;
-    // }
 
     // ✅ Continue with form submission if all fields are valid
     const token = localStorage.getItem("jwtToken");
@@ -599,51 +744,50 @@ function CreateRelease() {
       return date.toISOString();
     };
 
-    // Convert contributors from object format to array format for API
-    // ContributorsSection uses: {primaryArtist: [{name, profiles}], producer: [...], ...}
-    // API expects: [{artistId, role}]
+    // Build contributors array for API: [{ artistId, role }]. Primary Artist same structure as others.
     const contributorsArray = [];
-    
-    // Process primaryArtist (Main Primary Artist)
-    if (contributors.primaryArtist && Array.isArray(contributors.primaryArtist)) {
-      contributors.primaryArtist.forEach((contrib) => {
-        const matchingArtist = userArtists.find(
-          (artist) => artist.artistName?.toLowerCase() === contrib.name?.toLowerCase()
-        );
-        contributorsArray.push({
-          artistId: matchingArtist?.artistId || 0,
-          role: "Main Primary Artist",
-        });
-      });
-    }
-    
-    // Process other categories
+
     const categoryRoleMap = {
+      primaryArtist: "Main Primary Artist",
+      featuredArtist: "Featured Artist",
       producer: "Producer",
       director: "Director",
       composer: "Composer",
       lyricist: "Lyricist",
     };
-    
+
+    const hasPendingArtist = Object.keys(categoryRoleMap).some((category) =>
+      (contributors[category] || []).some((c) => {
+        const id = c.artistId ?? c.artistID;
+        return typeof id === "string" && id.startsWith("temp-");
+      })
+    );
+    if (hasPendingArtist) {
+      toast.dark("One or more artists are still syncing. Please try again in a moment.", { transition: Slide });
+      return false;
+    }
+
     Object.keys(categoryRoleMap).forEach((category) => {
       if (contributors[category] && Array.isArray(contributors[category])) {
         contributors[category].forEach((contrib) => {
-          const matchingArtist = userArtists.find(
-            (artist) => artist.artistName?.toLowerCase() === contrib.name?.toLowerCase()
-          );
-          contributorsArray.push({
-            artistId: matchingArtist?.artistId || 0,
-            role: categoryRoleMap[category],
-          });
+          const artistId = contrib.artistId ?? contrib.artistID ?? artistsList.find((a) => String(a.artistName).toLowerCase() === String(contrib.artistName ?? contrib.name).toLowerCase())?.artistId;
+          if (artistId != null && !String(artistId).startsWith("temp-")) {
+            contributorsArray.push({ artistId, role: categoryRoleMap[category] });
+          }
         });
       }
     });
-    
+
     const mappedContributors = contributorsArray;
 
-    // Validate enterpriseId and labelId
-    if (!labelId) {
-      toast.dark("Please ensure you're assigned to a label. Contact your administrator if needed.", { transition: Slide });
+    // Resolve active LabelId from user entities (required by backend; must be > 0). Priority: isDefault, then first label.
+    const activeLabel =
+      userEntities?.labels?.find((l) => l.isDefault === true) ||
+      userEntities?.labels?.[0];
+    const resolvedLabelId = activeLabel?.labelId ?? labelId;
+
+    if (!resolvedLabelId || Number(resolvedLabelId) <= 0) {
+      toast.dark("No active label found for release creation. Please ensure you're assigned to a label.", { transition: Slide });
       return false;
     }
 
@@ -652,74 +796,52 @@ function CreateRelease() {
       return false;
     }
 
-    // Get language from localizations if available
-    const releaseLanguage = localizations.length > 0 && localizations[0].language 
-      ? localizations[0].language 
-      : "";
+    // Step-1: Create Release shell. Include LabelId (required); omit TrackIds, DistributionOption.*, Description, CoverArtUrl.
+    const formData = new FormData();
+    formData.append("Title", releaseTitle.trim());
+    formData.append("TitleVersion", titleVersion?.trim() || "");
 
-    // Get cover art URL - convert file to base64 data URL for now
-    let coverArtUrlValue = "";
-    if (coverArtwork) {
-      // Create a data URL from the file (temporary solution)
-      // In production, you'd upload to S3 first and get the URL
-      coverArtUrlValue = URL.createObjectURL(coverArtwork);
-      // Note: This is a blob URL. For production, upload file first and use the returned URL
+    formData.append("PrimaryGenre", primaryGenre);
+    formData.append("SecondaryGenre", secondaryGenre || "");
+
+    formData.append("DigitalReleaseDate", formatDateToISO(digitalReleaseDate));
+    if (originalReleaseDate) {
+      formData.append("OriginalReleaseDate", formatDateToISO(originalReleaseDate));
     }
 
-    // Prepare request body matching API schema
-    const requestBody = {
-      title: releaseTitle,
-      titleVersion: titleVersion || null, // Send null instead of empty string if not provided
-      enterpriseId: enterpriseId, // Required field
-      labelId: labelId, // Required field
-      description: "", // Not in current form
-      coverArtUrl: coverArtUrlValue || null, // Cover art URL (blob URL for now)
-      primaryGenre: primaryGenre,
-      secondaryGenre: secondaryGenre || null, // Send null instead of empty string
-      digitalReleaseDate: formatDateToISO(digitalReleaseDate),
-      originalReleaseDate : formatDateToISO(originalReleaseDate),
-      // originalReleaseDate: originalReleaseDate ? formatDateToISO(originalReleaseDate) : null, // Send null if not provided, don't fallback to digitalReleaseDate
-      hasUPC: hasUPC === "yes",
-      upcCode: hasUPC === "yes" ? upcCode : null,
-      contributors: mappedContributors.length > 0 ? mappedContributors : [],
-      // distributionOption is required - will be updated when stores are selected
-      distributionOption: {
-        distributionType: "pending", // Default value, will be updated in SelectStoresPage
-        selectedStoreIds: []
-      },
-      trackIds: [],
-      // Additional fields that might be needed
-      language: releaseLanguage || null,
-    };
+    formData.append("HasUPC", hasUPC === "yes" ? "true" : "false");
+    if (hasUPC === "yes" && upcCode?.trim()) {
+      formData.append("UPCCode", upcCode.trim());
+    }
 
-    console.log("Request body:", requestBody);
+    if (coverArtwork instanceof File) {
+      formData.append("CoverArtFile", coverArtwork);
+    }
+
+    formData.append(
+      "Contributors",
+      JSON.stringify(
+        mappedContributors.map((c) => ({
+          artistId: Number(c.artistId) || c.artistId,
+          role: c.role,
+        }))
+      )
+    );
+
+    formData.append("LabelId", String(resolvedLabelId));
 
     try {
-      // Step 1: Create the release first
-      const response = await axios.post("/api/releases", requestBody, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const data = await api.post("/api/releases", formData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("Release created:", response.data);
-      console.log("Full response:", response);
-      
-      // Extract release ID from response - check multiple possible locations
-      // API returns: { releaseId: 2042, message: "...", trackIds: null }
-      const releaseId = response.data?.releaseId || 
-                       response.data?.id || 
-                       response.data?.data?.releaseId ||
-                       response?.releaseId;
-      
-      console.log("Extracted releaseId:", releaseId);
-      console.log("response.data.releaseId:", response.data?.releaseId);
-      console.log("response.data.id:", response.data?.id);
+      console.log("Release created:", data);
+
+      // Extract release ID (api interceptor returns response.data, so data is the body)
+      const releaseId = data?.releaseId ?? data?.id ?? data?.data?.releaseId;
       
       if (!releaseId) {
-        console.error("Response data:", response.data);
-        console.error("Full response:", response);
+        console.error("Response data:", data);
         toast.error("Failed to get release ID from server response. Please try again.");
         throw new Error("Release ID not found in response");
       }
@@ -750,9 +872,7 @@ function CreateRelease() {
         upcCode: hasUPC === "yes" ? upcCode : "",
         localizations,
         contributors,
-        mainPrimaryArtist: contributors.primaryArtist && contributors.primaryArtist.length > 0 
-          ? contributors.primaryArtist[0].name 
-          : "",
+        mainPrimaryArtist: (contributors.primaryArtist || [])[0]?.artistName ?? "",
         labelName: labelName || "N/A",
       };
       
@@ -788,7 +908,7 @@ function CreateRelease() {
         originalReleaseDate,
         hasUPC,
         upcCode,
-        contributors: contributors || [],
+        contributors: contributors || {},
         hasCoverArt: coverArtwork !== null,
         coverArtDataUrl,
       };
@@ -805,52 +925,35 @@ function CreateRelease() {
       navigate("/upload-tracks", { state: releaseMetadata });
       return true;
     } catch (error) {
-      console.error("Error submitting:", error.response?.data || error.message);
-      
-      // Show more specific error message with validation details
+      const status = error.response?.status;
+      const errorData = error.response?.data;
+      console.error("Error submitting:", status, errorData || error.message);
+
       let errorMessage = "Error submitting form. Please try again.";
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        
-        // Check for validation errors
-        if (errorData.errors && typeof errorData.errors === 'object') {
-          const validationErrors = Object.entries(errorData.errors)
-            .map(([field, messages]) => {
-              const msgArray = Array.isArray(messages) ? messages : [messages];
-              return `${field}: ${msgArray.join(', ')}`;
-            })
-            .join('\n');
-          
-          errorMessage = `Validation errors:\n${validationErrors}`;
-          console.error("Validation errors:", errorData.errors);
+      if (errorData != null) {
+        if (errorData.errors && typeof errorData.errors === "object") {
+          const parts = Object.entries(errorData.errors).map(([field, messages]) => {
+            const msgArray = Array.isArray(messages) ? messages : [messages];
+            return `${field}: ${msgArray.join(", ")}`;
+          });
+          errorMessage = parts.length ? parts.join("\n") : errorMessage;
         } else {
-          errorMessage = errorData.message || 
-                        errorData.error || 
-                        errorData.title ||
-                        (typeof errorData === 'string' ? errorData : errorMessage);
+          errorMessage =
+            errorData.message ??
+            errorData.error ??
+            errorData.title ??
+            (typeof errorData === "string" ? errorData : errorMessage);
         }
-      } else if (error.message) {
-        errorMessage = `Network Error: ${error.message}`;
       }
-      
+      if (status === 400) {
+        errorMessage = `Bad request (400): ${errorMessage}`;
+      } else if (error.message && !errorData) {
+        errorMessage = `Network error: ${error.message}`;
+      }
+
       toast.dark(errorMessage, { autoClose: 7000 });
       return false;
     }
-  };
-
-  const saveContributor = () => {
-    if (!artistdropDownName) return;
-
-    const newContributor = {
-      type: "Main Primary Artist",
-      name: artistdropDownName,
-      linkedProfiles,
-    };
-
-    setContributors([...contributors, newContributor]);
-    setArtistdropDownName("");
-    setLinkedProfiles({ Spotify: "", AppleMusic: "", SoundCloud: "" });
-    setShowArtistModal(false);
   };
 
   const handleFileChange = (e) => {
@@ -863,7 +966,11 @@ function CreateRelease() {
     const img = new window.Image();
     img.src = URL.createObjectURL(file);
     img.onload = function () {
-      if (img.width === 3000 && img.height === 3000) {
+      const { width, height } = img;
+      const is1to1 = width === height;
+      const minSize = 3000;
+      const meetsMin = width >= minSize && height >= minSize;
+      if (is1to1 && meetsMin) {
         setCoverArtwork(file);
         setFileUploaded(file);
         setFileError("");
@@ -871,7 +978,11 @@ function CreateRelease() {
       } else {
         setCoverArtwork(null);
         setFileUploaded(null);
-        setFileError(`Image dimensions are ${img.width}px x ${img.height}px. Must be exactly 3000px x 3000px.`);
+        if (!is1to1) {
+          setFileError(`Image must be 1:1 aspect ratio. Current: ${width}px × ${height}px.`);
+        } else {
+          setFileError(`Cover art must be at least 3000px × 3000px. Current: ${width}px × ${height}px.`);
+        }
         setFileValid(false);
       }
       URL.revokeObjectURL(img.src);
@@ -883,6 +994,16 @@ function CreateRelease() {
       setFileValid(false);
       URL.revokeObjectURL(img.src);
     };
+  };
+
+  const clearCoverArt = () => {
+    setCoverArtwork(null);
+    setFileUploaded(null);
+    setCoverArtPreviewUrl(null);
+    setFileError("");
+    setFileValid(null);
+    const input = document.getElementById("fileInput");
+    if (input) input.value = "";
   };
 
   return (
@@ -931,24 +1052,27 @@ function CreateRelease() {
       <div className="section upload-section">
         <h3>Upload Cover Artwork</h3>
         <div className="form-grid">
-          <div className="upload-container">
+          <div className="upload-container cover-art-container">
             <div
-              className={`upload-box ${fileValid === true ? 'upload-success' : fileValid === false ? 'upload-error' : ''}`}
-              onClick={() => document.getElementById("fileInput").click()}
-              onDragOver={(e) => e.preventDefault()} // Allow dropping
+              className={`upload-box ${fileValid === true ? "upload-success" : fileValid === false ? "upload-error" : ""}`}
+              onClick={(e) => {
+                if (e.target.closest(".cover-art-remove-btn")) return;
+                if (!(fileUploaded || coverArtPreviewUrl)) document.getElementById("fileInput").click();
+              }}
+              onDragOver={(e) => e.preventDefault()}
               onDragEnter={(e) => {
                 e.preventDefault();
-                e.currentTarget.classList.add("drag-over"); // optional hover style
+                e.currentTarget.classList.add("drag-over");
               }}
               onDragLeave={(e) => {
                 e.preventDefault();
-                e.currentTarget.classList.remove("drag-over"); // remove hover style
+                e.currentTarget.classList.remove("drag-over");
               }}
               onDrop={(e) => {
                 e.preventDefault();
                 e.currentTarget.classList.remove("drag-over");
                 const file = e.dataTransfer.files[0];
-                handleFileChange({ target: { files: [file] } });
+                if (file) handleFileChange({ target: { files: [file] } });
               }}
             >
               <input
@@ -956,14 +1080,28 @@ function CreateRelease() {
                 id="fileInput"
                 style={{ display: "none" }}
                 accept="image/png, image/jpeg, image/jpg, image/jfif"
-                onChange={handleFileChange} // <-- use new handler
+                onChange={handleFileChange}
               />
               {(fileUploaded || coverArtPreviewUrl) ? (
-                <img
-                  src={coverArtPreviewUrl || (fileUploaded ? URL.createObjectURL(fileUploaded) : "")}
-                  alt="Preview"
-                  className="upload-preview"
-                />
+                <div className="cover-art-preview-wrap">
+                  <img
+                    src={coverArtPreviewUrl || (fileUploaded ? URL.createObjectURL(fileUploaded) : "")}
+                    alt="Cover preview"
+                    className="upload-preview"
+                  />
+                  <button
+                    type="button"
+                    className="cover-art-remove-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearCoverArt();
+                    }}
+                    aria-label="Remove cover art"
+                    title="Remove cover art"
+                  >
+                    ✕
+                  </button>
+                </div>
               ) : (
                 <div className="text">
                   <p>
@@ -971,24 +1109,23 @@ function CreateRelease() {
                     Drag here or click to browse a file
                   </p>
                   <p className="file-types">
-                    Supported: JPG, JPEG, PNG, JFIF (Max 10MB)
+                    Supported: JPG, JPEG, PNG, JFIF (Max 10MB). 1:1 aspect ratio, min 3000×3000px.
                   </p>
                 </div>
               )}
             </div>
-            {/* Status message below upload box */}
-            <div className={`upload-status ${fileValid === true ? 'status-success' : fileValid === false ? 'status-error' : 'status-info'}`}>
+            <div className={`upload-status ${fileValid === true ? "status-success" : fileValid === false ? "status-error" : "status-info"}`}>
               {fileValid === true ? (
                 <p className="status-text success-text">
-                  ✓ Image uploaded successfully! Dimensions: 3000px x 3000px
+                  ✓ Image uploaded. 1:1 aspect ratio, at least 3000×3000px.
                 </p>
               ) : fileValid === false ? (
                 <p className="status-text error-text">
-                  ✗ {fileError || "Image must be exactly 3000px x 3000px"}
+                  ✗ {fileError || "Cover art must be 1:1 aspect ratio and at least 3000px × 3000px."}
                 </p>
               ) : (
                 <p className="status-text info-text">
-                  Note: Image must be exactly 3000px x 3000px
+                  Note: 1:1 aspect ratio, minimum 3000px × 3000px
                 </p>
               )}
             </div>
@@ -1031,64 +1168,161 @@ function CreateRelease() {
       {/* ----------------------------------------------------------------Now---------------------------------- */}
       {/* contributors */}
 
-      <ContributorsSection 
+      <ContributorsSection
+        artistsList={artistsList}
+        loadingArtists={loadingArtists}
         contributors={contributors}
         onContributorsChange={setContributors}
+        onRefreshArtists={() => getArtists().then((list) => Array.isArray(list) && setArtistsList(list))}
+        onCreateArtist={(stageName, profileUrls = {}) => {
+          const tempId = `temp-${Date.now()}`;
+          const tempArtist = { artistId: tempId, artistName: stageName.trim() };
+          setArtistsList((prev) => [...prev, tempArtist]);
+          const payload = {
+            publicProfileName: stageName.trim(),
+            ...(profileUrls.soundCloudUrl && { soundCloudUrl: profileUrls.soundCloudUrl }),
+            ...(profileUrls.spotifyUrl && { spotifyUrl: profileUrls.spotifyUrl }),
+            ...(profileUrls.appleMusicUrl && { appleMusicUrl: profileUrls.appleMusicUrl }),
+          };
+          createArtist(payload)
+            .then((created) => {
+              const realId = created?.artistId ?? created?.artistID;
+              const realName = created?.artistName ?? created?.stageName ?? stageName.trim();
+              if (realId == null) return;
+              setArtistsList((prev) =>
+                prev.map((a) =>
+                  (a.artistId === tempId || a.artistID === tempId) ? { ...a, artistId: realId, artistName: realName } : a
+                )
+              );
+              setContributors((prev) => {
+                const next = { ...prev };
+                Object.keys(next).forEach((cat) => {
+                  next[cat] = (next[cat] || []).map((c) =>
+                    c.artistId === tempId || c.artistID === tempId
+                      ? { ...c, artistId: realId, artistName: realName }
+                      : c
+                  );
+                });
+                return next;
+              });
+              getArtists().then((list) => Array.isArray(list) && setArtistsList(list));
+            })
+            .catch(() => {
+              toast.dark("Artist will be synced shortly.", { transition: Slide });
+            });
+          return Promise.resolve(tempArtist);
+        }}
       />
 
       {/* ---------------------------------------------------------------------------------------------------------------------------------- */}
-      {/* Step 4 */}
+      {/* Step 4: Genres — custom dropdowns with max 15 visible items and scroll */}
       <div className="section">
         <h3>Genres</h3>
 
         <div className="genres-grid">
           {/* Primary Genre */}
-          <div>
+          <div className="genre-dropdown">
             <label className="label-name" htmlFor="primary-genre">
               Primary Genre <span style={{ color: "red" }}>*</span>
             </label>
             <br />
-            <select
-              className="input-field"
-              style={{ width: "100%" }}
+            <div
               id="primary-genre"
-              value={primaryGenre}
-              onChange={(e) => {
-                setPrimaryGenre(e.target.value);
-                setSecondaryGenre(""); // Reset secondary genre when main changes
+              role="combobox"
+              aria-expanded={primaryGenreOpen}
+              aria-haspopup="listbox"
+              className={`genre-dropdown-trigger ${!primaryGenre ? "" : ""}`}
+              onClick={() => {
+                setPrimaryGenreOpen((o) => !o);
+                setSecondaryGenreOpen(false);
               }}
             >
-              <option value="">Select Primary Genre</option>
-              {Object.keys(genres).map((genre) => (
-                <option key={genre} value={genre}>
-                  {genre}
-                </option>
-              ))}
-            </select>
+              <span>{primaryGenre || "Select Primary Genre"}</span>
+              <span aria-hidden>{primaryGenreOpen ? "▲" : "▼"}</span>
+            </div>
+            {primaryGenreOpen && (
+              <div className="genre-dropdown-menu" role="listbox">
+                <div
+                  role="option"
+                  aria-selected={!primaryGenre}
+                  className={`genre-dropdown-option ${!primaryGenre ? "selected" : ""}`}
+                  onClick={() => {
+                    setPrimaryGenre("");
+                    setSecondaryGenre("");
+                    setPrimaryGenreOpen(false);
+                  }}
+                >
+                  Select Primary Genre
+                </div>
+                {Object.keys(genres).map((genre) => (
+                  <div
+                    key={genre}
+                    role="option"
+                    aria-selected={primaryGenre === genre}
+                    className={`genre-dropdown-option ${primaryGenre === genre ? "selected" : ""}`}
+                    onClick={() => {
+                      setPrimaryGenre(genre);
+                      setSecondaryGenre("");
+                      setPrimaryGenreOpen(false);
+                    }}
+                  >
+                    {genre}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Secondary Genre */}
-          <div>
+          <div className="genre-dropdown">
             <label className="label-name" htmlFor="second-genre">
               Secondary Genre <span style={{ color: "red" }}>*</span>
             </label>
             <br />
-            <select
-              className="input-field"
-              style={{ width: "100%" }}
+            <div
               id="second-genre"
-              value={secondaryGenre}
-              onChange={(e) => setSecondaryGenre(e.target.value)}
-              disabled={!primaryGenre}
+              role="combobox"
+              aria-expanded={secondaryGenreOpen}
+              aria-haspopup="listbox"
+              className={`genre-dropdown-trigger ${!primaryGenre ? "disabled" : ""}`}
+              onClick={() => {
+                if (!primaryGenre) return;
+                setSecondaryGenreOpen((o) => !o);
+                setPrimaryGenreOpen(false);
+              }}
             >
-              <option value="">Select Secondary Genre</option>
-              {primaryGenre &&
-                genres[primaryGenre]?.map((sub) => (
-                  <option key={sub} value={sub}>
+              <span>{secondaryGenre || "Select Secondary Genre"}</span>
+              <span aria-hidden>{secondaryGenreOpen ? "▲" : "▼"}</span>
+            </div>
+            {secondaryGenreOpen && primaryGenre && (
+              <div className="genre-dropdown-menu" role="listbox">
+                <div
+                  role="option"
+                  aria-selected={!secondaryGenre}
+                  className={`genre-dropdown-option ${!secondaryGenre ? "selected" : ""}`}
+                  onClick={() => {
+                    setSecondaryGenre("");
+                    setSecondaryGenreOpen(false);
+                  }}
+                >
+                  Select Secondary Genre
+                </div>
+                {genres[primaryGenre]?.map((sub) => (
+                  <div
+                    key={sub}
+                    role="option"
+                    aria-selected={secondaryGenre === sub}
+                    className={`genre-dropdown-option ${secondaryGenre === sub ? "selected" : ""}`}
+                    onClick={() => {
+                      setSecondaryGenre(sub);
+                      setSecondaryGenreOpen(false);
+                    }}
+                  >
                     {sub}
-                  </option>
+                  </div>
                 ))}
-            </select>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1106,47 +1340,39 @@ function CreateRelease() {
               type="date"
               placeholder="DD/MM/YYYY"
               value={digitalReleaseDate}
+              min={getMinReleaseDate()}
               style={{ width: "300px" }}
-              onChange={(e) => setDigitalReleaseDate(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDigitalReleaseDate(v);
+                if (v) {
+                  const selected = new Date(v);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const minDate = new Date(today);
+                  minDate.setDate(today.getDate() + 2);
+                  setDigitalReleaseDateError(selected < minDate ? "Digital release date must be at least 2 days from today." : "");
+                } else {
+                  setDigitalReleaseDateError("");
+                }
+              }}
             />
+            {digitalReleaseDateError && (
+              <div style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+                {digitalReleaseDateError}
+              </div>
+            )}
           </div>
 
           <div className="date-box">
-            <label>
-              Original Release Date <span style={{ color: "red" }}>*</span>
-            </label>
+            <label>Original Release Date</label>
             <input
               type="date"
               placeholder="DD/MM/YYYY"
               value={originalReleaseDate}
-              min={getMinOriginalReleaseDate()}
               style={{ width: "300px" }}
-              onChange={(e) => {
-                const selectedDate = e.target.value;
-                if (selectedDate) {
-                  const selected = new Date(selectedDate);
-                  const today = new Date();
-                  const minDate = new Date(today);
-                  minDate.setDate(today.getDate() + 2); // Today + 2 days
-                  
-                  if (selected < minDate) {
-                    setOriginalReleaseDateError("Original Release Date must be at least 2 days from today");
-                    setOriginalReleaseDate(selectedDate); // Still set it so user can see their selection
-                  } else {
-                    setOriginalReleaseDateError("");
-                    setOriginalReleaseDate(selectedDate);
-                  }
-                } else {
-                  setOriginalReleaseDateError("");
-                  setOriginalReleaseDate(selectedDate);
-                }
-              }}
+              onChange={(e) => setOriginalReleaseDate(e.target.value)}
             />
-            {originalReleaseDateError && (
-              <div style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
-                {originalReleaseDateError}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1178,7 +1404,11 @@ function CreateRelease() {
                 type="radio"
                 name="upcOption"
                 value="no"
-                onChange={() => setHasUPC("no")}
+                onChange={() => {
+                  setHasUPC("no");
+                  setUpcCodeError("");
+                  setUpcCodeSuccess(false);
+                }}
                 checked={hasUPC === "no"}
               />
               <span>No</span>
@@ -1194,12 +1424,49 @@ function CreateRelease() {
             <input
               type="text"
               id="upcCode"
-              placeholder="Enter Your UPC Code"
+              placeholder="Enter Your UPC Code (13 digits)"
               className="input-field"
               style={{ width: "50%" }}
               value={upcCode}
-              onChange={(e) => setUpcCode(e.target.value)}
+              maxLength={13}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, 13);
+                setUpcCode(v);
+                setUpcCodeError("");
+                setUpcCodeSuccess(false);
+              }}
+              onBlur={() => {
+                if (hasUPC !== "yes") return;
+                const trimmed = upcCode.trim();
+                if (!trimmed) {
+                  setUpcCodeError("");
+                  setUpcCodeSuccess(false);
+                  return;
+                }
+                if (trimmed.length !== 13 || !/^\d{13}$/.test(trimmed)) {
+                  setUpcCodeError("Invalid UPC code. Please check the last digit.");
+                  setUpcCodeSuccess(false);
+                  return;
+                }
+                if (!validateUPC13(trimmed)) {
+                  setUpcCodeError("Invalid UPC code. Please check the last digit.");
+                  setUpcCodeSuccess(false);
+                  return;
+                }
+                setUpcCodeError("");
+                setUpcCodeSuccess(true);
+              }}
             />
+            {upcCodeError && (
+              <div style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+                {upcCodeError}
+              </div>
+            )}
+            {upcCodeSuccess && !upcCodeError && (
+              <div style={{ color: "var(--success, #22c55e)", fontSize: "12px", marginTop: "5px" }}>
+                Valid UPC code
+              </div>
+            )}
           </div>
         )}
       </div>

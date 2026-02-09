@@ -154,3 +154,10 @@
   padding: 2rem;
   text-align: center;
 }
+
+/* Empty state */
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary, #6b7280);
+}

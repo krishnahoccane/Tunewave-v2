@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from "../config/api";
 
 // const API_BASE = "/api/auth";
@@ -47,15 +46,9 @@ export const getReleases = async (params = {}) => {
   
   console.log(`[ReleasesService] GET ${url}`);
   
-  const response = await axios.get(url, {
+  const responseData = await api.get(url, {
     headers: getAuthHeaders(),
   });
-  
-  console.log(`[ReleasesService] Response status:`, response.status);
-  console.log(`[ReleasesService] Response data:`, response.data);
-  
-  // Handle different response formats
-  const responseData = response.data;
   if (Array.isArray(responseData)) {
     console.log(`[ReleasesService] Returning array of ${responseData.length} releases`);
     return responseData;
@@ -79,13 +72,10 @@ export const getReleases = async (params = {}) => {
  * @returns {Promise<Object>} Release object
  */
 export const getReleaseById = async (releaseId) => {
-  const response = await axios.get(`${API_BASE}/${releaseId}`, {
+  const responseData = await api.get(`${API_BASE}/${releaseId}`, {
     headers: getAuthHeaders(),
   });
-  
-  const responseData = response.data;
-  // Handle different response formats
-  return responseData.release || responseData;
+  return responseData?.release ?? responseData;
 };
 
 /**
@@ -94,10 +84,7 @@ export const getReleaseById = async (releaseId) => {
  * @returns {Promise<Object>} Created release object
  */
 export const createRelease = async (releaseData) => {
-  const response = await axios.post(API_BASE, releaseData, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.post(API_BASE, releaseData, { headers: getAuthHeaders() });
 };
 
 /**
@@ -107,10 +94,7 @@ export const createRelease = async (releaseData) => {
  * @returns {Promise<Object>} Updated release object
  */
 export const updateRelease = async (releaseId, releaseData) => {
-  const response = await axios.post(`${API_BASE}/${releaseId}`, releaseData, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.post(`${API_BASE}/${releaseId}`, releaseData, { headers: getAuthHeaders() });
 };
 
 /**

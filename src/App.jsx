@@ -177,6 +177,15 @@ import CatalogPage from "./pages/CatalogPage.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Transactions from "./pages/Transactions.jsx";
 import Settings from "./pages/Settings.jsx";
+import SettingsGate from "./pages/settings/SettingsGate.jsx";
+import SettingsLayout from "./pages/settings/SettingsLayout.jsx";
+import SettingsOverview from "./pages/settings/SettingsOverview.jsx";
+import SettingsProfile from "./pages/settings/SettingsProfile.jsx";
+import SettingsPassword from "./pages/settings/SettingsPassword.jsx";
+import SettingsBranding from "./pages/settings/SettingsBranding.jsx";
+import SettingsCredentialsOverview from "./pages/settings/SettingsCredentialsOverview.jsx";
+import SettingsCredentialsWhatsApp from "./pages/settings/SettingsCredentialsWhatsApp.jsx";
+import SettingsCredentialsSMTP from "./pages/settings/SettingsCredentialsSMTP.jsx";
 import Wallet from "./pages/Wallet.jsx";
 import CreateRelease from "./pages/CreateRelease.jsx";
 import ReleasesTab from "./components/ReleasesTab.jsx";
@@ -192,10 +201,12 @@ import TicketRaisePage from "./pages/TicketRaisePage.jsx";
 import SelectStoresPage from "./pages/SelectStoresPage.jsx";
 import QCDetailPage from "./pages/QCDetailPage.jsx";
 import { useRole } from "./context/RoleContext";
+import { useDocumentTitle } from "./hooks/useDocumentTitle.js";
 // change name later
 import "./styles/styled.css";
 import EnterpriseCatalogPage from "./pages/EnterpriseCatalogPage.jsx";
 import CreateEnterprise from "./pages/CreateEnterprise.jsx";
+import EditEnterprise from "./pages/EditEnterprise.jsx";
 import CreateLabel from "./pages/CreateLabel.jsx";
 import CreateArtist from "./pages/CreateArtist.jsx";
 import { toast } from "react-toastify";
@@ -239,15 +250,22 @@ function CreateReleaseProtected() {
 function App() {
   const { role } = useRole();
   const location = useLocation(); // ✅ React Router location
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
-  );
+  
+  // Update document title based on branding
+  useDocumentTitle();
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Guard against SSR/build-time execution
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem("isLoggedIn") === "true";
+  });
 
   // Logout handler
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("jwtToken");
     localStorage.removeItem("displayName");
+    localStorage.removeItem("userFullName"); // Clear stored fullName on logout
     localStorage.removeItem("role");
     // Dispatch custom event to notify RoleContext of role change
     window.dispatchEvent(new Event("roleChanged"));
@@ -256,6 +274,9 @@ function App() {
 
   // 🔐 Token expiry check
   useEffect(() => {
+    // Guard against SSR/build-time execution
+    if (typeof window === 'undefined') return;
+    
     const token = localStorage.getItem("jwtToken");
     if (token) {
       try {
@@ -314,8 +335,18 @@ function App() {
         />
         <Route
           path="/settings"
-          element={isLoggedIn ? <Settings /> : <Navigate to="/login" />}
-        />
+          element={isLoggedIn ? <SettingsGate /> : <Navigate to="/login" />}
+        >
+          <Route element={<SettingsLayout />}>
+            <Route index element={<SettingsOverview />} />
+            <Route path="profile" element={<SettingsProfile />} />
+            <Route path="password" element={<SettingsPassword />} />
+            <Route path="branding" element={<SettingsBranding />} />
+            <Route path="credentials" element={<SettingsCredentialsOverview />} />
+            <Route path="credentials/whatsapp" element={<SettingsCredentialsWhatsApp />} />
+            <Route path="credentials/smtp" element={<SettingsCredentialsSMTP />} />
+          </Route>
+        </Route>
         <Route
           path="/create-release"
           element={isLoggedIn ? <CreateReleaseProtected /> : <Navigate to="/login" />}
@@ -379,6 +410,12 @@ function App() {
           path="/enterprise-catalog/create-enterprise"
           element={
             isLoggedIn ? <CreateEnterprise /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/enterprise-catalog/edit-enterprise/:enterpriseId"
+          element={
+            isLoggedIn ? <EditEnterprise /> : <Navigate to="/login" />
           }
         />
         <Route

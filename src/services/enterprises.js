@@ -73,15 +73,41 @@ export const getEnterprises = async (params = {}) => {
  * @returns {Promise<Object>} Enterprise object
  */
 export const getEnterpriseById = async (enterpriseId) => {
-  const response = await axios.get(`${API_BASE}/${enterpriseId}`, {
+  const url = `${API_BASE}/${enterpriseId}`;
+  console.log("[EnterprisesService] getEnterpriseById called with ID:", enterpriseId);
+  console.log("[EnterprisesService] API_BASE:", API_BASE);
+  console.log("[EnterprisesService] Relative URL:", url);
+  console.log("[EnterprisesService] Axios instance baseURL:", axios.defaults?.baseURL || "not set");
+  
+  // Ensure baseURL is explicitly set in the request config as a fallback
+  const requestConfig = {
     headers: getAuthHeaders(),
-  });
+  };
+  
+  // If axios instance has a baseURL, ensure it's used
+  if (axios.defaults?.baseURL && axios.defaults.baseURL.trim() !== "") {
+    requestConfig.baseURL = axios.defaults.baseURL;
+    console.log("[EnterprisesService] Explicitly setting baseURL in request:", requestConfig.baseURL);
+  }
+  
+  const response = await axios.get(url, requestConfig);
+  
+  console.log("[EnterprisesService] getEnterpriseById response received");
+  console.log("[EnterprisesService] ===== RAW RESPONSE FROM SERVICE =====");
+  console.log("[EnterprisesService] Response type:", typeof response);
+  console.log("[EnterprisesService] Response:", response);
+  console.log("[EnterprisesService] Response keys:", Object.keys(response || {}));
+  console.log("[EnterprisesService] Response JSON:", JSON.stringify(response, null, 2));
+  console.log("[EnterprisesService] AudioMasterCode in response:", response?.AudioMasterCode, response?.audioMasterCode);
+  console.log("[EnterprisesService] VideoMasterCode in response:", response?.VideoMasterCode, response?.videoMasterCode);
+  console.log("[EnterprisesService] HasIsrcMasterCode in response:", response?.HasIsrcMasterCode, response?.hasIsrcMasterCode);
+  
   return response;  // axios instance returns unwrapped response data
 };
 
 /**
  * Create a new enterprise
- * @param {Object} data - Enterprise data
+ * @param {Object|FormData} data - Enterprise data (can be FormData for file uploads)
  * @param {string} data.enterpriseName - Enterprise name (required)
  * @param {string} data.domain - Domain (optional)
  * @param {number} data.revenueSharePercent - Revenue share percentage 0-100 (optional)
@@ -89,23 +115,50 @@ export const getEnterpriseById = async (enterpriseId) => {
  * @param {string} data.ownerEmail - Owner email (optional)
  * @param {string} data.agreementStartDate - Agreement start date ISO string (optional)
  * @param {string} data.agreementEndDate - Agreement end date ISO string (optional)
+ * @param {boolean} data.HasIsrcMasterCode - Has ISRC Master Code flag (optional)
+ * @param {string} data.AudioMasterCode - Audio Master Code (optional, format: XX-XXX)
+ * @param {string} data.VideoMasterCode - Video Master Code (optional, format: XX-XXX)
+ * @param {File} data.IsrcCertificateFile - ISRC Certificate File (PDF) (optional)
  * @returns {Promise<Object>} Created enterprise object
  */
-export const createEnterprise = async (data) => {
-  // Map common field names to API expected names
-  const requestData = {
-    enterpriseName: data.enterpriseName,
-    domain: data.domain || null,
-    revenueSharePercent: data.revenueSharePercent ?? data.revenueShare ?? null,
-    qcRequired: data.qcRequired ?? false,
-    ownerEmail: data.ownerEmail ?? data.email ?? null,
-    agreementStartDate: data.agreementStartDate || null,
-    agreementEndDate: data.agreementEndDate || null,
-  };
+/**
+ * Create a new enterprise
+ * Always uses multipart/form-data to match backend contract (Swagger/Postman)
+ * @param {FormData} formData - FormData object with enterprise fields
+ * @returns {Promise<Object>} Created enterprise object
+ */
+export const createEnterprise = async (formData) => {
+  const token = localStorage.getItem("jwtToken");
   
-  const response = await axios.post(API_BASE, requestData, {
-    headers: getAuthHeaders(),
+  if (!token) {
+    throw new Error("Authentication token not found");
+  }
+  
+  // Always expect FormData (multipart/form-data) to match backend contract
+  if (!(formData instanceof FormData)) {
+    console.warn("[EnterprisesService] createEnterprise: Expected FormData but received:", typeof formData);
+    throw new Error("createEnterprise expects FormData object");
+  }
+  
+  console.log("[EnterprisesService] createEnterprise: Using FormData (multipart/form-data)");
+  console.log("[EnterprisesService] FormData entries:", 
+    Array.from(formData.entries()).map(([key, value]) => [
+      key, 
+      value instanceof File ? `File: ${value.name} (${value.size} bytes, ${value.type})` : value
+    ])
+  );
+  
+  // Use multipart/form-data
+  // DO NOT set Content-Type manually - let browser/axios set it with boundary
+  // The interceptor will remove any default Content-Type header
+  const response = await axios.post(API_BASE, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // Explicitly do NOT set Content-Type - let browser set it with boundary
+    },
   });
+  
+  console.log("[EnterprisesService] createEnterprise: FormData request successful");
   return response;  // axios instance returns unwrapped response data
 };
 
@@ -113,9 +166,10 @@ export const createEnterprise = async (data) => {
  * Update an existing enterprise
  * @param {number} enterpriseId - Enterprise ID
  * @param {Object} data - Update data
+ * @param {string} data.ownerEmail - Owner email (optional, note: changing email transfers admin account)
  * @param {string} data.domain - Domain (optional)
- * @param {number} data.revenueSharePercent - Revenue share percentage 0-100 (optional)
- * @param {boolean} data.qcRequired - QC required flag (optional)
+ * @param {number} data.revenueSharePercent - Revenue share percentage 0-100 (optional, note: updates from 3rd month)
+ * @param {boolean} data.qcRequired - QC required flag (optional, note: changing affects pending QCs)
  * @param {string} data.agreementStartDate - Agreement start date ISO string (optional)
  * @param {string} data.agreementEndDate - Agreement end date ISO string (optional)
  * @returns {Promise<Object>} Updated enterprise object

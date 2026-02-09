@@ -8,8 +8,7 @@ export default defineConfig({
       "/api": {
         target: "https://spacestation.tunewave.in",
         changeOrigin: true,
-        secure: false,
-        // Keep the /api prefix, just proxy it
+        secure: true,
       },
       "/main": {
         target: "https://spacestation.tunewave.in",

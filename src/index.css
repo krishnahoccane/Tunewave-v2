@@ -1,3 +1,12 @@
+/* Branding CSS Variables - Applied dynamically by BrandingContext */
+:root {
+  --brand-primary: #1278bb;
+  --brand-secondary: #1a9cd8;
+  --brand-header: #ffffff;
+  --brand-sidebar: #f5f5f5;
+  --brand-footer: #2c3e50;
+}
+
 * {
   margin: 0;
   padding: 0;

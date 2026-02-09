@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
 import { useRole } from "../../context/RoleContext";
+import * as LabelsService from "../../services/labels";
 
 import DataTable from "../DataTable";
 import GridView from "../GridView";
@@ -58,38 +58,52 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
 
       try {
         // Build query parameters for filters
-        const params = new URLSearchParams();
+        const params = {};
         
         // Add status filter if selected (using API status values)
         if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-labels") {
           if (selectedFilter.toLowerCase() === "active-labels") {
-            params.append("status", "active");
+            params.status = "active";
           } else if (selectedFilter.toLowerCase() === "suspended-labels") {
-            params.append("status", "suspend");
+            params.status = "suspend";
           } else if (selectedFilter.toLowerCase() === "disabled-labels") {
-            params.append("status", "disable");
+            params.status = "disable";
           }
         }
         
         // Add search filter if provided
         if (searchItem?.trim()) {
-          params.append("search", searchItem.trim());
+          params.search = searchItem.trim();
         }
 
-        const url = `/api/labels${params.toString() ? `?${params.toString()}` : ""}`;
+        const responseData = await LabelsService.getLabels(params);
         
-        const response = await axios.get(url, {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
+        // Debug logging
+        console.log("[Labels] API Response:", responseData);
+        console.log("[Labels] Response type:", typeof responseData);
+        console.log("[Labels] Is array:", Array.isArray(responseData));
 
-        // Handle new API response structure: { total: number, labels: array }
-        const responseData = response.data || {};
-        const labelsArray = responseData.labels || response.data || [];
-        
-        if (Array.isArray(labelsArray)) {
+      // Handle different response formats
+      // API might return: array directly, or object with data/labels/items property
+      let labelsArray = null;
+      
+      try {
+        if (Array.isArray(responseData)) {
+          labelsArray = responseData;
+        } else if (responseData && typeof responseData === 'object') {
+          // Try common property names
+          labelsArray = responseData.labels || 
+                       responseData.data || 
+                       responseData.items || 
+                       responseData.results ||
+                       null;
+        }
+      } catch (error) {
+        console.error("[Labels] Error parsing API response:", error, responseData);
+        labelsArray = null;
+      }
+
+      if (labelsArray && Array.isArray(labelsArray) && labelsArray.length > 0) {
           // Map API status to display format
           const statusDisplayMap = {
             "active": "Active",
@@ -102,103 +116,145 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
             "Pending Domain Verification": "Pending Domain Verification",
           };
           
-          // Map API response to component format
-          const mappedData = labelsArray.map((label) => {
-            const apiStatus = label.status || "active";
-            const displayStatus = statusDisplayMap[apiStatus] || apiStatus || "Active";
-            
-            // Display Enterprise Name if available, otherwise Enterprise ID
-            let enterpriseDisplay = "";
-            if (label.enterprise?.enterpriseName) {
-              enterpriseDisplay = label.enterprise.enterpriseName;
-            } else if (label.enterpriseId) {
-              enterpriseDisplay = `ENT-${String(label.enterpriseId).padStart(3, '0')}`;
-            } else if (label.enterprise?.enterpriseId) {
-              enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
+          // Map API response to component format with defensive checks
+          const formatDate = (dateString) => {
+            if (!dateString) return "";
+            try {
+              const date = new Date(dateString);
+              if (isNaN(date.getTime())) return "";
+              return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch {
+              return "";
             }
-            
-            // Format dates
-            const formatDate = (dateString) => {
-              if (!dateString) return "";
-              try {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-              } catch {
-                return dateString;
-              }
-            };
-            
-            return {
-              id: label.labelId || 0,
-              labelId: label.labelId || 0,
-              labelid: `LAB-${String(label.labelId || 0).padStart(3, '0')}`,
-              labelName: label.labelName || "",
-              label: label.labelName || "",
-              domain: label.domain || "",
-              enterpriseId: label.enterpriseId || 0,
-              enterprise: enterpriseDisplay,
-              planTypeId: label.planTypeId || 0,
-              planType: label.planType || label.planTypeId || "",
-              revenueSharePercent: label.revenueSharePercent ?? label.revenueShare ?? 0,
-              revenueShare: label.revenueSharePercent || label.revenueShare ? `${label.revenueSharePercent || label.revenueShare}%` : "",
-              qcRequired: label.qcRequired ? "Required" : "Not required",
-              agreementStartDate: label.agreementStartDate || "",
-              agreementEndDate: label.agreementEndDate || "",
-              agreementStartDateFormatted: formatDate(label.agreementStartDate),
-              agreementEndDateFormatted: formatDate(label.agreementEndDate),
-              status: displayStatus,
-              createdAt: label.createdAt || "",
-              createdAtFormatted: formatDate(label.createdAt),
-            };
-          });
+          };
           
-          setLabelsData(mappedData);
+          const mappedData = labelsArray
+            .filter((label) => label != null) // Filter out null/undefined labels
+            .map((label) => {
+              try {
+                const apiStatus = label?.status || "active";
+                const displayStatus = statusDisplayMap[apiStatus] || apiStatus || "Active";
+                
+                // Display Enterprise Name if available, otherwise Enterprise ID
+                let enterpriseDisplay = "";
+                try {
+                  if (label?.enterprise?.enterpriseName) {
+                    enterpriseDisplay = String(label.enterprise.enterpriseName);
+                  } else if (label?.enterpriseId) {
+                    enterpriseDisplay = `ENT-${String(label.enterpriseId).padStart(3, '0')}`;
+                  } else if (label?.enterprise?.enterpriseId) {
+                    enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
+                  }
+                } catch (error) {
+                  console.warn("[Labels] Error processing enterprise display:", error, label);
+                  enterpriseDisplay = "";
+                }
+                
+                const labelId = label?.labelId || 0;
+                const labelName = String(label?.labelName || "");
+                
+                return {
+                  id: labelId,
+                  labelId: labelId,
+                  labelid: `LAB-${String(labelId).padStart(3, '0')}`,
+                  labelName: labelName,
+                  label: labelName,
+                  domain: String(label?.domain || ""),
+                  enterpriseId: label?.enterpriseId || 0,
+                  enterprise: enterpriseDisplay,
+                  planTypeId: label?.planTypeId || 0,
+                  planType: String(label?.planType || label?.planTypeId || ""),
+                  revenueSharePercent: label?.revenueSharePercent ?? label?.revenueShare ?? 0,
+                  revenueShare: (label?.revenueSharePercent || label?.revenueShare) ? `${label?.revenueSharePercent || label?.revenueShare}%` : "",
+                  qcRequired: label?.qcRequired ? "Required" : "Not required",
+                  agreementStartDate: String(label?.agreementStartDate || ""),
+                  agreementEndDate: String(label?.agreementEndDate || ""),
+                  agreementStartDateFormatted: formatDate(label?.agreementStartDate),
+                  agreementEndDateFormatted: formatDate(label?.agreementEndDate),
+                  status: displayStatus,
+                  createdAt: String(label?.createdAt || ""),
+                  createdAtFormatted: formatDate(label?.createdAt),
+                };
+              } catch (error) {
+                console.error("[Labels] Error mapping label:", error, label);
+                // Return a safe default object
+                return {
+                  id: 0,
+                  labelId: 0,
+                  labelid: "LAB-000",
+                  labelName: "",
+                  label: "",
+                  domain: "",
+                  enterpriseId: 0,
+                  enterprise: "",
+                  planTypeId: 0,
+                  planType: "",
+                  revenueSharePercent: 0,
+                  revenueShare: "",
+                  qcRequired: "Not required",
+                  agreementStartDate: "",
+                  agreementEndDate: "",
+                  agreementStartDateFormatted: "",
+                  agreementEndDateFormatted: "",
+                  status: "Active",
+                  createdAt: "",
+                  createdAtFormatted: "",
+                };
+              }
+            });
+          
+          setLabelsData(Array.isArray(mappedData) ? mappedData : []);
         } else {
-          console.warn("Unexpected API response format:", response.data);
-          setLabelsData([]);
+          // Handle empty array or null response gracefully
+          if (labelsArray && Array.isArray(labelsArray) && labelsArray.length === 0) {
+            console.log("[Labels] API returned empty array - no labels found");
+            setLabelsData([]);
+          } else {
+            console.warn("[Labels] Unexpected API response format:", responseData);
+            console.warn("[Labels] Labels array:", labelsArray);
+            setLabelsData([]);
+          }
         }
       } catch (error) {
-        // Only log error details in development
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Error fetching labels:", error);
+        // Log error details for debugging
+        console.error("Error fetching labels:", error);
+        console.error("Error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          url: error.config?.url,
+          request: error.request,
+        });
+        
+        const status = error.response?.status || error.status;
+        const errorData = error.response?.data || error.data || {};
+        
+        let errorMessage = "Failed to fetch labels.";
+        
+        if (status === 404) {
+          errorMessage = "Labels endpoint not found. Please contact support.";
+        } else if (status === 401 || status === 403) {
+          errorMessage = "Unauthorized. Please login again.";
+          setTimeout(() => {
+            localStorage.removeItem("jwtToken");
+            navigate("/login");
+          }, 2000);
+        } else if (status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        } else if (error.request && !error.response) {
+          errorMessage = "Network error: Unable to reach the server. Please check your connection.";
+        } else {
+          errorMessage = errorData?.message || 
+                        errorData?.error || 
+                        errorData?.title ||
+                        error.message || 
+                        `Failed to fetch labels (${status || "Unknown"})`;
         }
         
-        if (error.response) {
-          const status = error.response.status;
-          const errorData = error.response.data;
-          
-          let errorMessage = "Failed to fetch labels.";
-          
-          if (status === 404) {
-            errorMessage = "Labels endpoint not found. Please contact support.";
-          } else if (status === 401 || status === 403) {
-            errorMessage = "Unauthorized. Please login again.";
-            setTimeout(() => {
-              localStorage.removeItem("jwtToken");
-              navigate("/login");
-            }, 2000);
-          } else if (status >= 500) {
-            errorMessage = "Server error. Please try again later.";
-          } else {
-            errorMessage = errorData?.message || 
-                          errorData?.error || 
-                          error.response.statusText || 
-                          `Failed to fetch labels (${status})`;
-          }
-          
-          toast.dark(errorMessage, {
-            transition: Slide,
-            autoClose: status === 404 || status >= 500 ? 5000 : 3000,
-          });
-        } else if (error.request) {
-          toast.dark("Network error: Unable to reach the server. Please check your connection.", {
-            transition: Slide,
-          });
-        } else {
-          toast.dark(`Error: ${error.message || "Failed to fetch labels. Please try again."}`, {
-            transition: Slide,
-          });
-        }
+        toast.dark(errorMessage, {
+          transition: Slide,
+          autoClose: status === 404 || status >= 500 ? 5000 : 3000,
+        });
         setLabelsData([]);
       } finally {
         setLoading(false);
@@ -209,62 +265,104 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
   }, [selectedFilter, searchItem, location.key, navigate]);
 
   useEffect(() => {
-    let filtered = labelsData;
+    try {
+      // Ensure labelsData is an array
+      let filtered = Array.isArray(labelsData) ? labelsData : [];
 
-    // Apply client-side status filter as fallback
-    const currentFilter = selectedFilter?.toLowerCase() || "";
-    if (currentFilter && currentFilter !== "all" && currentFilter !== "all-labels") {
-      const statusFilterMap = {
-        "active-labels": "Active",
-        "suspended-labels": "Suspended",
-        "disabled-labels": "Disabled",
-      };
-      const targetStatus = statusFilterMap[currentFilter];
-      if (targetStatus) {
-        filtered = filtered.filter((item) => item.status === targetStatus);
+      // Apply client-side status filter as fallback
+      const currentFilter = selectedFilter?.toLowerCase() || "";
+      if (currentFilter && currentFilter !== "all" && currentFilter !== "all-labels") {
+        const statusFilterMap = {
+          "active-labels": "Active",
+          "suspended-labels": "Suspended",
+          "disabled-labels": "Disabled",
+        };
+        const targetStatus = statusFilterMap[currentFilter];
+        if (targetStatus) {
+          filtered = filtered.filter((item) => {
+            try {
+              return item && item.status === targetStatus;
+            } catch (error) {
+              console.warn("[Labels] Error filtering by status:", error, item);
+              return false;
+            }
+          });
+        }
       }
-    }
 
     // Apply client-side search filter if API doesn't handle it
     if (searchItem?.trim() && !searchItem.includes("?")) {
-      filtered = filtered.filter((item) =>
-        item.label.toLowerCase().includes(searchItem.toLowerCase()) ||
-        item.labelid.toLowerCase().includes(searchItem.toLowerCase()) ||
-        (item.domain && item.domain.toLowerCase().includes(searchItem.toLowerCase())) ||
-        (item.enterprise && item.enterprise.toLowerCase().includes(searchItem.toLowerCase()))
-      );
+      const searchTerm = searchItem.toLowerCase();
+      filtered = filtered.filter((item) => {
+        if (!item) return false;
+        try {
+          return (
+            (item.label && String(item.label).toLowerCase().includes(searchTerm)) ||
+            (item.labelid && String(item.labelid).toLowerCase().includes(searchTerm)) ||
+            (item.labelName && String(item.labelName).toLowerCase().includes(searchTerm)) ||
+            (item.domain && String(item.domain).toLowerCase().includes(searchTerm)) ||
+            (item.enterprise && String(item.enterprise).toLowerCase().includes(searchTerm))
+          );
+        } catch (error) {
+          console.warn("[Labels] Error filtering item:", error, item);
+          return false;
+        }
+      });
     }
 
-    setFilteredData(filtered);
-    setTable(filtered);
+    setFilteredData(filtered || []);
+    // Safely call setTable if it's a function
+    if (typeof setTable === 'function') {
+      try {
+        setTable(filtered || []);
+      } catch (error) {
+        console.warn("[Labels] Error calling setTable:", error);
+      }
+    }
 
-    // Toast + redirect if no results (only show once per filter)
-    if (
-      !loading &&
-      filtered.length === 0 &&
-      selectedFilter &&
-      currentFilter !== "all" &&
-      currentFilter !== "all-labels" &&
-      !toastShownRef.current
-    ) {
-      toastShownRef.current = true;
-      
-      // Map filter IDs to display labels
-      const filterLabelMap = {
-        "active-labels": "Active Labels",
-        "suspended-labels": "Suspended Labels",
-        "disabled-labels": "Disabled Labels",
-      };
-      const displayLabel = filterLabelMap[currentFilter] || selectedFilter;
-      
-      toast.dark(`No records found under "${displayLabel}"`, {
-        autoClose: 2500,
-        transition: Slide,
-      });
+      // Toast + redirect if no results (only show once per filter)
+      if (
+        !loading &&
+        filtered.length === 0 &&
+        selectedFilter &&
+        currentFilter !== "all" &&
+        currentFilter !== "all-labels" &&
+        !toastShownRef.current
+      ) {
+        toastShownRef.current = true;
+        
+        // Map filter IDs to display labels
+        const filterLabelMap = {
+          "active-labels": "Active Labels",
+          "suspended-labels": "Suspended Labels",
+          "disabled-labels": "Disabled Labels",
+        };
+        const displayLabel = filterLabelMap[currentFilter] || selectedFilter;
+        
+        toast.dark(`No records found under "${displayLabel}"`, {
+          autoClose: 2500,
+          transition: Slide,
+        });
 
-      setTimeout(() => {
-        navigate("/enterprise-catalog?tab=labels&section=all-labels");
-      }, 2600);
+        setTimeout(() => {
+          try {
+            navigate("/enterprise-catalog?tab=labels&section=all-labels");
+          } catch (error) {
+            console.warn("[Labels] Error navigating:", error);
+          }
+        }, 2600);
+      }
+    } catch (error) {
+      console.error("[Labels] Error in filter useEffect:", error);
+      // Set safe defaults on error
+      setFilteredData([]);
+      if (typeof setTable === 'function') {
+        try {
+          setTable([]);
+        } catch (setTableError) {
+          console.warn("[Labels] Error calling setTable in error handler:", setTableError);
+        }
+      }
     }
   }, [searchItem, selectedFilter, labelsData, setTable, navigate, loading]);
 
@@ -281,23 +379,12 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     const apiStatus = statusMap[newDisplayStatus] || "active";
 
     setUpdatingStatus(labelId);
-    const token = localStorage.getItem("jwtToken");
 
     try {
-      const response = await axios.post(
-        `/api/labels/${labelId}/status`,
-        { status: apiStatus },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        }
-      );
+      const responseData = await LabelsService.changeLabelStatus(labelId, apiStatus);
 
       // Handle response - API might return empty body or different structure
-      const responseData = response.data || {};
-      const isSuccess = response.status >= 200 && response.status < 300;
+      const isSuccess = responseData !== undefined;
       
       if (isSuccess) {
         // Map API status back to display format if provided
@@ -332,29 +419,35 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
         setTimeout(() => {
           const fetchLabels = async () => {
             try {
-              const params = new URLSearchParams();
+              const params = {};
               if (selectedFilter && selectedFilter.toLowerCase() !== "all" && selectedFilter.toLowerCase() !== "all-labels") {
                 if (selectedFilter.toLowerCase() === "active-labels") {
-                  params.append("status", "active");
+                  params.status = "active";
                 } else if (selectedFilter.toLowerCase() === "suspended-labels") {
-                  params.append("status", "suspend");
+                  params.status = "suspend";
                 } else if (selectedFilter.toLowerCase() === "disabled-labels") {
-                  params.append("status", "disable");
+                  params.status = "disable";
                 }
               }
               if (searchItem?.trim()) {
-                params.append("search", searchItem.trim());
+                params.search = searchItem.trim();
               }
-              const url = `/api/labels${params.toString() ? `?${params.toString()}` : ""}`;
-              const res = await axios.get(url, {
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}`,
-                },
-              });
-              const responseData = res.data || {};
-              const labelsArray = responseData.labels || res.data || [];
-              if (Array.isArray(labelsArray)) {
+              const responseData = await LabelsService.getLabels(params);
+              
+              // Handle different response formats
+              let labelsArray = null;
+              
+              if (Array.isArray(responseData)) {
+                labelsArray = responseData;
+              } else if (responseData && typeof responseData === 'object') {
+                labelsArray = responseData.labels || 
+                             responseData.data || 
+                             responseData.items || 
+                             responseData.results ||
+                             (Array.isArray(responseData) ? responseData : null);
+              }
+
+              if (labelsArray && Array.isArray(labelsArray)) {
                 const statusDisplayMap = {
                   "active": "Active",
                   "suspend": "Suspended",
@@ -366,58 +459,98 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
                   "Pending Domain Verification": "Pending Domain Verification",
                 };
                 
-                const mappedData = labelsArray.map((label) => {
-                  const apiStatus = label.status || "active";
-                  const displayStatus = statusDisplayMap[apiStatus] || apiStatus || "Active";
-                  
-                  // Display Enterprise Name if available, otherwise Enterprise ID
-                  let enterpriseDisplay = "";
-                  if (label.enterprise?.enterpriseName) {
-                    enterpriseDisplay = label.enterprise.enterpriseName;
-                  } else if (label.enterpriseId) {
-                    enterpriseDisplay = `ENT-${String(label.enterpriseId).padStart(3, '0')}`;
-                  } else if (label.enterprise?.enterpriseId) {
-                    enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
+                const formatDateRefetch = (dateString) => {
+                  if (!dateString) return "";
+                  try {
+                    const date = new Date(dateString);
+                    if (isNaN(date.getTime())) return "";
+                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                  } catch {
+                    return "";
                   }
-                  
-                  // Format dates
-                  const formatDate = (dateString) => {
-                    if (!dateString) return "";
+                };
+                
+                const mappedData = labelsArray
+                  .filter((label) => label != null)
+                  .map((label) => {
                     try {
-                      const date = new Date(dateString);
-                      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-                    } catch {
-                      return dateString;
+                      const apiStatus = label?.status || "active";
+                      const displayStatus = statusDisplayMap[apiStatus] || apiStatus || "Active";
+                      
+                      // Display Enterprise Name if available, otherwise Enterprise ID
+                      let enterpriseDisplay = "";
+                      try {
+                        if (label?.enterprise?.enterpriseName) {
+                          enterpriseDisplay = String(label.enterprise.enterpriseName);
+                        } else if (label?.enterpriseId) {
+                          enterpriseDisplay = `ENT-${String(label.enterpriseId).padStart(3, '0')}`;
+                        } else if (label?.enterprise?.enterpriseId) {
+                          enterpriseDisplay = `ENT-${String(label.enterprise.enterpriseId).padStart(3, '0')}`;
+                        }
+                      } catch (error) {
+                        console.warn("[Labels] Error processing enterprise display in refetch:", error, label);
+                        enterpriseDisplay = "";
+                      }
+                      
+                      const labelId = label?.labelId || 0;
+                      const labelName = String(label?.labelName || "");
+                      
+                      return {
+                        id: labelId,
+                        labelId: labelId,
+                        labelid: `LAB-${String(labelId).padStart(3, '0')}`,
+                        labelName: labelName,
+                        label: labelName,
+                        domain: String(label?.domain || ""),
+                        enterpriseId: label?.enterpriseId || 0,
+                        enterprise: enterpriseDisplay,
+                        planTypeId: label?.planTypeId || 0,
+                        planType: String(label?.planType || label?.planTypeId || ""),
+                        revenueSharePercent: label?.revenueSharePercent ?? label?.revenueShare ?? 0,
+                        revenueShare: (label?.revenueSharePercent || label?.revenueShare) ? `${label?.revenueSharePercent || label?.revenueShare}%` : "",
+                        qcRequired: label?.qcRequired ? "Required" : "Not required",
+                        agreementStartDate: String(label?.agreementStartDate || ""),
+                        agreementEndDate: String(label?.agreementEndDate || ""),
+                        agreementStartDateFormatted: formatDateRefetch(label?.agreementStartDate),
+                        agreementEndDateFormatted: formatDateRefetch(label?.agreementEndDate),
+                        status: displayStatus,
+                        createdAt: String(label?.createdAt || ""),
+                        createdAtFormatted: formatDateRefetch(label?.createdAt),
+                      };
+                    } catch (error) {
+                      console.error("[Labels] Error mapping label in refetch:", error, label);
+                      return {
+                        id: 0,
+                        labelId: 0,
+                        labelid: "LAB-000",
+                        labelName: "",
+                        label: "",
+                        domain: "",
+                        enterpriseId: 0,
+                        enterprise: "",
+                        planTypeId: 0,
+                        planType: "",
+                        revenueSharePercent: 0,
+                        revenueShare: "",
+                        qcRequired: "Not required",
+                        agreementStartDate: "",
+                        agreementEndDate: "",
+                        agreementStartDateFormatted: "",
+                        agreementEndDateFormatted: "",
+                        status: "Active",
+                        createdAt: "",
+                        createdAtFormatted: "",
+                      };
                     }
-                  };
-                  
-                  return {
-                    id: label.labelId || 0,
-                    labelId: label.labelId || 0,
-                    labelid: `LAB-${String(label.labelId || 0).padStart(3, '0')}`,
-                    labelName: label.labelName || "",
-                    label: label.labelName || "",
-                    domain: label.domain || "",
-                    enterpriseId: label.enterpriseId || 0,
-                    enterprise: enterpriseDisplay,
-                    planTypeId: label.planTypeId || 0,
-                    planType: label.planType || label.planTypeId || "",
-                    revenueSharePercent: label.revenueSharePercent ?? label.revenueShare ?? 0,
-                    revenueShare: label.revenueSharePercent || label.revenueShare ? `${label.revenueSharePercent || label.revenueShare}%` : "",
-                    qcRequired: label.qcRequired ? "Required" : "Not required",
-                    agreementStartDate: label.agreementStartDate || "",
-                    agreementEndDate: label.agreementEndDate || "",
-                    agreementStartDateFormatted: formatDate(label.agreementStartDate),
-                    agreementEndDateFormatted: formatDate(label.agreementEndDate),
-                    status: displayStatus,
-                    createdAt: label.createdAt || "",
-                    createdAtFormatted: formatDate(label.createdAt),
-                  };
-                });
-                setLabelsData(mappedData);
+                  });
+                setLabelsData(Array.isArray(mappedData) ? mappedData : []);
+              } else {
+                console.warn("[Labels] Refetch: Unexpected response format or empty array");
+                setLabelsData([]);
               }
             } catch (error) {
               console.error("Error refetching labels:", error);
+              setLabelsData([]);
             }
           };
           fetchLabels();
@@ -425,14 +558,11 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      if (error.response) {
-        toast.dark(
-          error.response.data?.message || `Failed to update status: ${error.response.statusText}`,
-          { transition: Slide }
-        );
-      } else {
-        toast.dark("Network error. Please try again.", { transition: Slide });
-      }
+      const errorData = error.response?.data || error.data || {};
+      const errorMessage = errorData?.message || 
+                          error.message || 
+                          `Failed to update status: ${error.response?.statusText || "Unknown error"}`;
+      toast.dark(errorMessage, { transition: Slide });
     } finally {
       setUpdatingStatus(null);
     }
@@ -462,7 +592,7 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
         const currentStatus = item.status || "Active";
         const pillClass = getStatusPillClass(currentStatus);
         
-        if (actualRole === "SuperAdmin" || actualRole === "EnterpriseAdmin") {
+        if (actualRole && (actualRole === "SuperAdmin" || actualRole === "EnterpriseAdmin")) {
           const statusOptions = ["Active", "Suspended", "Disabled"];
           const isOpen = openStatusDropdown === item.id;
           
@@ -552,20 +682,37 @@ function Labels({ searchItem, showMode, setTable, onSelectionChange, selectedFil
     );
   }
 
-  return (
-    <div className="tab-content">
-      {showMode === "grid" ? (
-        <GridView data={filteredData} />
-      ) : (
-        <DataTable
-          data={filteredData}
-          columns={columns}
-          onSelectionChange={onSelectionChange}
-        />
-      )}
-      <ToastContainer position="bottom-center" transition={Slide} />
-    </div>
-  );
+  // Ensure filteredData is always an array
+  const safeFilteredData = Array.isArray(filteredData) ? filteredData : [];
+  
+  // Error boundary - if something goes wrong, show error message instead of blank page
+  try {
+    return (
+      <div className="tab-content">
+        {showMode === "grid" ? (
+          <GridView data={safeFilteredData} />
+        ) : (
+          <DataTable
+            data={safeFilteredData}
+            columns={columns}
+            onSelectionChange={onSelectionChange}
+          />
+        )}
+        <ToastContainer position="bottom-center" transition={Slide} />
+      </div>
+    );
+  } catch (error) {
+    console.error("[Labels] Render error:", error);
+    return (
+      <div className="tab-content">
+        <div className="loading-container" style={{ color: "#e74c3c" }}>
+          <p>Error loading labels. Please refresh the page.</p>
+          <p style={{ fontSize: "12px", marginTop: "8px" }}>{error.message}</p>
+        </div>
+        <ToastContainer position="bottom-center" transition={Slide} />
+      </div>
+    );
+  }
 }
 
 export default Labels;

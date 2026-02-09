@@ -1,7 +1,7 @@
 // hooks and libraries
 import React, { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../config/api";
 import { toast, ToastContainer } from "react-toastify";
 
 // css
@@ -23,13 +23,18 @@ const UploadTracks = () => {
   const navigate = useNavigate();
 
   // Get release metadata from location state or localStorage as fallback
+  // (Reading from storage ensures Album Name updates if user goes back and edits Release Name.)
   const releaseMetadataFromState = location.state || {};
   const releaseMetadataFromStorage = JSON.parse(
     localStorage.getItem("releaseMetadata") || "{}"
   );
-  const releaseMetadata = Object.keys(releaseMetadataFromState).length > 0 
-    ? releaseMetadataFromState 
+  const releaseMetadata = Object.keys(releaseMetadataFromState).length > 0
+    ? releaseMetadataFromState
     : releaseMetadataFromStorage;
+
+  // Release Name (from Create Release step) → Album Name. Single source of truth; no hardcoded fallback.
+  const albumName =
+    releaseMetadata.releaseTitle ?? releaseMetadata.title ?? "";
   
   // Debug logging
   console.log("UploadTracks - releaseMetadata from state:", releaseMetadataFromState);
@@ -169,13 +174,13 @@ const UploadTracks = () => {
       let nextTrackNumber = 1;
       try {
         // Method 1: Try to get tracks from release endpoint (includes tracks array)
-        const releaseResponse = await axios.get(`/api/releases/${releaseId}`, {
+        const releaseResponse = await api.get(`/api/releases/${releaseId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-        const releaseData = releaseResponse.data?.release || releaseResponse.data;
+        const releaseData = releaseResponse?.release ?? releaseResponse;
         
         // Check if tracks are included in release response
         let existingTracks = [];
@@ -548,7 +553,7 @@ const UploadTracks = () => {
       const trackIds = createdTracks.map(t => t.trackId).filter(id => id);
       if (trackIds.length > 0) {
         const token = localStorage.getItem("jwtToken");
-        await axios.post(`/api/releases/${releaseId}`, {
+        await api.post(`/api/releases/${releaseId}`, {
           trackIds: trackIds,
         }, {
           headers: {
@@ -589,19 +594,23 @@ const UploadTracks = () => {
                 className="cover-art-image"
               />
             </div>
-            {/* Album Info */}
+            {/* Album Info — Release Name from Create Release step; read-only */}
             <div className="preview-info">
               <div className="preview-item">
                 <p>
                   <strong>Album Name</strong>
                 </p>
-                <p>{releaseMetadata.title || "Tunewave"}</p>
+                <p aria-readonly="true" title="From Release Name (Create Release step)">
+                  {albumName || "—"}
+                </p>
               </div>
               <div className="preview-item">
                 <p>
                   <strong>Main Primary Artist</strong>
                 </p>
-                <p>{releaseMetadata.mainPrimaryArtist || "Tunewave"}</p>
+                <p aria-readonly="true">
+                  {releaseMetadata.mainPrimaryArtist ?? "—"}
+                </p>
               </div>
             </div>
           </div>

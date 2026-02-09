@@ -9,6 +9,7 @@ import SystemConfigTab from "../components/enterpriseComponents/SystemConfigTab"
 import Enterprises from "../components/enterpriseComponents/Enterprises";
 import Labels from "../components/enterpriseComponents/Labels";
 import Artists from "../components/enterpriseComponents/Artists";
+import Releases from "../components/enterpriseComponents/Releases";
 import TicketsTab from "../components/enterpriseComponents/TicketsTab";
 import UsersTab from "../components/enterpriseComponents/UsersTab";
 import DSPConfigTab from "../components/enterpriseComponents/DSPConfigTab";
@@ -36,6 +37,10 @@ function EnterpriseCatalogPage() {
   const queryParams = new URLSearchParams(location.search);
   const tab = queryParams.get("tab") || (actualRole === "SuperAdmin" ? "enterprises" : actualRole === "LabelAdmin" ? "artists" : "labels");
   
+  // Release section ids: when on Artists page, these show the Releases table (no separate tab)
+  const RELEASE_SECTION_IDS = ["all-releases", "drafts", "pending", "live", "taken-down", "rejected"];
+  const isReleaseSection = (sectionId) => RELEASE_SECTION_IDS.includes((sectionId || "").toLowerCase());
+
   // Get default section for each tab (first option in sidebar)
   const getDefaultSection = (tabName) => {
     const defaults = {
@@ -63,8 +68,9 @@ function EnterpriseCatalogPage() {
     setActiveTab(section);
   }, [section]);
 
-  // Compute section name
+  // Compute section name (when tab=artists, header shows "Releases" or "Artists" based on selected section)
   const currentSection = useMemo(() => {
+    if (tab === "artists" && isReleaseSection(section)) return "Releases";
     const mapping = {
       enterprise: "Enterprises",
       enterprises: "Enterprises",
@@ -78,7 +84,7 @@ function EnterpriseCatalogPage() {
       "dsp-config": "DSP Config",
     };
     return mapping[tab] || "Enterprise Catalog";
-  }, [tab]);
+  }, [tab, section]);
   
   // Update URL when tab changes to include default section if no section is provided
   useEffect(() => {
@@ -183,7 +189,7 @@ function EnterpriseCatalogPage() {
         <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-label")}>Create Label</button>}
           {currentSection === "Artists" && actualRole === "LabelAdmin" && 
         <button className="btn-gradient" onClick={() => navigate("/enterprise-catalog/create-artist")}>Create Artist</button>}
-          {currentSection === "Artists" && actualRole && (
+          {(currentSection === "Artists" || currentSection === "Releases") && actualRole && (
             actualRole.toLowerCase() === "artist" || 
             actualRole.toLowerCase() === "artistadmin" || 
             actualRole.toLowerCase() === "artist admin" ||
@@ -222,8 +228,17 @@ function EnterpriseCatalogPage() {
             selectedFilter={activeTab}
           />
         )}
-        {tab === "artists" && actualRole === "LabelAdmin" && (
+        {tab === "artists" && actualRole === "LabelAdmin" && !isReleaseSection(activeTab) && (
           <Artists
+            searchItem={searchTerm}
+            showMode={showMode}
+            setTable={setTableData}
+            onSelectionChange={setSelectedRows}
+            selectedFilter={activeTab}
+          />
+        )}
+        {tab === "artists" && actualRole === "LabelAdmin" && isReleaseSection(activeTab) && (
+          <Releases
             searchItem={searchTerm}
             showMode={showMode}
             setTable={setTableData}

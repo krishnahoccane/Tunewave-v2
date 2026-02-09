@@ -167,3 +167,13 @@
   color: #6b21a8;
   border: 1px solid #e6d1ff;
 }
+
+/* Release cover thumbnail (Label Releases table) – 48×48, match Artists list */
+.release-cover-thumb {
+  width: 48px;
+  height: 48px;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}

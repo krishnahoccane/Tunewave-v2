@@ -82,14 +82,18 @@ html {
   font-size: 0.9rem;
   color: #fff;
   border-radius: 16px;
-  background: linear-gradient(99.78deg, #1278bb -5.85%, #13a89e 109.55%);
+  /* Use CSS variables for dynamic branding colors */
+  background: linear-gradient(99.78deg, var(--login-primary, #1278bb) -5.85%, var(--login-secondary, #13a89e) 109.55%);
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .login-btn:hover {
-  background: linear-gradient(99.78deg, #0f66a0 -5.85%, #0f8c85 109.55%);
+  /* Darken colors on hover using opacity overlay */
+  background: linear-gradient(99.78deg, var(--login-primary, #1278bb) -5.85%, var(--login-secondary, #13a89e) 109.55%);
+  opacity: 0.9;
+  filter: brightness(0.9);
 }
 
 /* ---------------------- Success & Error ---------------------- */
@@ -128,7 +132,7 @@ html {
 /* ---------------------- Right Section ---------------------- */
 .login-right-side {
   flex: 1;
-  background: linear-gradient(217.93deg, #cebe88 -5.84%, #122b4a 106.45%);
+  background: linear-gradient(217.93deg, var(--login-primary, #cebe88) -5.84%, var(--login-secondary, #122b4a) 106.45%);
   position: relative;
   display: flex;
   justify-content: center;
@@ -233,6 +237,14 @@ html {
 }
 
 /* ---------------------- Responsive Layout ---------------------- */
+/* Hide vertical text and right panel on mobile/tablet; show only on desktop (>= 1024px) */
+@media (max-width: 1023px) {
+  .login-vertical-text,
+  .login-right-side {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .login-vertical-text-left,
   .login-vertical-text-right {
@@ -311,7 +323,7 @@ html {
 
 .login-forgot-password {
   font-size: 0.9rem;
-  color: #1278bb;
+  color: var(--login-primary, #1278bb);
   cursor: pointer;
   text-align: center;
 }
@@ -370,7 +382,7 @@ html {
 }
 
 .click-here-link {
-  color: #1278bb;
+  color: var(--login-primary, #1278bb);
   cursor: pointer;
   font-weight: 600;
   text-decoration: none;

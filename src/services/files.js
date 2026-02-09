@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from "../config/api";
 
 // const API_BASE = "/api/auth";
@@ -36,10 +35,7 @@ const getAuthHeaders = () => {
  * @returns {Promise<Object>} Upload initiation response with upload URL and file ID
  */
 export const initiateFileUpload = async (uploadData) => {
-  const response = await axios.post(`${API_BASE}/upload`, uploadData, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.post(`${API_BASE}/upload`, uploadData, { headers: getAuthHeaders() });
 };
 
 /**
@@ -53,10 +49,7 @@ export const initiateFileUpload = async (uploadData) => {
  * @returns {Promise<Object>} Upload completion response
  */
 export const completeFileUpload = async (completeData) => {
-  const response = await axios.post(`${API_BASE}/complete`, completeData, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.post(`${API_BASE}/complete`, completeData, { headers: getAuthHeaders() });
 };
 
 /**
@@ -76,14 +69,10 @@ export const uploadFileDirectly = async ({ releaseId, trackId, fileType, file })
   formData.append('fileType', fileType);
   formData.append('file', file);
   
-  const response = await axios.post(`${API_BASE}`, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
-    },
-    timeout: 600000, // 10 minutes timeout for large files
+  return api.post(`${API_BASE}`, formData, {
+    headers: { Authorization: `Bearer ${token}` },
+    timeout: 600000,
   });
-  return response.data;
 };
 
 /**
@@ -154,40 +143,20 @@ export const uploadAudio = async ({ releaseId, trackId, file }) => {
     try {
       console.log(`[FilesService] Attempt ${i + 1}/${endpointVariations.length}: ${currentEndpoint}`);
       
-      const response = await axios.post(currentUrl, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 600000, // 10 minutes timeout for large files
+      const data = await api.post(currentUrl, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 600000,
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            if (percentCompleted % 25 === 0) { // Log every 25%
+            if (percentCompleted % 25 === 0) {
               console.log(`[FilesService] Upload progress for ${file.name}: ${percentCompleted}%`);
             }
           }
         },
       });
-      
-      // Success
       console.log(`[FilesService] ✅ Upload successful with endpoint: ${currentEndpoint}`);
-      console.log(`[FilesService] POST ${currentUrl} response status: ${response.status}`);
-      console.log(`[FilesService] POST ${currentUrl} response headers:`, response.headers);
-      console.log(`[FilesService] POST ${currentUrl} response data:`, response.data);
-      console.log(`[FilesService] Full response object:`, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        data: response.data,
-        config: {
-          url: response.config.url,
-          method: response.config.method,
-          headers: response.config.headers,
-        },
-      });
-      
-      return response.data;
+      return data;
       
     } catch (error) {
       lastError = error;
@@ -329,10 +298,7 @@ export const getFiles = async (filters = {}) => {
   const queryString = params.toString();
   const url = queryString ? `${API_BASE}?${queryString}` : API_BASE;
   
-  const response = await axios.get(url, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.get(url, { headers: getAuthHeaders() });
 };
 
 /**
@@ -341,10 +307,7 @@ export const getFiles = async (filters = {}) => {
  * @returns {Promise<Object>} File object
  */
 export const getFileById = async (fileId) => {
-  const response = await axios.get(`${API_BASE}/${fileId}`, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.get(`${API_BASE}/${fileId}`, { headers: getAuthHeaders() });
 };
 
 /**
@@ -363,10 +326,7 @@ export const getFilePlayUrl = (fileId) => {
  * @returns {Promise<Object>} Response data
  */
 export const deleteFile = async (fileId) => {
-  const response = await axios.delete(`${API_BASE}/${fileId}`, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
+  return api.delete(`${API_BASE}/${fileId}`, { headers: getAuthHeaders() });
 };
 
 // Export all file functions as default object for convenience

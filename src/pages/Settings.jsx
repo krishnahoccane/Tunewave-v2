@@ -22,9 +22,9 @@ const Settings = ({ user, setUser }) => {
   );
 
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "Prashanth",
-    lastName: user?.lastName || "Varma",
-    email: user?.email || "prashanthmusic@gmail.com",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -34,6 +34,78 @@ const Settings = ({ user, setUser }) => {
   const [greeting, setGreeting] = useState("");
   const [time, setTime] = useState("");
   const fileInputRef = useRef(null);
+
+  // Fetch user data from API
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) {
+        console.error("No JWT token found");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/users/me", {
+          method: "GET",
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          console.error("Error fetching user details:", response.status, response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+
+        console.log("[Settings] User data from API:", data);
+        console.log("[Settings] Full Name:", data.fullName);
+        console.log("[Settings] Email:", data.email);
+
+        // Split fullName into firstName and lastName if it exists
+        let firstName = "";
+        let lastName = "";
+        if (data.fullName) {
+          const nameParts = data.fullName.trim().split(/\s+/);
+          if (nameParts.length > 1) {
+            firstName = nameParts[0];
+            lastName = nameParts.slice(1).join(" ");
+          } else {
+            firstName = data.fullName;
+            lastName = "";
+          }
+        }
+
+        // Update form data with API response
+        setFormData((prev) => ({
+          ...prev,
+          firstName: firstName || data.firstName || prev.firstName || "",
+          lastName: lastName || data.lastName || prev.lastName || "",
+          email: data.email || prev.email || "",
+        }));
+
+        // Update profile name display
+        if (data.fullName) {
+          // Update parent user state if setUser is available
+          if (setUser) {
+            setUser((prev) => ({
+              ...prev,
+              firstName: firstName,
+              lastName: lastName,
+              fullName: data.fullName,
+              email: data.email,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("[Settings] Error fetching user details:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [setUser]);
 
   // Greeting + Time
   useEffect(() => {
@@ -147,7 +219,7 @@ const Settings = ({ user, setUser }) => {
             style={{ display: "none" }}
           />
         </div>
-        <h3 className="profile-name">{formData.firstName}</h3>
+        <h3 className="profile-name">{formData.firstName} {formData.lastName}</h3>
       </div>
 
       <div className="form-section ">

@@ -4,28 +4,68 @@ import { FaSoundcloud, FaSpotify, FaMusic } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import { FcApproval } from "react-icons/fc";
 import { toast, ToastContainer, Slide } from "react-toastify";
-const initialOptions = {
-  primaryArtist: ["Kavya", "Venala", "Isha", "Krishna"],
-  producer: ["Producer1", "Producer2", "Producer3"],
-  director: ["Director1", "Director2"],
-  composer: ["Composer1", "Composer2", "Composer3"],
-  lyricist: ["Lyricist1", "Lyricist2"],
+import { createArtist as createArtistApi } from "../services/artists";
+
+// Primary Artist: min 1, max 4. Same artist cannot be added twice to the same role.
+const MAX_PRIMARY_ARTISTS = 4;
+
+const CONTRIBUTOR_CATEGORIES = [
+  "primaryArtist",
+  "featuredArtist",
+  "producer",
+  "director",
+  "composer",
+  "lyricist",
+];
+const CATEGORY_LABELS = {
+  primaryArtist: "Primary Artist",
+  featuredArtist: "Featured Artist",
+  producer: "Producer",
+  director: "Director",
+  composer: "Composer",
+  lyricist: "Lyricist",
 };
 
-const ContributorsSection = ({ contributors: externalContributors, onContributorsChange }) => {
-  // Use external contributors if provided, otherwise use internal state
+/** Ensure value is a string safe for React (never render objects in <option>) */
+const toDisplayString = (v) => {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number") return String(v);
+  return "";
+};
+
+/** Normalize artist so artistId and artistName are always primitives for rendering */
+const normalizeArtist = (a) => {
+  if (a == null || typeof a !== "object") return null;
+  const artistId = a.artistId ?? a.artistID;
+  const rawName = a.artistName ?? a.stageName ?? a.name;
+  const artistName = toDisplayString(rawName) || "Unnamed Artist";
+  if (artistId == null) return null;
+  return {
+    artistId: typeof artistId === "object" ? String(artistId) : artistId,
+    artistName,
+  };
+};
+
+const ContributorsSection = ({
+  artistsList = [],
+  loadingArtists = false,
+  contributors: externalContributors,
+  onContributorsChange,
+  onRefreshArtists,
+  onCreateArtist,
+}) => {
   const [internalContributors, setInternalContributors] = useState({
     primaryArtist: [],
+    featuredArtist: [],
     producer: [],
     director: [],
     composer: [],
     lyricist: [],
   });
-  
-  // Use external contributors if provided, otherwise use internal
+
   const contributors = externalContributors || internalContributors;
-  
-  // Wrapper function to update both internal and external state
+
   const setContributors = (newContributors) => {
     if (onContributorsChange) {
       onContributorsChange(newContributors);
@@ -34,328 +74,335 @@ const ContributorsSection = ({ contributors: externalContributors, onContributor
     }
   };
 
-  // Sync internal state when external contributors change (for restoration)
   useEffect(() => {
     if (externalContributors) {
       setInternalContributors(externalContributors);
     }
   }, [externalContributors]);
 
-  const [platformBeingEdited, setPlatformBeingEdited] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [currentCategory, setCurrentCategory] = useState("");
-  const [selectedName, setSelectedName] = useState("");
+  const [selectedArtistId, setSelectedArtistId] = useState("");
   const [isNew, setIsNew] = useState(false);
-
-  // linkedProfiles now stores both url and linked status
+  const [newStageName, setNewStageName] = useState("");
   const [linkedProfiles, setLinkedProfiles] = useState({});
-  // e.g., { SoundCloud: { url: "", linked: false }, Spotify: {...} }
+  const [platformBeingEdited, setPlatformBeingEdited] = useState(null);
+
+  const primaryArtistCount = (contributors.primaryArtist || []).length;
+  const primaryArtistAtMax = primaryArtistCount >= MAX_PRIMARY_ARTISTS;
 
   const openAddModal = (cat) => {
+    if (cat === "primaryArtist" && primaryArtistAtMax) return;
     setCurrentCategory(cat);
-    setSelectedName("");
+    setSelectedArtistId("");
     setIsNew(false);
-    setPlatformBeingEdited(null);
+    setNewStageName("");
     setLinkedProfiles({});
+    setPlatformBeingEdited(null);
     setShowModal(true);
   };
 
-  const addContributor = () => {
-    if (isNew && !selectedName.trim()) {
-      toast.dark(`Please enter a new ${currentCategory} name!`, {
-        transition: Slide,
-      });
-      return;
-    }
-    if (!selectedName.trim()) return;
-
-    const exists = contributors[currentCategory].some(
-      (c) => c.name.toLowerCase() === selectedName.toLowerCase()
+  const isDuplicateInCategory = (category, artistId) =>
+    (contributors[category] || []).some(
+      (c) => String(c.artistId ?? c.artistID) === String(artistId)
     );
 
-    if (exists) {
-      toast.dark("Contributor already added!", { transition: Slide });
+  const addContributor = async () => {
+    if (isNew) {
+      const name = newStageName.trim();
+      if (!name) {
+        toast.dark("Please enter a stage name for the new artist.", { transition: Slide });
+        return;
+      }
+      // Build profile URLs for artist creation (optional; saved in background with artist)
+      const profileUrls = {
+        soundCloudUrl: (linkedProfiles["SoundCloud"]?.url || "").trim() || undefined,
+        spotifyUrl: (linkedProfiles["Spotify"]?.url || "").trim() || undefined,
+        appleMusicUrl: (linkedProfiles["Apple Music"]?.url || "").trim() || undefined,
+      };
+
+      const doAddCreatedArtist = (created) => {
+        const artistId = created?.artistId ?? created?.artistID;
+        const artistName = toDisplayString(created?.artistName ?? created?.stageName ?? name) || name;
+        if (artistId == null) return;
+        if (isDuplicateInCategory(currentCategory, artistId)) {
+          toast.dark("This artist is already added to this role.", { transition: Slide });
+          return;
+        }
+        setContributors((prev) => {
+          const list = prev[currentCategory] || [];
+          if (currentCategory === "primaryArtist" && list.length >= MAX_PRIMARY_ARTISTS) return prev;
+          return {
+            ...prev,
+            [currentCategory]: [...list, { artistId, artistName }],
+          };
+        });
+        setShowModal(false);
+      };
+
+      if (onCreateArtist) {
+        // Parent-provided handler (e.g. Create Release): optimistic UI, background API
+        onCreateArtist(name, profileUrls)
+          .then(doAddCreatedArtist)
+          .catch((e) => {
+            toast.dark(e?.message || "Failed to create artist.", { transition: Slide });
+          });
+      } else {
+        // Default: call API directly (e.g. Track modal) – same UX, non-blocking
+        createArtistApi({ publicProfileName: name, ...profileUrls })
+          .then(doAddCreatedArtist)
+          .catch((e) => {
+            toast.dark(e?.message || "Failed to create artist.", { transition: Slide });
+          });
+      }
       return;
     }
 
-    setContributors((prev) => ({
-      ...prev,
-      [currentCategory]: [
-        ...prev[currentCategory],
-        {
-          name: selectedName.trim(),
-          profiles: linkedProfiles,
-        },
-      ],
-    }));
+    const artistId = selectedArtistId !== "" && selectedArtistId != null ? selectedArtistId : null;
+    if (artistId == null) {
+      toast.dark("Please select an artist.", { transition: Slide });
+      return;
+    }
+    const safeArtist = safeArtists.find((a) => String(a.artistId) === String(artistId));
+    const artistName = safeArtist ? safeArtist.artistName : toDisplayString(artistsList?.find((a) => String(a.artistId ?? a.artistID) === String(artistId))?.artistName ?? "") || "Unnamed Artist";
 
-    // Reset modal state
-    setSelectedName("");
-    setIsNew(false);
+    if (isDuplicateInCategory(currentCategory, artistId)) {
+      toast.dark("This artist is already added to this role.", { transition: Slide });
+      return;
+    }
+
+    setContributors((prev) => {
+      const list = prev[currentCategory] || [];
+      if (currentCategory === "primaryArtist" && list.length >= MAX_PRIMARY_ARTISTS) return prev;
+      return {
+        ...prev,
+        [currentCategory]: [...list, { artistId, artistName }],
+      };
+    });
+
+    setSelectedArtistId("");
     setLinkedProfiles({});
     setPlatformBeingEdited(null);
     setShowModal(false);
   };
 
-  const removeContributor = (category, name) => {
+  const removeContributor = (category, item) => {
+    const id = item.artistId ?? item.artistID;
+    const name = item.artistName ?? item.name;
     setContributors((prev) => ({
       ...prev,
-      [category]: prev[category].filter((c) => c.name !== name),
+      [category]: (prev[category] || []).filter(
+        (c) => String(c.artistId ?? c.artistID) !== String(id) || (c.artistName ?? c.name) !== name
+      ),
     }));
   };
 
-  const hasContributors = Object.values(contributors).some(
-    (list) => list.length > 0
+  const hasContributors = CONTRIBUTOR_CATEGORIES.some(
+    (cat) => (contributors[cat] || []).length > 0
   );
+
+  // Normalize artists so <option> never receives objects (prevents "Objects are not valid as a React child")
+  const artistsArray = Array.isArray(artistsList) ? artistsList : [];
+  const safeArtists = artistsArray
+    .map(normalizeArtist)
+    .filter((a) => a != null);
 
   return (
     <div className="contributors-section section">
       <h3>Contributors <span className="required">*</span></h3>
 
+      {/* Add contributor buttons – same UX; Primary Artist max 4 */}
       <div className="contributors-options-row">
-        {["primaryArtist", "producer", "director", "composer", "lyricist"].map(
-          (cat) => (
+        {CONTRIBUTOR_CATEGORIES.map((cat) => (
+          <span key={cat} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
             <button
-              key={cat}
+              type="button"
               className="btn-cancel"
               onClick={() => openAddModal(cat)}
+              disabled={loadingArtists || (cat === "primaryArtist" && primaryArtistAtMax)}
+              title={cat === "primaryArtist" && primaryArtistAtMax ? "You can add up to 4 Primary Artists only." : undefined}
             >
-              + Add {cat === "primaryArtist" ? "Main Primary Artist" : cat}
+              + Add {CATEGORY_LABELS[cat]}
+              {cat === "primaryArtist" ? " *" : ""}
             </button>
-          )
-        )}
+            {cat === "primaryArtist" && primaryArtistAtMax && (
+              <span style={{ fontSize: 12, color: "#666" }}>You can add up to 4 Primary Artists only.</span>
+            )}
+          </span>
+        ))}
       </div>
 
       {showModal && (
         <div className="contributors-modal-overlay">
           <div className="contributors-modal-content">
-            <h3>Add {currentCategory}</h3>
+            <h3>Add {CATEGORY_LABELS[currentCategory]}{currentCategory === "primaryArtist" ? " *" : ""}</h3>
 
-            {/* Existing Dropdown */}
-            <select
-              value={isNew ? "" : selectedName}
-              onChange={(e) => {
-                setIsNew(false);
-                setSelectedName(e.target.value);
-              }}
-              className="dropdown-select"
-            >
-              <option value="">Select Existing</option>
-              {initialOptions[currentCategory].map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-
-            {/* Add New */}
-            <button
-              className="btn-gradient" style={{ marginTop: "2vh", marginLeft: "auto"}}
-              onClick={() => {
-                setIsNew(true);
-                setSelectedName("");
-                setLinkedProfiles({});
-                setPlatformBeingEdited(null);
-              }}
-            >
-              + Add New
-            </button>
-
-            {/* New Contributor Input */}
-            {isNew && (
+            {!isNew ? (
               <>
-                <div className="input-container section">
-                  <label
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    Enter new {currentCategory} Name{" "}
-                    <span className="required">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    className="dropdown-input"
-                    placeholder={`Enter new ${currentCategory} Name`} // optional placeholder
-                    value={selectedName}
-                    onChange={(e) => setSelectedName(e.target.value)}
-                  />
-                </div>
-                <div className="profile-box">
-                  <p
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    Artist Profiles
+                <select
+                  className="dropdown-select"
+                  value={selectedArtistId}
+                  onChange={(e) => setSelectedArtistId(e.target.value)}
+                >
+                  <option value="">Select artist</option>
+                  {safeArtists.map((a) => (
+                    <option
+                      key={String(a.artistId)}
+                      value={String(a.artistId)}
+                    >
+                      {a.artistName}
+                    </option>
+                  ))}
+                </select>
+                {safeArtists.length === 0 && (
+                  <p style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
+                    No artists yet. Create one below.
                   </p>
-
-                  {[
-                    {
-                      name: "SoundCloud",
-                      icon: <FaSoundcloud color="#ff7700" size={22} />,
-                    },
-                    {
-                      name: "Spotify",
-                      icon: <FaSpotify color="#1DB954" size={22} />,
-                    },
-                    {
-                      name: "Apple Music",
-                      icon: <FaMusic color="#ff0066" size={22} />,
-                    },
-                  ].map(({ name, icon }) => {
-                    const platformData = linkedProfiles[name] || {
-                      url: "",
-                      linked: false,
-                    };
-                    const isLinked = platformData.linked;
-
-                    return (
-                      <div key={name} className="profile-row">
-                        <div className="profile-header">
-                          <div className="profile-left">
-                            {icon}
-                            <span className="profile-label">{name}</span>
-                          </div>
-
-                          <button
-                            className={`contributors-btn-link-profile ${
-                              isLinked ? "linked" : ""
-                            }`}
-                            onClick={() => setPlatformBeingEdited(name)}
-                          >
-                            {isLinked ? (
-                              <>
-                                <FcApproval style={{ marginRight: "6px" }} />{" "}
-                                Linked
-                              </>
-                            ) : (
-                              "Link Profile"
-                            )}
-                          </button>
-                        </div>
-
-                        {platformBeingEdited === name && (
-                          <div className="profile-input-row">
-                            <input
-                              type="text"
-                              className="profile-url-input"
-                              placeholder={`Enter ${name} URL`}
-                              value={platformData.url}
-                              onChange={(e) =>
-                                setLinkedProfiles((prev) => ({
-                                  ...prev,
-                                  [name]: {
-                                    ...prev[name],
-                                    url: e.target.value,
-                                    linked: prev[name]?.linked || false,
-                                  },
-                                }))
-                              }
-                              onKeyDown={(e) => {
-                                if (
-                                  e.key === "Enter" &&
-                                  platformData.url.trim() !== ""
-                                ) {
-                                  setLinkedProfiles((prev) => ({
-                                    ...prev,
-                                    [name]: { ...prev[name], linked: true },
-                                  }));
-                                  setPlatformBeingEdited(null);
-                                }
-                              }}
-                            />
-
-                            <button
-                              className="btn-gradient"
-                              onClick={() => {
-                                if (platformData.url.trim() !== "") {
-                                  setLinkedProfiles((prev) => ({
-                                    ...prev,
-                                    [name]: { ...prev[name], linked: true },
-                                  }));
-                                  setPlatformBeingEdited(null);
-                                }
-                              }}
-                              style={{
-                                fontSize: "12px",
-                                fontWeight: 500,
-                                padding: "3px 4px",
-                                minWidth: "60px",
-                                // height: "28px",
-                              }}
-                            >
-                              link
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                )}
               </>
+            ) : (
+              <div className="input-container section">
+                <label>New artist stage name <span className="required">*</span></label>
+                <input
+                  type="text"
+                  className="dropdown-input"
+                  placeholder="Enter stage name"
+                  value={newStageName}
+                  onChange={(e) => setNewStageName(e.target.value)}
+                />
+              </div>
             )}
 
-            <div className="form-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setShowModal(false)}
-              >
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              {!isNew ? (
+                <button
+                  type="button"
+                  className="btn-gradient"
+                  onClick={() => {
+                    setIsNew(true);
+                    setSelectedArtistId("");
+                    setNewStageName("");
+                  }}
+                >
+                  + Add New Artist
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setIsNew(false);
+                    setNewStageName("");
+                    setLinkedProfiles({});
+                    setPlatformBeingEdited(null);
+                  }}
+                >
+                  Choose existing
+                </button>
+              )}
+            </div>
+
+            {/* Artist Profiles: ONLY when creating a new artist (Add New Artist flow) */}
+            {isNew && (
+              <div className="profile-box" style={{ marginTop: 16 }}>
+                <p>Artist Profiles (optional)</p>
+                {[
+                  { name: "SoundCloud", icon: <FaSoundcloud color="#ff7700" size={22} /> },
+                  { name: "Spotify", icon: <FaSpotify color="#1DB954" size={22} /> },
+                  { name: "Apple Music", icon: <FaMusic color="#ff0066" size={22} /> },
+                ].map(({ name, icon }) => {
+                  const platformData = linkedProfiles[name] || { url: "", linked: false };
+                  return (
+                    <div key={name} className="profile-row">
+                      <div className="profile-header">
+                        <div className="profile-left">
+                          {icon}
+                          <span className="profile-label">{name}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className={`contributors-btn-link-profile ${platformData.linked ? "linked" : ""}`}
+                          onClick={() => setPlatformBeingEdited(platformBeingEdited === name ? null : name)}
+                        >
+                          {platformData.linked ? <><FcApproval style={{ marginRight: 6 }} /> Linked</> : "Link Profile"}
+                        </button>
+                      </div>
+                      {platformBeingEdited === name && (
+                        <div className="profile-input-row">
+                          <input
+                            type="text"
+                            className="profile-url-input"
+                            placeholder={`Enter ${name} URL`}
+                            value={platformData.url}
+                            onChange={(e) =>
+                              setLinkedProfiles((prev) => ({
+                                ...prev,
+                                [name]: { ...prev[name], url: e.target.value, linked: prev[name]?.linked || false },
+                              }))
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="btn-gradient"
+                            onClick={() =>
+                              setLinkedProfiles((prev) => ({
+                                ...prev,
+                                [name]: { ...prev[name], linked: true },
+                              }))
+                            }
+                          >
+                            link
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="form-actions" style={{ marginTop: 16 }}>
+              <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>
                 Cancel
               </button>
-              <button className="btn-gradient" onClick={addContributor}>
-                Add {currentCategory}
+              <button
+                type="button"
+                className="btn-gradient"
+                onClick={addContributor}
+                disabled={(!isNew && !selectedArtistId) || (isNew && !newStageName.trim())}
+              >
+                {`Add ${CATEGORY_LABELS[currentCategory]}`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Display Selected Contributors */}
+      {/* Display: all contributors (same chip UX for Primary Artist and others) */}
       {hasContributors && (
-        <div
-          // style={{border: "1px solid black"}}
-
-          className="selected-contributors"
-        >
-          {Object.keys(contributors).map(
+        <div className="selected-contributors">
+          {CONTRIBUTOR_CATEGORIES.map(
             (cat) =>
-              contributors[cat].length > 0 && (
-                <div key={cat}>
-                  <span
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      gap: "10px",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <strong>
-                      {/* {cat} : */}
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)} :
-                    </strong>
-                    <div className="pill-container">
-                      {contributors[cat].map((c) => (
-                        <span key={c.name} className="contributor-pill">
-                          {/* {c.name} */}
-                          {c.name.charAt(0).toUpperCase() + c.name.slice(1)}
+              (contributors[cat] || []).length > 0 && (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <strong>{CATEGORY_LABELS[cat]}{cat === "primaryArtist" ? " *" : ""}:</strong>
+                  <div className="pill-container">
+                    {(contributors[cat] || []).map((c) => {
+                      const name = toDisplayString(c.artistName ?? c.name) || "—";
+                      return (
+                        <span key={`${cat}-${c.artistId ?? c.artistID}-${name}`} className="contributor-pill">
+                          {name}
                           <button
-                            onClick={() => removeContributor(cat, c.name)}
+                            type="button"
+                            onClick={() => removeContributor(cat, c)}
                             className="required"
-                            // style={{justifyContent: "center", alignItems: "center"}}
                           >
                             <FaXmark />
                           </button>
                         </span>
-                      ))}
-                    </div>
-                  </span>
+                      );
+                    })}
+                  </div>
                 </div>
               )
           )}
